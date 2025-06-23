@@ -13,11 +13,11 @@ export const Header = () => {
         { name: "Chabat House", hasDropdown: true },
         { name: "Visiting Panama", hasDropdown: true },
         { name: "About us", hasDropdown: false, path: "/about" },
-        { name: "Contact", hasDropdown: false, path: "/contact"}
+        { name: "Contact", hasDropdown: false, path: "/contact" }
     ];
 
     return (
-        <header className="w-full bg-white shadow-sm">
+        <header className="w-full bg-white">
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
@@ -44,7 +44,7 @@ export const Header = () => {
 
                                     {/* Dropdown (ejemplo) */}
                                     {item.hasDropdown && (
-                                        <div className="absolute hidden group-hover:block pt-2 left-0 w-48 bg-white shadow-lg rounded-md z-10">
+                                        <div className="absolute hidden group-hover:block pt-2 left-0 w-48 bg-white  rounded-md z-10">
                                             <div className="py-1">
                                                 <a href="#" className="block px-4 py-2 text-sm text-gray-text hover:bg-blueBackground">
                                                     Submenu Item
@@ -66,10 +66,10 @@ export const Header = () => {
                             </button>
 
                             {/* Botón Donate */}
-                            <button className="hidden md:flex items-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
+                            <Link href="/donation" className="hidden md:flex items-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
                                 <FaHeart className="mr-2" />
                                 <span className="text-sm font-bold">Donate</span>
-                            </button>
+                            </Link>
 
                             {/* Menú móvil */}
                             <button

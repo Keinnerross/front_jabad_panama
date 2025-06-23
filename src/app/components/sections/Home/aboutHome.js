@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { FaWhatsapp, FaCheck } from "react-icons/fa";
+import { ButtonTheme } from "../../ui/buttonTheme";
 
 export const AboutHome = () => {
   return (
@@ -21,7 +22,7 @@ export const AboutHome = () => {
             </h1>
 
             {/* Description */}
-            <p className="text-gray-text text-base md:text-lg mb-8 leading-relaxed">
+            <p className="text-gray-text text-base  mb-8 leading-relaxed">
               At Chabad of Panama City, we don't just celebrate Shabbat—we create
               lasting experiences. From our exclusive Lavazza Coffee Corner to
               joyful children's programs, every detail is designed to make you
@@ -30,7 +31,7 @@ export const AboutHome = () => {
             </p>
 
             {/* WhatsApp Link */}
-            <div className="flex items-center gap-3 mb-12 lg:mb-16">
+            <div className="flex items-center gap-3 mb-12 ">
               <FaWhatsapp className="text-2xl text-green-500" />
               <a
                 href="#"
@@ -40,33 +41,38 @@ export const AboutHome = () => {
               </a>
             </div>
 
-            {/* Bottom Image */}
-            <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-lg overflow-hidden bg-red-300">
-              {/* Replace with Next Image */}
-              <div className="w-full h-full bg-red-300" />
+            {/*  Images */}
+            <div className="space-y-12">
+              <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden bg-red-300">
+                {/* Replace with Next Image */}
+                <div className="w-full h-full bg-red-300" />
+              </div>
+
+              <div className="relative w-full h-64 md:h-80 lg:h-[500px] rounded-2xl overflow-hidden mb-6 bg-red-300">
+                {/* Replace with Next Image */}
+                <div className="w-full h-full bg-red-300" />
+              </div>
             </div>
           </div>
 
           {/* Right Column - Images and Content */}
           <div className="relative order-2">
             {/* CTA Button - Floating */}
-            <div className="flex justify-end">
+            <div className="flex justify-end items-center h-36 ">
 
-              <div className=" bg-primary px-6 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-colors mb-20">
-                <span className="text-white font-bold text-lg">
-                  Join Our Shabbat Table!
-                </span>
-              </div>
+             <ButtonTheme title="Join our Shabbat Table!" variation={3}/>
             </div>
 
             {/* Main Image */}
-            <div className="relative w-full h-64 md:h-80 lg:h-[500px] rounded-lg overflow-hidden mb-6 bg-red-300">
+            <div className="relative w-full h-64 md:h-80 lg:h-[700px] rounded-2xl overflow-hidden mb-6 bg-red-300">
               {/* Replace with Next Image */}
               <div className="w-full h-full bg-red-300" />
             </div>
 
+
+
             {/* Description */}
-            <p className="text-gray-text text-base md:text-lg mb-8 leading-relaxed">
+            <p className="text-gray-text text-base mt-12 mb-12 leading-relaxed">
               Whether you're visiting Panama or live here year-round, our Shabbat
               is your Shabbat. Connect with new friends, swap stories over
               homemade challah, and find a sense of belonging that stays with

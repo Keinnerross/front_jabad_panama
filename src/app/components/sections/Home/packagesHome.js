@@ -1,27 +1,32 @@
 import React from "react";
 import Image from "next/image";
 import { FiArrowRight } from "react-icons/fi";
+import { ButtonTheme } from "../../ui/buttonTheme";
+import { GoTriangleRight } from "react-icons/go";
 
-export const PackagesHome = () => {
+
+export const PackagesHome = ({ showVideo = true }) => {
   return (
     <div className="w-full bg-blueBackground">
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-12 md:py-24">
+      <section className={`max-w-7xl mx-auto px-4 ${showVideo ? "pt-16 pb-8" : "py-16"}`}>
         <div className="flex flex-col lg:flex-row gap-12 items-center">
           {/* Text Content */}
-          <div className="lg:w-5/12">
+          <div className="lg:w-5/12 flex flex-col">
             <h1 className="text-3xl md:text-4xl font-bold text-myBlack mb-6">
               Everything you wanted to know About Chabad of Panama City
             </h1>
-            <p className="text-gray-text text-base md:text-lg mb-8 leading-relaxed">
+            <p className="text-gray-text text-base md:text-base mb-8 leading-relaxed">
               Make the most of your trip with curated experiences designed for Jewish travelers. Whether you're visiting for Shabbat, a holiday, or just looking to explore Panama with peace of mind, our packages combine adventure, comfort, and kosher-friendly services—from tours and cultural spots to relaxing nature getaways.
               <br /><br />
               Let us help you plan a trip that's meaningful, exciting, and easy.
             </p>
-            <button className="flex items-center gap-2 px-6 py-3 border-2 border-darkBlue rounded-lg text-darkBlue font-medium hover:bg-darkBlue hover:text-white transition-colors">
-              Explore Packages <FiArrowRight />
-            </button>
+            <div>
+              <ButtonTheme variation={2} title="Explore Packages" />
+            </div>
+
           </div>
+
 
           {/* Image Grid */}
           <div className="lg:w-7/12 relative h-[500px] md:h-[600px]">
@@ -38,24 +43,33 @@ export const PackagesHome = () => {
       </section>
 
       {/* Video Section */}
-      <section className="bg-blueBackground py-12 md:py-24">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-darkBlue text-center mb-12">
-            Everything about our packages
-          </h2>
-          
-          <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full max-w-5xl mx-auto">
-            {/* Video Placeholder */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary flex items-center justify-center">
-                  <FiArrowRight className="text-white text-2xl md:text-3xl" />
+
+      <div className={showVideo ? "block" : "hidden"}>
+        <section className="bg-blueBackground pt-8 pb-16 flex justify-center items-center">
+          <div className="w-full max-w-7xl px-4">
+
+            {/* Header Video Section */}
+            <div className="w-full flex justify-between items-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">
+                Everything about our packages
+              </h2>
+
+              <ButtonTheme title="Check Details" />
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full max-w-7xl">
+              {/* Video Placeholder */}
+              <div className="absolute inset-0 flex items-center justify-center ">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-10 border-white  bg-opacity-20 flex items-center justify-center">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center">
+                    <GoTriangleRight className="text-white text-7xl ml-2" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };

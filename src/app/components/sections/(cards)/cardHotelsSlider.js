@@ -2,9 +2,9 @@ import React from "react";
 import Image from "next/image";
 import { FaMapMarkerAlt, FaHotel, FaBuilding, FaHome } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
-import { ButtonTheme } from "../../ui/buttonTheme";
+import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { LocationIcon } from "../../ui/icons/locationIcon";
-import { CategoryTag } from "../../ui/categoryTag";
+import { CategoryTag } from "../../ui/common/categoryTag";
 
 export const CardHotelsSlider = ({ hotel }) => {
     return (

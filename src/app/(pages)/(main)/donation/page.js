@@ -1,4 +1,4 @@
-import { ButtonTheme } from "@/app/components/ui/buttonTheme";
+import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import React, { Fragment } from "react";
 import { FaCheck } from "react-icons/fa";
 

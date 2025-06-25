@@ -9,6 +9,7 @@
   --primary: #FC5761;
   --middleBlue: #0A1F48;
   --myBlack: #1E1E1E;
+  --colorStars: #FBBA3D;
   --font-sans: "Inter", sans-serif;
 }
 
@@ -21,6 +22,7 @@
   --color-gray-text: var(--gray-text);
   --color-middleBlue: var(--middleBlue);
   --color-myBlack: var(--myBlack);
+  --color-colorStars: var(--colorStars)
   --font-sans: var(--font-sans);
 }
 
@@ -28,4 +30,12 @@ body {
   background: var(--background);
   color: var(--myBlack);
   font-family: Outfit, Helvetica, sans-serif;
+}
+
+.tourist-content a {
+  @apply text-primary underline hover:text-darkBlue transition-colors;
+}
+
+input{
+  outline: none;
 }

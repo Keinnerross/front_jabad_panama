@@ -1,4 +1,4 @@
-import { ButtonTheme } from "../../ui/buttonTheme"
+import { ButtonTheme } from "../../ui/common/buttonTheme"
 
 export const MapSection = () => {
 

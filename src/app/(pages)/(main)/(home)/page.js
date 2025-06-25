@@ -14,7 +14,7 @@ export default function Home() {
       <Hero />
       <AboutHome />
       <FoodHomeSlider />
-      <PackagesHome />
+      <PackagesHome href="/packages"/>
       <HotelHomeSlider />
       <AtractionsHome/>
       <MapSection />

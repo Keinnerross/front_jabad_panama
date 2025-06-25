@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
-import { ButtonTheme } from "@/app/components/ui/buttonTheme";
+import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 
 export default function About() {
     return (

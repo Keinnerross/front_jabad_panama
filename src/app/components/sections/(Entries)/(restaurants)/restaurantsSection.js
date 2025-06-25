@@ -1,16 +1,8 @@
-import React, { Fragment } from "react";
-import Image from "next/image";
-import { EntryLayout } from "@/app/components/sections/(Entries)/entryLayout";
-import { CardEntry } from "@/app/components/sections/(cards)/cardEntry";
-import { HeroActivities } from "@/app/components/sections/Activities/heroActivities";
-import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
-import { WhyPackagesSection } from "@/app/components/sections/Packages/whyPackagesSection";
-import { NewsletterSection } from "@/app/components/sections/Common/newsletterSection";
-import { ActivitiesSecundarySection } from "@/app/components/sections/Activities/activitiesSecundarySection";
+import { CardEntry } from "../../(cards)/cardEntry";
+import { EntryLayout } from "../entryLayout";
 
+export const RestaurantsSection = () => {
 
-export default function Restaurants() {
-    // Content data - can be moved to a separate file or fetched from CMS
     const contentItems = [
         {
             id: 1,
@@ -67,32 +59,12 @@ export default function Restaurants() {
             image: "/the-ultimate-travel-guide-for-miami-florida.png"
         }
     ];
+
     return (
-        <Fragment>
-            {/* HERO */}
-            <section className="relative flex flex-col items-center w-full bg-white ">
-                <HeroActivities />
-                {/* Decorative background elements */}
-                <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div>
-
-                <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div>
-            </section>
-            <EntryLayout>
-                {contentItems.map((item) => (
-                    <CardEntry key={item.id} item={item} />
-                ))}
-            </EntryLayout>
-            <PackagesHome showVideo={false} isHero={false} />
-            <WhyPackagesSection />
-            <NewsletterSection />
-            <ActivitiesSecundarySection />
-        </Fragment >
-    );
-};
-
-
-
+        <EntryLayout>
+            {contentItems.map((item) => (
+                <CardEntry key={item.id} item={item} />
+            ))}
+        </EntryLayout>
+    )
+}

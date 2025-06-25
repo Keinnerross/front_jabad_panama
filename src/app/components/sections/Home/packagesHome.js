@@ -1,11 +1,17 @@
 import React from "react";
 import Image from "next/image";
-import { FiArrowRight } from "react-icons/fi";
-import { ButtonTheme } from "../../ui/buttonTheme";
+import { FaCheckCircle } from "react-icons/fa";
+import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { GoTriangleRight } from "react-icons/go";
 
 
-export const PackagesHome = ({ showVideo = true }) => {
+export const PackagesHome = ({ showVideo = true, isHero = true, href = "#" }) => {
+
+  const data = {
+    packages: ["Gold", "Platinum", "Ultra Luxury"]
+  }
+
+
   return (
     <div className="w-full bg-blueBackground">
       {/* Hero Section */}
@@ -21,22 +27,42 @@ export const PackagesHome = ({ showVideo = true }) => {
               <br /><br />
               Let us help you plan a trip that's meaningful, exciting, and easy.
             </p>
-            <div>
-              <ButtonTheme variation={2} title="Explore Packages" />
+
+
+            <div className={`flex gap-4 items-center mb-6 ${!isHero && "hidden"}`}>
+              {data?.packages.map((item, i) => (
+                <div className="flex gap-1 items-center" key={i}>
+                  <FaCheckCircle fill="var(--primary)" />
+                  <p className="text-myBlack font-medium">{item}</p>
+                </div>
+              ))}
+
+
+
             </div>
+
+            <ButtonTheme variation={2} title="Explore Packages" href={href} />
 
           </div>
 
 
           {/* Image Grid */}
           <div className="lg:w-7/12 relative h-[500px] md:h-[600px]">
+
+            <div className={`absolute top-10 right-0 w-[200px] h-14 overflow-hidden ${!isHero && "hidden"}`}>
+              <div className="bg-red-300 w-full h-full" />
+            </div>
+
             <div className="absolute w-full md:w-3/4 h-3/4 bottom-0 right-0 rounded-xl  overflow-hidden bg-red-300">
               {/* Replace with Next Image */}
               <div className="w-full h-full bg-red-300" />
             </div>
+
+
             <div className="absolute w-full md:w-2/3 h-4/5 top-0 left-0 rounded-xl  overflow-hidden bg-red-300">
               {/* Replace with Next Image */}
-              <div className="w-full h-full bg-red-300" />
+              <div className="w-full h-full bg-red-300" >
+              </div>
             </div>
           </div>
         </div>
@@ -54,7 +80,7 @@ export const PackagesHome = ({ showVideo = true }) => {
                 Everything about our packages
               </h2>
 
-              <ButtonTheme title="Check Details" />
+              <ButtonTheme title="Check Details"  href={href} />
             </div>
 
             <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full max-w-7xl">

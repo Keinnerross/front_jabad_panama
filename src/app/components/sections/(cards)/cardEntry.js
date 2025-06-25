@@ -1,14 +1,15 @@
 import React from "react";
 import Image from "next/image";
 import { FiMapPin, FiClock, FiTag } from "react-icons/fi";
-import { CategoryTag } from "../../ui/categoryTag";
+import { CategoryTag } from "../../ui/common/categoryTag";
 import Link from "next/link";
 import { GoTriangleRight } from "react-icons/go";
+import { StarsHotel } from "../../ui/common/starsHotel";
 
 
 
 
-export const CardEntry = ({ item }) => {
+export const CardEntry = ({ item, isHotel = false }) => {
     // Sample item data structure (would come from props in real usage)
     const sampleItem = {
         title: "What to do and see in 10 days in New York City",
@@ -62,16 +63,32 @@ export const CardEntry = ({ item }) => {
 
 
 
-                <p className="text-gray-text mb-4 text-sm">
+                <p className={`text-gray-text mb-4 text-sm ${isHotel&& "hidden"}`}>
                     {data.description}
                 </p>
+                <div className="text-sm text-gray-text font-medium">
+                    <p className="mb-1 text-base">
+                        Distance from Chabad House:
+                    </p>
+                    <p className="text-sm">
+                        {data.distance ? data.distance : ""}
+                    </p>
 
-                <div className="flex  items-center">
+
+                </div>
+
+
+                <div className={`mt-3 ${!isHotel && "hidden"}`}>
+                    <StarsHotel rating={4} />
+                </div>
+
+
+                <div className={`flex  items-center" ${isHotel && "hidden"}`}>
                     <GoTriangleRight className="text-primary" size={32} />
                     <Link href="/single-restaurant" className="underline leading-3 text-sm">View Restaurant</Link>
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 };

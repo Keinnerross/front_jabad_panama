@@ -2,16 +2,17 @@
 import React from "react";
 import { TourCard } from "../(cards)/TourCard";
 import { CardsHeroSection } from "./cardsHeroSection";
+import Link from "next/link";
 
 export const Hero = () => {
     return (
 
-        <section className="relative h-[70vh] min-h-[500px] w-full">
+        <section className="relative h-[65vh] min-h-[480px] w-full">
             <div className="absolute inset-0 bg-[url('#')] bg-cover bg-center" />
             <div className="absolute inset-0 bg-[#111828] opacity-50" />
 
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center text-white">
-                <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+                <h1 className="text-3xl md:text-6xl font-bold ">
                     Chabad of Panama
                     <br />
                     City Panama
@@ -21,12 +22,12 @@ export const Hero = () => {
                     Welcome to Panama City Panama
                 </p>
 
-                <button className="mt-6 bg-[#fc5761] hover:bg-[#e5444f] transition-colors px-8 py-3 rounded-lg font-bold text-white text-sm">
+                <Link href="/tourist-info" className="mt-6 bg-primary hover:bg-primary transition-colors px-8 py-3 rounded-lg font-bold text-white ">
                     Travel Information
-                </button>
+                </Link>
             </div>
 
-            <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-full max-w-7xl px-4">
+            <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-full max-w-7xl px-4 z-10">
                 <CardsHeroSection />
             </div>
 

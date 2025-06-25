@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { ButtonTheme } from "../../ui/buttonTheme"
+import { ButtonTheme } from "../../ui/common/buttonTheme"
 import { CardFoodSlider } from "../(cards)/cardFoodSlider"
 import { CarouselWrapper } from "./carouselWrapper"
 

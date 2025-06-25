@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { FaCompass } from "react-icons/fa";
-import { ButtonTheme } from "../../ui/buttonTheme";
+import { ButtonTheme } from "../../ui/common/buttonTheme";
 
 export const HeroActivities = () => {
     // Sample data - replace with your CMS data

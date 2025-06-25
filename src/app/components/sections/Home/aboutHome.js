@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { FaWhatsapp, FaCheck } from "react-icons/fa";
-import { ButtonTheme } from "../../ui/buttonTheme";
+import { ButtonTheme } from "../../ui/common/buttonTheme";
 
 export const AboutHome = () => {
   return (
@@ -39,6 +39,7 @@ export const AboutHome = () => {
               >
                 Join our WhatsApp group
               </a>
+
             </div>
 
             {/*  Images */}
@@ -60,7 +61,7 @@ export const AboutHome = () => {
             {/* CTA Button - Floating */}
             <div className="flex justify-end items-center h-36 ">
 
-             <ButtonTheme title="Join our Shabbat Table!" variation={3}/>
+             <ButtonTheme title="Join our Shabbat Table!" variation={3} href="/shabbat-holidays"/>
             </div>
 
             {/* Main Image */}

@@ -1,9 +1,9 @@
 import React from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
-import { ButtonTheme } from "@/app/components/ui/buttonTheme";
+import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { Amenities } from "@/app/components/sections/(Entries)/amenites";
-import { CategoryTag } from "@/app/components/ui/categoryTag";
+import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 
 export default function Single() {
     return (

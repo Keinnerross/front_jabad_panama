@@ -1,8 +1,8 @@
 import React from "react";
 import Image from "next/image";
 import { FaMapMarkerAlt, FaBookOpen, FaRoute } from "react-icons/fa";
-import { CategoryTag } from "../../ui/categoryTag";
-import { ButtonTheme } from "../../ui/buttonTheme";
+import { CategoryTag } from "../../ui/common/categoryTag";
+import { ButtonTheme } from "../../ui/common/buttonTheme";
 
 export const AtractionsHome = () => {
     const activities = [
@@ -67,7 +67,7 @@ export const AtractionsHome = () => {
                 ))}
             </div>
             <div className="flex justify-center items-center">
-                <ButtonTheme title="Browse all Attractions" />
+                <ButtonTheme title="Browse all Attractions" href="/activities" />
             </div>
 
 

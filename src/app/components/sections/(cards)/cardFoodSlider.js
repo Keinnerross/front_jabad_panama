@@ -8,9 +8,11 @@ export const CardFoodSlider = ({
     imageUrl = ""
 }) => {
     return (
-        <div className="group flex flex-col w-full max-w-[250px] h-auto md:h-[454px] rounded-xl overflow-hidden transition-all duration-300 ">
+
+<div className="group flex flex-col min-w-[280px] max-w-[280px] h-auto md:h-[474px] rounded-xl overflow-hidden transition-all duration-300 mr-8">
+
             {/* Contenedor de la imagen */}
-            <div className="relative w-full aspect-square md:h-[300px] rounded-xl overflow-hidden bg-red-300">
+            <div className="relative w-full aspect-square md:h-[320px] rounded-xl overflow-hidden bg-red-300">
                 {imageUrl ? (
                     <Image
                         src={imageUrl}
@@ -27,7 +29,7 @@ export const CardFoodSlider = ({
             </div>
 
             {/* Contenido de texto */}
-            <div className="flex flex-col p-4 gap-2">
+            <div className="flex flex-col gap-2 mt-4">
                 <div className="flex justify-between items-start">
                     <h3 className="font-bold text-darkBlue text-xl md:text-[22.5px] leading-tight">
                         {title}

@@ -3,6 +3,7 @@ import { HotelHomeSlider } from "@/app/components/sections/(sliders)/hotelHomeSl
 import { MapSection } from "@/app/components/sections/Contact/mapSection";
 import { AboutHome } from "@/app/components/sections/Home/aboutHome";
 import { AtractionsHome } from "@/app/components/sections/Home/atractionsHome";
+import { CardsHeroSection } from "@/app/components/sections/Home/cardsHeroSection";
 import { Hero } from "@/app/components/sections/Home/hero";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 
@@ -10,13 +11,19 @@ import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 
 export default function Home() {
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <Hero />
+
+      <div className="w-full bg-blueBackground flex justify-center ">
+        <div className=" w-full max-w-7xl px-4 z-10 -translate-y-[100px]">
+          <CardsHeroSection />
+        </div>
+      </div>
       <AboutHome />
       <FoodHomeSlider />
-      <PackagesHome href="/packages"/>
+      <PackagesHome href="/packages" />
       <HotelHomeSlider />
-      <AtractionsHome/>
+      <AtractionsHome />
       <MapSection />
     </div>
   );

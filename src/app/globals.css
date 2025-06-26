@@ -36,6 +36,6 @@ body {
   @apply text-primary underline hover:text-darkBlue transition-colors;
 }
 
-input{
+input, a{
   outline: none;
 }

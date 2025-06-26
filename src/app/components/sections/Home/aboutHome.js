@@ -5,7 +5,7 @@ import { ButtonTheme } from "../../ui/common/buttonTheme";
 
 export const AboutHome = () => {
   return (
-    <div className="w-full bg-blueBackground py-12 md:pb-24 md:pt-[150px]">
+    <div className="w-full bg-blueBackground md:pt-0 pb-24 ">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -59,13 +59,13 @@ export const AboutHome = () => {
           {/* Right Column - Images and Content */}
           <div className="relative order-2">
             {/* CTA Button - Floating */}
-            <div className="flex justify-end items-center h-36 ">
+            <div className="hidden md:flex justify-end items-center h-36 ">
 
              <ButtonTheme title="Join our Shabbat Table!" variation={3} href="/shabbat-holidays"/>
             </div>
 
             {/* Main Image */}
-            <div className="relative w-full h-64 md:h-80 lg:h-[700px] rounded-2xl overflow-hidden mb-6 bg-red-300">
+            <div className="hidden md:inline-block relative w-full h-64 md:h-80 lg:h-[700px] rounded-2xl overflow-hidden mb-14 bg-red-300 ">
               {/* Replace with Next Image */}
               <div className="w-full h-full bg-red-300" />
             </div>
@@ -73,7 +73,7 @@ export const AboutHome = () => {
 
 
             {/* Description */}
-            <p className="text-gray-text text-base mt-12 mb-12 leading-relaxed">
+            <p className="text-gray-text text-base  mb-12 leading-relaxed">
               Whether you're visiting Panama or live here year-round, our Shabbat
               is your Shabbat. Connect with new friends, swap stories over
               homemade challah, and find a sense of belonging that stays with

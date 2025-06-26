@@ -12,7 +12,7 @@ export const Hero = () => {
             <div className="absolute inset-0 bg-[#111828] opacity-50" />
 
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center text-white">
-                <h1 className="text-3xl md:text-6xl font-bold ">
+                <h1 className="text-3xl md:text-5xl font-bold ">
                     Chabad of Panama
                     <br />
                     City Panama
@@ -23,14 +23,11 @@ export const Hero = () => {
                 </p>
 
                 <Link href="/tourist-info" className="mt-6 bg-primary hover:bg-primary transition-colors px-8 py-3 rounded-lg font-bold text-white ">
-                    Travel Information
+                    Travel Informations
                 </Link>
             </div>
 
-            <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-full max-w-7xl px-4 z-10">
-                <CardsHeroSection />
-            </div>
-
+           
         </section>
 
 

@@ -9,17 +9,9 @@ export default function Acomodations() {
             {/* Hero */}
             <section className="relative flex flex-col items-center w-full  pt-24 pb-20 ">
                 {/* Gradient bottom */}
-
-
                 <div className="absolute top-0 left-0 flex flex-col items-center w-screen bg-blueBackground pb-20 h-[70vh] overflow-hidden">
-
                     <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground  z-10" />
-
                 </div>
-
-
-
-
                 {/* Main content container */}
                 < div className="w-full max-w-7xl px-4 md:px-6 h-full flex items-center justify-center z-10" >
                     {/* Text content - using flex for centering */}
@@ -31,9 +23,7 @@ export default function Acomodations() {
                             Relax in charming hotels just around the corner from the Chabad House — comfort and convenience for your stay in the mountains.
                         </ p>
                     </div >
-
                 </div >
-
                 {/* Decorative background elements */}
                 <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]" >
                     <div className="w-full h-full bg-red-300" />
@@ -43,13 +33,9 @@ export default function Acomodations() {
                     <div className="w-full h-full bg-red-300" />
                 </div>
             </section >
-
             <div className="z-10 relative">
-
                 <AccommodationsSection />
-
             </div>
-
         </Fragment >
     )
 }

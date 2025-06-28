@@ -1,65 +1,144 @@
-import React from "react";
+'use client'
+
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { FaCompass } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
+import { activitiesData } from "@/app/data/activities";
 
 export const HeroActivities = () => {
-    // Sample data - replace with your CMS data
-    const experiences = [
-        { id: 1, image: "/the-best-experiences-in-your-city-locallisting-x-webflow-template.png" },
-        { id: 2, image: "/image.png" },
-        { id: 3, image: "/the-best-experiences-in-your-city-locallisting-x-webflow-template-2.png" },
-        { id: 4, image: "/the-best-experiences-in-your-city-locallisting-x-webflow-template-3.png" },
-        { id: 5, image: "/the-best-experiences-in-your-city-locallisting-x-webflow-template-4.png" },
-        { id: 6, image: "/the-best-experiences-in-your-city-locallisting-x-webflow-template-5.png" },
-        { id: 7, image: "/the-best-experiences-in-your-city-locallisting-x-webflow-template-6.png" }
+    const sectionRef = useRef(null);
+    const imagesRef = useRef([]);
+    
+    // Seleccionar las primeras 7 actividades para mostrar en el hero
+    const selectedActivities = activitiesData.slice(5, 12);
+
+    // Configuración del layout: cuántas imágenes por columna
+    const columnLayout = [
+        { images: selectedActivities.slice(0, 2), className: "flex-1 flex flex-col gap-6" },
+        { images: selectedActivities.slice(2, 5), className: "flex-1 flex flex-col gap-6 -mt-12 -mb-12" },
+        { images: selectedActivities.slice(5, 7), className: "flex-1 flex flex-col gap-6" }
     ];
 
+    // Hook para animaciones de scroll
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!sectionRef.current) return;
+            
+            const rect = sectionRef.current.getBoundingClientRect();
+            const scrollProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
+            
+            // Aplicar parallax sutil a cada columna con diferentes velocidades
+            imagesRef.current.forEach((column, index) => {
+                if (column) {
+                    const speed = (index + 1) * 0.3; // Velocidades diferentes para cada columna
+                    const translateY = -(scrollProgress * 30 * speed); // Movimiento sutil
+                    column.style.transform = `translateY(${translateY}px)`;
+                }
+            });
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll(); // Ejecutar una vez al montar
+        
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Componente reutilizable para cada imagen
+    const ExperienceImage = ({ activity, index, columnIndex, imageIndex }) => (
+        <div 
+            className={`
+                relative w-full h-64 lg:h-64 rounded-lg overflow-hidden 
+                transform transition-all duration-700 ease-out
+                hover:scale-105 hover:shadow hover:-translate-y-2
+                animate-fade-in-up
+            `}
+            style={{
+                animationDelay: `${(columnIndex * 200) + (imageIndex * 100)}ms`
+            }}
+        >
+            <Image
+                src={activity.imageUrls}
+                alt={activity.title}
+                fill
+                className="object-cover transition-transform duration-500 ease-out"
+            />
+            {/* Overlay sutil que aparece en hover */}
+        </div>
+    );
+
     return (
-        <section className="w-full flex justify-center items-center py-12" >
-            <div className="w-full max-w-7xl bg-blueBackground rounded-xl overflow-hidden ">
-                <div className="max-w-7xl w-full flex gap-8 items-center h-[500px]">
+        <section ref={sectionRef} className="w-full flex justify-center items-center pb-12 pt-4">
+            <div className="w-full max-w-7xl bg-blueBackground rounded-xl overflow-hidden">
+                {/* Desktop layout - sin cambios */}
+                <div className="hidden lg:flex max-w-7xl w-full gap-8 items-center h-[600px] py-20 pl-20 relative">
                     {/* Texto */}
-                    <div className="text-center lg:text-left w-[35%] px-12 ">
-                        <h2 className="text-3xl font-bold text-darkBlue mb-4 leading-snug">
-                            Explore the Best Things to See and Do in Boquete
+                    <div className="text-center lg:text-left w-[35%] animate-fade-in-left">
+                        <h2 className="text-5xl font-bold mb-4 text-myBlack transform transition-all duration-700 ease-out">
+                            Explore the best things to see and do in Boquete
                         </h2>
-                        <p className="text-gray-text text-sm leading-7 mb-6">
+                        <p className="text-gray-text text-sm leading-7 mb-6 transform transition-all duration-700 ease-out delay-200">
                             From misty mountain trails and vibrant flower gardens to world-class coffee and adrenaline-pumping adventures, Boquete offers unforgettable moments for every kind of explorer.
                         </p>
-                        <ButtonTheme title="Let’s explore experiences!" href="#activitiesSection" variation={2} />
+                        <div className="transform transition-all duration-700 ease-out delay-400">
+                            <ButtonTheme title="Let's explore experiences!" href="#activitiesSection" variation={2} />
+                        </div>
                     </div>
 
                     {/* Galería de imágenes */}
-                    <div className="w-[65%] grid grid-cols-3 gap-4">
-                        <div className="col-span-1 row-span-1">
-                            <div className="w-full h-40 md:h-48 rounded-lg bg-red-300">
-                                {/* Imagen dinámica de Strapi */}
+                    <div className="w-[65%] h-full flex gap-6 items-center absolute -right-24">
+                        {columnLayout.map((column, columnIndex) => (
+                            <div 
+                                key={columnIndex} 
+                                ref={el => imagesRef.current[columnIndex] = el}
+                                className={`${column.className} transform transition-all duration-1000 ease-out`}
+                                style={{
+                                    animationDelay: `${columnIndex * 300}ms`
+                                }}
+                            >
+                                {column.images.map((activity, imageIndex) => (
+                                    <ExperienceImage
+                                        key={activity.title}
+                                        activity={activity}
+                                        index={columnIndex * 3 + imageIndex}
+                                        columnIndex={columnIndex}
+                                        imageIndex={imageIndex}
+                                    />
+                                ))}
                             </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Mobile y Tablet layout */}
+                <div className="flex lg:hidden flex-col px-6 py-8">
+                    {/* Texto */}
+                    <div className="text-center mb-8 animate-fade-in-left">
+                        <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-myBlack transform transition-all duration-700 ease-out">
+                            Explore the best things to see and do in Boquete
+                        </h2>
+                        <p className="text-gray-text text-sm leading-7 mb-6 transform transition-all duration-700 ease-out delay-200 max-w-md mx-auto">
+                            From misty mountain trails and vibrant flower gardens to world-class coffee and adrenaline-pumping adventures, Boquete offers unforgettable moments for every kind of explorer.
+                        </p>
+                        <div className="transform transition-all duration-700 ease-out delay-400">
+                            <ButtonTheme title="Let's explore experiences!" href="#activitiesSection" variation={2} />
                         </div>
-                        <div className="col-span-1 row-span-2">
-                            <div className="w-full h-80 md:h-96 rounded-lg bg-red-300" />
-                        </div>
-                        <div className="col-span-1 row-span-1">
-                            <div className="w-full h-40 md:h-48 rounded-lg bg-red-300" />
-                        </div>
-                        <div className="col-span-1 row-span-1">
-                            <div className="w-full h-40 md:h-48 rounded-lg bg-red-300" />
-                        </div>
-                        <div className="col-span-1 row-span-2">
-                            <div className="w-full h-80 md:h-96 rounded-lg bg-red-300" />
-                        </div>
-                        <div className="col-span-1 row-span-1">
-                            <div className="w-full h-40 md:h-48 rounded-lg bg-red-300" />
-                        </div>
+                    </div>
+
+                    {/* Galería de imágenes - Grid responsive */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {selectedActivities.slice(0, 6).map((activity, index) => (
+                            <ExperienceImage
+                                key={activity.title}
+                                activity={activity}
+                                index={index}
+                                columnIndex={0}
+                                imageIndex={index}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
-
         </section>
     );
 };
-
-
-
-

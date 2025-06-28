@@ -7,15 +7,13 @@ import { CardsHeroSection } from "@/app/components/sections/Home/cardsHeroSectio
 import { Hero } from "@/app/components/sections/Home/hero";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 
-
-
 export default function Home() {
   return (
     <div className="overflow-x-hidden">
       <Hero />
 
       <div className="w-full bg-blueBackground flex justify-center ">
-        <div className=" w-full max-w-7xl px-4 z-10 -translate-y-[100px]">
+        <div className="w-full max-w-7xl px-4 z-10 -translate-y-[50px] md:-translate-y-[70px] lg:-translate-y-[70px]">
           <CardsHeroSection />
         </div>
       </div>

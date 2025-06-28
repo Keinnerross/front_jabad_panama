@@ -45,3 +45,58 @@ input,
 a {
   outline: none;
 }
+
+
+/* Agregar estas clases a tu archivo global de estilos (globals.css o styles.css) */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  opacity: 0;
+  animation: fadeInLeft 0.8s ease-out forwards;
+}
+
+/* Optimización para mejor rendimiento */
+.animate-fade-in-up,
+.animate-fade-in-left {
+  will-change: transform, opacity;
+}
+
+/* Suavizar las transiciones en dispositivos móviles */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-fade-in-left {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  
+  .transform {
+    transform: none !important;
+  }
+}

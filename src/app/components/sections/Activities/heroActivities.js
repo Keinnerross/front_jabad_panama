@@ -22,12 +22,12 @@ export const HeroActivities = () => {
                     {/* Texto */}
                     <div className="text-center lg:text-left w-[35%] px-12 ">
                         <h2 className="text-3xl font-bold text-darkBlue mb-4 leading-snug">
-                            Explore the Best Things to See and Do in Vibrant Panama City
+                            Explore the Best Things to See and Do in Boquete
                         </h2>
                         <p className="text-gray-text text-sm leading-7 mb-6">
-                            From historic streets and cultural gems to breathtaking nature and thrilling adventures, Panama City offers experiences for every kind of traveler.
+                            From misty mountain trails and vibrant flower gardens to world-class coffee and adrenaline-pumping adventures, Boquete offers unforgettable moments for every kind of explorer.
                         </p>
-                        <ButtonTheme title="Let’s explore experiences!" variation={2} />
+                        <ButtonTheme title="Let’s explore experiences!" href="#activitiesSection" variation={2} />
                     </div>
 
                     {/* Galería de imágenes */}
@@ -44,7 +44,7 @@ export const HeroActivities = () => {
                             <div className="w-full h-40 md:h-48 rounded-lg bg-red-300" />
                         </div>
                         <div className="col-span-1 row-span-1">
-                            <div className="w-full h-40 md:h-48 rounded-lg bg-red-300" />   
+                            <div className="w-full h-40 md:h-48 rounded-lg bg-red-300" />
                         </div>
                         <div className="col-span-1 row-span-2">
                             <div className="w-full h-80 md:h-96 rounded-lg bg-red-300" />

@@ -13,10 +13,11 @@ export default function Restaurants() {
     return (
         <Fragment>
             {/* HERO */}
-            <section className="relative flex flex-col items-center w-full bg-white ">
-                <PackagesHome />
+            <section className="relative flex flex-col items-center w-full bg-white">
+                <PackagesHome title="Choose your package, secure your spot, and celebrate with us!" />
                 {/* Decorative background elements */}
                 < div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
+                
                 <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
                 </div>
@@ -28,7 +29,7 @@ export default function Restaurants() {
             <div className="transform md:-translate-y-[50px] ">
                 <WhyPackagesSection />
                 <NewsletterSection />
-                <ActivitiesSecundarySection />
+              {/*   <ActivitiesSecundarySection /> */}
             </div>
 
         </Fragment >

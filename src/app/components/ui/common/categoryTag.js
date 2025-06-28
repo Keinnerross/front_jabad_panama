@@ -1,10 +1,29 @@
-export const CategoryTag = ({ icon, categoryTitle = "Category" }) => {
+import React from "react";
+import { FaLeaf, FaUtensils, FaHome, FaMountain, FaFish, FaBed, FaMugHot, FaTree, FaTag } from "react-icons/fa";
+
+export const CategoryTag = ({ categoryTitle = "Category" }) => {
+    const categoryIcons = {
+        Adventure: <FaMountain />, // Activities
+        Nature: <FaLeaf />,      // Activities
+        Food: <FaUtensils />,    // Activities / Restaurants
+        Cultural: <FaHome />,    // Activities
+        Fishing: <FaFish />,     // Activities
+        Hostel: <FaBed />,       // Hotels
+        Hotel: <FaBed />,        // Hotels
+        "Boutique Hotel": <FaBed />, // Hotels
+        Resort: <FaTree />,      // Hotels
+        Villa: <FaHome />,       // Hotels
+        "Eco Lodge": <FaTree />, // Hotels
+        Bakery: <FaMugHot />,    // Restaurants
+        Catering: <FaUtensils /> // Restaurants
+    };
+
+    const categoryIcon = categoryIcons[categoryTitle] || <FaTag />;
+
     return (
         <div className="flex items-center gap-2 bg-white rounded-lg border border-solid border-gray-200 px-3 py-1 w-fit ">
-            <span className="text-primary">{icon ?? "X"}</span>
+            <span className="text-primary">{categoryIcon}</span>
             <span className="text-myBlack font-bold text-sm">{categoryTitle}</span>
         </div>
-    )
-}
-
-
+    );
+};

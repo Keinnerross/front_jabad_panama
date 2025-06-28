@@ -168,8 +168,6 @@ export default function Contact() {
                             </div>
                         </div>
                     </div>
-
-
                 </section>
 
                 <div className="absolute left-0 top-0 opacity-10">
@@ -182,8 +180,7 @@ export default function Contact() {
             </div>
 
             {/* FAQ Section */}
-            <section className="container mx-auto px-4 py-16">
-                {/* Header */}
+           {/*  <section className="container mx-auto px-4 py-16">
                 <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-darkBlue mb-4">
                         Frequently asked questions
@@ -194,7 +191,6 @@ export default function Contact() {
                     </p>
                 </div>
 
-                {/* FAQ Items */}
                 <div className="max-w-4xl mx-auto space-y-4">
                     {faqData.map((item, index) => (
                         <div
@@ -222,7 +218,7 @@ export default function Contact() {
                         </div>
                     ))}
                 </div>
-            </section>
+            </section> */}
 
 
 

@@ -1,8 +1,15 @@
 import React from "react";
 import Image from "next/image";
 import { FiMail } from "react-icons/fi";
+import { activitiesData } from "@/app/data/activities";
+
 
 export const Footer = () => {
+
+
+
+  const firstThreeActivities = activitiesData.slice(0, 3);
+
   // Datos de navegación que podrían venir de Strapi
   const menuSections = [
     {
@@ -17,52 +24,40 @@ export const Footer = () => {
     {
       title: "Activities",
       links: [
-        { name: "Restaurants", path: "/activities/restaurants" },
+        { name: "Restaurants", path: "/restaurants" },
         { name: "Activities", path: "/activities" },
         { name: "Packages", path: "/packages" },
-        { name: "Accomodations", path: "/accomodations" }
+        { name: "Accommodations", path: "/accommodations" }
       ]
     },
     {
       title: "Services",
       links: [
-        { name: "Shabbat Box", path: "/services/shabbat-box" },
-        { name: "Reservations", path: "/reservations" }
+        { name: "Shabbat Box", path: "/about" },
+        { name: "Reservations", path: "/contact" }
       ]
     },
     {
       title: "Attractions",
-      links: [
-        { 
-          name: "Waterfalls", 
-          path: "/attractions/waterfalls",
-          image: "/waterfalls.jpg" 
-        },
-        { 
-          name: "Panama City", 
-          path: "/attractions/panama-city",
-          image: "/panama-city.jpg" 
-        },
-        { 
-          name: "Gondola Trip", 
-          path: "/attractions/gondola-trip",
-          image: "/gondola.jpg" 
-        }
-      ]
+      links: firstThreeActivities.map(activity => ({
+        name: activity.title,
+        path: "/packages",
+        image: activity.imageUrls
+      }))
     },
     {
       title: "Help",
       links: [
-        { name: "Tourist Info", path: "/help/tourist-info" },
-        { name: "Community", path: "/community" }
+        { name: "Tourist Info", path: "/#" },
+        { name: "Community", path: "/#" }
       ]
     },
     {
       title: "Legal",
       links: [
-        { name: "FAQS", path: "/faqs" },
-        { name: "Terms & Conditions", path: "/terms" },
-        { name: "Privacy Policy", path: "/privacy" }
+        { name: "FAQS", path: "/contact" },
+        { name: "Terms & Conditions", path: "/#" },
+        { name: "Privacy Policy", path: "/#" }
       ]
     }
   ];
@@ -82,25 +77,14 @@ export const Footer = () => {
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
                     {section.title === "Attractions" ? (
-                      <a 
-                        href={link.path} 
-                        className="flex items-center gap-3 group"
-                      >
-                        <div className="w-10 h-10 rounded-md bg-red-300 overflow-hidden flex-shrink-0">
-                          {/* Imagen de Next.js */}
-                          <div className="w-full h-full bg-red-300" />
+                      <a href={link.path} className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 relative rounded-md overflow-hidden flex-shrink-0">
+                          <Image src={link.image} alt={link.name} fill className="object-cover" />
                         </div>
-                        <span className="text-gray-text group-hover:text-primary transition-colors text-base">
-                          {link.name}
-                        </span>
+                        <span className="text-gray-text group-hover:text-primary transition-colors text-base">{link.name}</span>
                       </a>
                     ) : (
-                      <a 
-                        href={link.path} 
-                        className="text-gray-text hover:text-primary transition-colors text-base"
-                      >
-                        {link.name}
-                      </a>
+                      <a href={link.path} className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</a>
                     )}
                   </li>
                 ))}
@@ -132,7 +116,7 @@ export const Footer = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full py-3 px-4 pr-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full py-3 px-4 pr-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary bg-white"
                 />
                 <FiMail className="absolute right-3 top-3.5 text-gray-400" />
               </div>
@@ -144,7 +128,7 @@ export const Footer = () => {
         </div>
 
         {/* Derechos de autor */}
-          <p className="mt-4 text-center text-gray-500">© {new Date().getFullYear()} Chabad Panama. All rights reserved.</p>
+        <p className="mt-4 text-center text-gray-500">© {new Date().getFullYear()} Chabad Panama. All rights reserved.</p>
       </div>
     </footer>
   );

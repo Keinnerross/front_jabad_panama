@@ -13,7 +13,7 @@ export const ButtonTheme = ({
 }) => {
   const router = useRouter()
 
-  const baseClasses = `group inline-flex items-center gap-2 px-6 py-3 border rounded-lg transition-colors text-lg text-medium ${
+  const baseClasses = `group inline-flex items-center gap-2 px-6 py-3 border rounded-lg transition-colors text-base text-medium ${
     isFull ? "w-full justify-center" : "w-fit"
   }`
 
@@ -25,6 +25,8 @@ export const ButtonTheme = ({
 
   const className = `${baseClasses} ${variationClasses[variation] || variationClasses[1]}`
 
+  const isExternal = (url) => /^https?:\/\//.test(url)
+
   // 🔹 Si hay lógica o navegación deshabilitada → <button>
   if (onClick || disableLink) {
     const handleClick = (e) => {
@@ -35,15 +37,24 @@ export const ButtonTheme = ({
 
     return (
       <button onClick={handleClick} className={className}>
-        <span className="">{title}</span>
+        <span>{title}</span>
       </button>
     )
   }
 
-  // 🔹 Si es solo navegación → <Link>
+  // 🔹 Si es enlace externo → <a>
+  if (isExternal(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        <span>{title}</span>
+      </a>
+    )
+  }
+
+  // 🔹 Si es enlace interno → <Link>
   return (
     <Link href={href} className={className}>
-      <span className="">{title}</span>
+      <span>{title}</span>
     </Link>
   )
 }

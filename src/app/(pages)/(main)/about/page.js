@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
+import { aboutData } from "@/app/data/about.Data";
 
 export default function About() {
     return (
@@ -12,23 +13,21 @@ export default function About() {
                     <div className="flex flex-col md:flex-row justify-between items-start mb-8">
                         <div className="md:w-[60%]">
                             <h1 className="text-4xl font-bold text-darkBlue mb-6">
-                                About Chabad House Panama City
+                                {aboutData.title}
                             </h1>
-                            <p className="text-gray-text text-sm  leading-relaxed mb-6 md:mb-0">
-                                Welcome to Chabad of Panama City, where we open our doors to every
-                                member of the Jewish community—whether you live here, are visiting
-                                on business, or enjoying a vacation. Our mission is to nurture
-                                Jewish pride through study and celebration, support both the
-                                spiritual and material needs of all Jews regardless of background,
-                                and create a warm, traditional center that feels like home for
-                                everyone.
+                            <p className="text-gray-text text-sm leading-relaxed mb-6 md:mb-0">
+                                {aboutData.descriptionShort}
                             </p>
                         </div>
-                        <ButtonTheme title="Browse gallery" />
+                        <ButtonTheme title="Browse gallery"href="#gallery"/>
                     </div>
-                    <div className="w-full h-80 md:h-[500px] rounded-xl bg-red-300 overflow-hidden">
-                        {/* Replace with Next.js Image component */}
-                        <div className="w-full h-full object-cover bg-red-300" />
+                    <div className="w-full h-80 md:h-[500px] rounded-xl overflow-hidden relative">
+                        <Image
+                            src={aboutData.imageUrls[0]}
+                            alt="Chabad Boquete Cover"
+                            fill
+                            className="object-cover"
+                        />
                     </div>
                 </section>
 
@@ -41,65 +40,27 @@ export default function About() {
                                 About Chabad House
                             </h2>
                             <div className="text-gray-text text-sm leading-relaxed space-y-4">
-                                <p>
-                                    Chabad of Panama City reaffirms its dedication to best serve the
-                                    needs of our community, as well as the Jewish community at large
-                                    who make Panama City their temporary home while on vacation or
-                                    business.
-                                </p>
-                                <p>
-                                    To strengthen the Panama Jewish Community by promoting Jewish
-                                    pride, study and celebration.
-                                </p>
-                                <p>
-                                    We are committed to promoting Jewish knowledge, awareness and
-                                    practice, strengthening Jewish identity and pride, and affording
-                                    every Jew the opportunity to experience the joy and vibrancy of
-                                    his or her Jewish heritage.
-                                </p>
-                                <p>
-                                    To provide for the spiritual & material needs of all Jews in the
-                                    community - regardless of their background or affiliation.
-                                </p>
-                                <p>
-                                    To establish a warm and traditional community Center where
-                                    everyone is made to feel welcome and comfortable.
-                                </p>
-                                <p>
-                                    To fulfill the mandate of the{" "}
-                                    <a
-                                        href="https://www.chabadpanama.com/Article.asp?AID=4623853"
-                                        rel="noopener noreferrer"
-                                        target="_blank"
-                                        className="font-bold text-primary underline hover:text-darkBlue transition-colors"
-                                    >
-                                        Lubavitcher Rebbe
-                                    </a>{" "}
-                                    by increasing in acts of goodness and kindness for all humankind;
-                                    thus preparing the world for the ultimate redemption.
-                                </p>
-                                <p>
-                                    Sincerely,
-                                    <br />
-                                    <br />
-                                    Rabbi Mendi &amp; Braha Karniel
-                                </p>
+                                <p>{aboutData.descriptionLong}</p>
                             </div>
                         </section>
 
                         {/* Gallery Section */}
-                        <section>
+                        <section id="gallery"> 
                             <h2 className="text-3xl font-bold text-darkBlue mb-8">
                                 Photo gallery
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                                {[...Array(6)].map((_, i) => (
+                                {aboutData.imageUrls.slice(1, 7).map((url, i) => (
                                     <div
                                         key={i}
-                                        className="aspect-square rounded-xl overflow-hidden bg-red-300"
+                                        className="aspect-square rounded-xl overflow-hidden relative"
                                     >
-                                        {/* Replace with Next.js Image component */}
-                                        <div className="w-full h-full object-cover bg-red-300" />
+                                        <Image
+                                            src={url}
+                                            alt={`Gallery ${i + 1}`}
+                                            fill
+                                            className="object-cover"
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -109,14 +70,19 @@ export default function About() {
                     {/* Sidebar */}
                     <div className="lg:w-[30%]">
                         <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
-                            <div className="space-y-8">
-                                <div className="w-12 h-12 bg-red-300 rounded-full"></div>
-                                <h3 className="text-2xl font-bold text-darkBlue">
+                            <div className="">
+
+                                <div className="w-12 h-12 overflow-hidden relative mb-4" >
+                                    <Image src="/assets/icons/about/about.svg" fill className="object-contain w-full h-full" alt="icon" />
+                                </div>
+
+
+                                <h3 className="text-2xl font-bold text-darkBlue mb-2">
                                     Chabad shluchim
                                 </h3>
-                                <p className="text-gray-text text-sm">
+                                <p className="text-gray-text text-sm mb-4">
                                     Our Chabad shluchim bring warmth, education, and spiritual
-                                    support to Panama City's Jewish community.
+                                    support to Boquete's Jewish community.
                                 </p>
 
                                 <div className="space-y-4">
@@ -124,7 +90,7 @@ export default function About() {
                                         <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
                                         <p>
                                             <span className="font-semibold text-darkBlue">
-                                                Rabbi Mendi Karniel
+                                                Rabbi Yakov Poliwoda
                                             </span>{" "}
                                             - Chabad Shliach
                                         </p>
@@ -133,7 +99,7 @@ export default function About() {
                                         <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
                                         <p>
                                             <span className="font-semibold text-darkBlue">
-                                                Mrs. Braha Karniel
+                                                Mrs. Hana Poliwoda
                                             </span>{" "}
                                             - Chabad Shlucha
                                         </p>
@@ -144,7 +110,6 @@ export default function About() {
                     </div>
                 </div>
             </div>
-
         </div>
     );
-};
+}

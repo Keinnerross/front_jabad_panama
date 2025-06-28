@@ -13,21 +13,17 @@ export const AboutHome = () => {
           <div className="order-1 lg:order-none">
             {/* Subtitle */}
             <div className="text-primary font-bold text-lg md:text-xl tracking-wider mb-2">
-              CHABAD IN PANAMA
+              Chabad OF BOQUETE, PANAMA
             </div>
 
             {/* Title */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-myBlack mb-6 leading-tight">
-              Where Community Embraces You
+              A Kosher-Friendly Mountain Town
             </h1>
 
             {/* Description */}
             <p className="text-gray-text text-base  mb-8 leading-relaxed">
-              At Chabad of Panama City, we don't just celebrate Shabbat—we create
-              lasting experiences. From our exclusive Lavazza Coffee Corner to
-              joyful children's programs, every detail is designed to make you
-              feel at home. Enjoy breakfast after minyan, warm hugs, and the
-              company of incredible people.
+              Surrounded by mountains and fresh air, our Chabad House keeps things warm and simple. Minyan, good food, real people, and a relaxed vibe. Whether you’re just passing through or staying a while, you will feel at home with us.
             </p>
 
             {/* WhatsApp Link */}
@@ -46,12 +42,13 @@ export const AboutHome = () => {
             <div className="space-y-12">
               <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden bg-red-300">
                 {/* Replace with Next Image */}
-                <div className="w-full h-full bg-red-300" />
+                <Image className="w-full h-full object-cover " src="/assets/pictures/home/about-home-1.jpg" fill alt="About Boquete Panama Shabbat" />
+
               </div>
 
               <div className="relative w-full h-64 md:h-80 lg:h-[500px] rounded-2xl overflow-hidden mb-6 bg-red-300">
                 {/* Replace with Next Image */}
-                <div className="w-full h-full bg-red-300" />
+                <Image className="w-full h-full object-cover " src="/assets/pictures/home/about-home-3.png" fill alt="About Boquete Panama Shabbat" />
               </div>
             </div>
           </div>
@@ -61,33 +58,31 @@ export const AboutHome = () => {
             {/* CTA Button - Floating */}
             <div className="hidden md:flex justify-end items-center h-36 ">
 
-             <ButtonTheme title="Join our Shabbat Table!" variation={3} href="/shabbat-holidays"/>
+              <ButtonTheme title="Join our Shabbat Table!" variation={3} href="/shabbat-holidays" />
             </div>
 
             {/* Main Image */}
             <div className="hidden md:inline-block relative w-full h-64 md:h-80 lg:h-[700px] rounded-2xl overflow-hidden mb-14 bg-red-300 ">
               {/* Replace with Next Image */}
-              <div className="w-full h-full bg-red-300" />
+              <Image className="w-full h-full object-cover " src="/assets/pictures/home/about-home-2.png" fill alt="About Boquete Panama Shabbat" />
+
             </div>
 
 
 
             {/* Description */}
             <p className="text-gray-text text-base  mb-12 leading-relaxed">
-              Whether you're visiting Panama or live here year-round, our Shabbat
-              is your Shabbat. Connect with new friends, swap stories over
-              homemade challah, and find a sense of belonging that stays with
-              you long after Havdalah.
+            Whether you're visiting Boquete or live here year-round, our Shabbat is your Shabbat. Connect with new friends, swap stories over homemade challah, and find a sense of belonging that stays with you long after Havdalah.
             </p>
 
             {/* Features List */}
             <div className="space-y-4">
               {[
-                "Premium coffee with Lavazza to start your day.",
-                "Kid-friendly programs that turn Shabbat into a celebration.",
-                "In-house chef crafting soulful meals.",
-                "WhatsApp group for all your travel and Shabbat questions.",
-                "Cozy lounge to connect with the community.",
+                "The best Shluchim!",
+                "Kid-friendly programs on Shabbat and during the week.",
+                "Healthy and delicious meals.",
+                "WhatsApp group for all your travel and Shabbat questions.",
+                "A brand new, large tree house.",
               ].map((feature, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <FaCheck className="text-primary text-xl mt-0.5 flex-shrink-0" />

@@ -36,7 +36,7 @@ export const CardFoodSlider = ({
                     </h3>
                     <FiArrowRight className="text-darkBlue text-xl mt-1" />
                 </div>
-                <p className="font-medium text-gray-text text-sm md:text-base] leading-snug">
+                <p className="text-gray-text text-sm leading-snug pt-2 w-[80%]">
                     {description}
                 </p>
             </div>

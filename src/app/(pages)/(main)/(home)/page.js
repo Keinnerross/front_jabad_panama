@@ -2,7 +2,7 @@ import { FoodHomeSlider } from "@/app/components/sections/(sliders)/foodHomeSlid
 import { HotelHomeSlider } from "@/app/components/sections/(sliders)/hotelHomeSlider";
 import { MapSection } from "@/app/components/sections/Contact/mapSection";
 import { AboutHome } from "@/app/components/sections/Home/aboutHome";
-import { AtractionsHome } from "@/app/components/sections/Home/atractionsHome";
+import { AttractionsHome } from "@/app/components/sections/Home/attractionsHome";
 import { CardsHeroSection } from "@/app/components/sections/Home/cardsHeroSection";
 import { Hero } from "@/app/components/sections/Home/hero";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
@@ -21,9 +21,9 @@ export default function Home() {
       </div>
       <AboutHome />
       <FoodHomeSlider />
-      <PackagesHome href="/packages" />
+      <PackagesHome href="/packages" title="All inclusive packages: Leave the thinking to us" />
       <HotelHomeSlider />
-      <AtractionsHome />
+      <AttractionsHome />
       <MapSection />
     </div>
   );

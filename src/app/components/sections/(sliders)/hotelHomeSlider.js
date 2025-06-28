@@ -5,12 +5,14 @@ import { CardFoodSlider } from "../(cards)/cardFoodSlider"
 import { CarouselWrapper } from "./carouselWrapper"
 import { CardHotelsSlider } from "../(cards)/cardHotelsSlider"
 
+import { hotelsData } from "@/app/data/hoteles"
+
 export const HotelHomeSlider = () => {
     return (
         <div className="bg-background py-20 flex justify-center items-center w-full flex-col  ">
             <div className="w-full max-w-7xl">
                 {/* Header */}
-                <div className="w-full flex justify-between items-center mb-10 px-4">
+                <div className="w-full flex justify-between items-center mb-10 ">
                     <p className="text-4xl font-semibold">Recommended places to stay in</p>
                     <ButtonTheme title="Browse all places" href="/accommodations" />
                 </div>
@@ -23,11 +25,12 @@ export const HotelHomeSlider = () => {
                         {/* Carousel */}
 
                         <CarouselWrapper>
-                            {[...Array(5)].map((_, i) => (
+                            {hotelsData?.map((hotel, i) => (
                                 <div key={i} className="">
-                                    <CardHotelsSlider />
+                                    <CardHotelsSlider hotel={hotel} />
                                 </div>
                             ))}
+
                         </CarouselWrapper>
                     </div>
                 </div>

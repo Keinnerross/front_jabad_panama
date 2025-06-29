@@ -68,8 +68,8 @@ export const HeroActivities = () => {
     );
 
     return (
-        <section ref={sectionRef} className="w-full flex justify-center items-center pb-12 pt-4">
-            <div className="w-full max-w-7xl bg-blueBackground rounded-xl overflow-hidden">
+        <section ref={sectionRef} className="w-full flex justify-center items-center md:pb-12 md:pt-4">
+            <div className="w-full max-w-7xl bg-blueBackground rounded-xl overflow-hidden pt-20 md:pt-0">
                 {/* Desktop layout - sin cambios */}
                 <div className="hidden lg:flex max-w-7xl w-full gap-8 items-center h-[600px] py-20 pl-20 relative">
                     {/* Texto */}

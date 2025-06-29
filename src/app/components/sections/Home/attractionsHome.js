@@ -21,7 +21,7 @@ export const AttractionsHome = () => {
                 {displayedActivities.map((activity, i) => (
                     <div key={i} className="flex flex-col">
                         {/* Image placeholder - will be replaced with Next.js Image component */}
-                        <div className="relative w-full h-60 rounded-xl bg-red-300 mb-6">
+                        <div className="relative w-full h-60 rounded-xl mb-6">
                             {/* Reemplazar con Image cuando esté listo */}
                             <Image
                                 src={activity.imageUrls}

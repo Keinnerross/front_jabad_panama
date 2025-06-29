@@ -1,5 +1,3 @@
-
-
 import { FaArrowRight, } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import Image from "next/image";
@@ -50,26 +48,31 @@ export const WhyPackagesSection = () => {
                         Why Packages?
                     </h2>
 
-                    <ButtonTheme title="Explore Packages" />
+                    <ButtonTheme title="Explore Packages" href="https://wa.me/17866303496" />
                 </div>
 
                 {/* Packages Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {packages.map((pkg) => (
-                        <div key={pkg.id} className="bg-white ">
+                        <div key={pkg.id} className="bg-white group cursor-pointer">
                             {/* Image */}
-                            <div className="relative h-[300px] w-full ">
+                            <div className="relative h-[300px] w-full">
                                 <div className="w-full h-full rounded-xl overflow-hidden relative">
                                     {/* Replace with Next.js Image component */}
-                                    <Image src={pkg.image} fill alt={pkg.title} className="w-full h-full object-cover" />
+                                    <Image 
+                                        src={pkg.image} 
+                                        fill 
+                                        alt={pkg.title} 
+                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                                    />
                                 </div>
                             </div>
 
                             {/* Content */}
                             <div className="pt-4 px-2">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-xl font-bold text-darkBlue">{pkg.title}</h3>
-                                    <span className="text-darkBlue text-lg">{pkg.icon}</span>
+                                    <h3 className="text-xl font-bold text-darkBlue group-hover:text-primary transition-colors duration-300">{pkg.title}</h3>
+                                    <span className="text-darkBlue text-lg group-hover:text-primary transition-colors duration-300">{pkg.icon}</span>
                                 </div>
 
                                 <p className="text-gray-text whitespace-pre-line text-sm">

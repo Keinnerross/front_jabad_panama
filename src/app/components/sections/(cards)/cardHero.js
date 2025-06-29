@@ -23,11 +23,11 @@ export const CardHero = ({ data }) => {
           <Image src={data.icon} alt={data.title}
             width={sizeIcon}
             height={sizeIcon}
-            className={`${data.title == "Tourist Info" ? "ml-2" : ""} object-contain z-10 w-full h-full `} />
+            className={`${data.title == "Tourist Info" || "All-Inclusive Packages" ? "ml-2" : ""} object-contain z-10 w-full h-full `} />
         </div>
       </div>
       {/* Título */}
-      <h3 className="text-center text-myBlack font-semibold text-base leading-4">
+      <h3 className="text-center text-myBlack font-semibold text-sm md:text-base leading-4">
         {data?.title}
       </h3>
     </Link>

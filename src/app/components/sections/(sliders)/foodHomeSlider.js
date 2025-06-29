@@ -4,10 +4,24 @@ import { ButtonTheme } from "../../ui/common/buttonTheme"
 import { CardFoodSlider } from "../(cards)/cardFoodSlider"
 import { CarouselWrapper } from "./carouselWrapper"
 import { foodData } from "@/app/data/restaurantsData"
+import { useScrollAppear } from "@/app/customHooks/useScrollAppear"
+import { useRef, useState } from "react"
 export const FoodHomeSlider = () => {
 
+
+
+
+    const ref = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useScrollAppear(
+        ref,
+        () => setIsVisible(true),
+        () => setIsVisible(false)
+    );
+
     return (
-        <div className="bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6">
+        <div ref={ref} className={`${isVisible ? `animate-fade-up opacity-100` : 'opacity-0 translate-y-8'}bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6`}>
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">

@@ -68,7 +68,7 @@ export default function Contact() {
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Image Section */}
                         <div className="lg:w-1/2">
-                            <div className="w-full h-64 md:h-[500px] rounded-xl bg-red-300 overflow-hidden">
+                            <div className="w-full h-64 md:h-[500px] rounded-xl  overflow-hidden">
                                 {/* Replace with Next.js Image component */}
                                 <div className="w-full h-full object-cover bg-red-300" />
                             </div>
@@ -170,12 +170,14 @@ export default function Contact() {
                     </div>
                 </section>
 
-                <div className="absolute left-0 top-0 opacity-10">
+                {/* <div className="absolute left-0 top-0 opacity-10">
                     <div className="w-40 h-72 bg-red-300"></div>
                 </div>
                 <div className="absolute right-0 bottom-0 opacity-10">
                     <div className="w-60 h-72 bg-red-300"></div>
-                </div>
+                </div> */}
+
+
 
             </div>
 

@@ -13,6 +13,8 @@ export const MapSection = () => {
                     <div>
                         <p>Bajo Boquete, Chiriqui, Panama </p>
                         <p>Calle 4a con Calle C, (reference: Hotel Isla Verde).</p>
+                        <p>Ph: 507-6243-0666</p>
+                      
                     </div>
 
                     <ButtonTheme title="Navigate" href="https://maps.app.goo.gl/Q3txjtyXyjXDsNDY6" variation={3} />

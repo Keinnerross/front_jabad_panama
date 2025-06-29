@@ -14,22 +14,23 @@ export default function Restaurants() {
         <Fragment>
             {/* HERO */}
             <section className="relative flex flex-col items-center w-full bg-white">
-                <PackagesHome title="Choose your package, secure your spot, and celebrate with us!" />
+                <PackagesHome title="Choose your package, secure your spot, and celebrate with us!" href="https://api.whatsapp.com/send/?phone=17866303496&text&type=phone_number&app_absent=0" />
                 {/* Decorative background elements */}
                 < div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
-                
-                <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
+                {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
                 </div>
                 <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
-                </div>
+                </div> */}
             </section>
 
+
+            
             <div className="transform md:-translate-y-[50px] ">
                 <WhyPackagesSection />
-                <NewsletterSection />
-              {/*   <ActivitiesSecundarySection /> */}
+                {/*    <NewsletterSection /> */}
+                {/*   <ActivitiesSecundarySection /> */}
             </div>
 
         </Fragment >

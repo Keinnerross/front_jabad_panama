@@ -1,3 +1,4 @@
+'use client'
 import { CardHero } from "../(cards)/cardHero"
 
 export const CardsHeroSection = () => {
@@ -18,7 +19,7 @@ export const CardsHeroSection = () => {
             href: "/shabbat-holidays",
         },
         {
-            title: "Package List",
+            title: "All-Inclusive Packages",
             icon: "/assets/icons/home/packages.svg",
             href: "/packages",
         },
@@ -37,10 +38,29 @@ export const CardsHeroSection = () => {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(3,minmax(0,1fr))] lg:grid-cols-6 gap-4 w-full px-4">
             {dataCardsHero.map((dataCard, i) => (
-                <div key={i} className="flex justify-center items-center">
+                <div
+                    key={i}
+                    className="flex justify-center items-center opacity-0 translate-y-6"
+                    style={{
+                        animation: `slideUpFadeCard 0.6s ease-out ${0.05 * i + 1}s forwards`
+                    }}
+                >
                     <CardHero data={dataCard} />
                 </div>
             ))}
+
+            <style jsx>{`
+                @keyframes slideUpFadeCard {
+                    from {
+                        opacity: 0;
+                        transform: translateY(1.5rem) scale(0.95);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+            `}</style>
         </div>
     );
 };

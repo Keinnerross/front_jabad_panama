@@ -2,7 +2,7 @@ export const activitiesData = [
   {
     title: "White Water Rafting",
     description: "Navigate Class III-IV rapids on the Chiriquí River. An adrenaline rush in Panama's tropical wilderness.",
-    imageUrls: "https://plus.unsplash.com/premium_photo-1680184592674-0a1a1da87a93?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    imageUrls: "https://images.unsplash.com/photo-1642933196504-62107dac9258?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     category: "Adventure",
     tags: ["Adventure", "Water"],
     hours: "45 minutes",

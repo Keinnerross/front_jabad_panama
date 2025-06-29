@@ -37,13 +37,13 @@ export default function Restaurants() {
                 </div>
 
                 {/* Decorative background elements */}
-                <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
+              {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
                 </div>
 
                 <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
-                </div>
+                </div> */}
             </section>
 
 

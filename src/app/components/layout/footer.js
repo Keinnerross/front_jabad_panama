@@ -17,8 +17,8 @@ export const Footer = () => {
       links: [
         { name: "Home", path: "/" },
         { name: "About us", path: "/about" },
-        { name: "Contact", path: "/contact" },
-        { name: "Donations", path: "/donate" }
+        { name: "Contact", path: "/http://wa.me/50762430666" },
+        { name: "Donations", path: "/http://wa.me/50762430666" }
       ]
     },
     {
@@ -34,7 +34,7 @@ export const Footer = () => {
       title: "Services",
       links: [
         { name: "Shabbat Box", path: "/about" },
-        { name: "Reservations", path: "/contact" }
+        { name: "Reservations", path: "/http://wa.me/50762430666" }
       ]
     },
     {
@@ -55,7 +55,7 @@ export const Footer = () => {
     {
       title: "Legal",
       links: [
-        { name: "FAQS", path: "/contact" },
+        { name: "FAQS", path: "/#" },
         { name: "Terms & Conditions", path: "/#" },
         { name: "Privacy Policy", path: "/#" }
       ]
@@ -128,7 +128,7 @@ export const Footer = () => {
         </div>
 
         {/* Derechos de autor */}
-        <p className="mt-4 text-center text-gray-500">© {new Date().getFullYear()} Chabad Panama. All rights reserved.</p>
+        <p className="mt-4 text-center text-gray-500">© {new Date().getFullYear()} Chabad Boquete. All rights reserved.</p>
       </div>
     </footer>
   );

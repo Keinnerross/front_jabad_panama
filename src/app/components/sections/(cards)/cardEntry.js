@@ -15,7 +15,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
   return (
     <div className="w-full flex flex-col md:flex-row overflow-hidden gap-6">
       {/* Image Section */}
-      <div className="relative w-full md:w-[40%] md:min-w-[40%] h-48 md:h-[250px]">
+      <div className="relative w-full md:w-[40%] md:min-w-[40%] h-[350px] md:h-[250px]">
         <Image
           src={imageSrc}
           fill
@@ -60,9 +60,32 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
 
         {/* Hotel Rating */}
         {isHotel && (
-          <div className="mb-2">
-            <StarsHotel rating={data.stars || 4} />
+
+
+          <div>
+            <div className="mb-4">
+              <StarsHotel rating={data.stars || 4} />
+            </div>
+            <div className="flex items-center gap-2 mb-4 md:mb-0">
+              <svg
+                width="11"
+                height="13"
+                viewBox="0 0 11 13"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10.5 5.63397C11.1667 6.01888 11.1667 6.98113 10.5 7.36603L2.25 12.1292C1.58333 12.5141 0.749999 12.0329 0.749999 11.2631L0.75 1.73686C0.75 0.967059 1.58333 0.485934 2.25 0.870834L10.5 5.63397Z"
+                  fill="#FC5761"
+                />
+              </svg>
+
+              <a href={data.website} target="_blank" rel="noopener noreferrer" className="underline leading-3 text-sm">
+                View {data.category}
+              </a>
+            </div>
           </div>
+
         )}
 
         {/* CTA Link */}
@@ -80,13 +103,14 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
                 fill="#FC5761"
               />
             </svg>
+
             {isRestaurant ? (
-              <Link href="/single-restaurant" className="underline leading-3 text-sm">
+              <a href={data.website} rel="noopener noreferrer" target="_blank" className="underline leading-3 text-sm">
                 View Restaurant
-              </Link>
+              </a>
             ) : (
               <a
-                href="https://www.google.com"
+                href={data.website ? data.website : "https://api.whatsapp.com/send/?phone=17866303496&text&type=phone_number&app_absent=0"}
                 target="_blank"
                 className="underline md:leading-3 text-sm"
               >
@@ -96,6 +120,6 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };

@@ -16,7 +16,7 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
         <div className="flex flex-col lg:flex-row gap-12 items-center">
           {/* Text Content */}
           <div className="w-full lg:w-5/12 flex flex-col">
-            <h1 className="text-3xl md:text-4xl font-bold text-myBlack mb-6">
+            <h1 className="text-4xl md:text-4xl font-bold text-myBlack mb-6">
               {title}
             </h1>
 
@@ -86,13 +86,13 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
               )}
 
               {/* Imagen inferior derecha */}
-              <div className="absolute bottom-[10%] right-0 w-[60%] aspect-square rounded-xl overflow-hidden bg-red-100 z-0" >
+              <div className="absolute bottom-[10%] right-0 w-[60%] aspect-square rounded-xl overflow-hidden  z-0" >
 
                 <Image src="/assets/pictures/rio.jpg" fill alt="boquete" />
               </div>
 
               {/* Imagen superior izquierda */}
-              <div className="absolute top-0 left-0 w-[65%] aspect-square rounded-xl overflow-hidden bg-red-300 z-10">
+              <div className="absolute top-0 left-0 w-[65%] aspect-square rounded-xl overflow-hidden  z-10">
 
                 <Image src="/assets/pictures/raf2.jpg" fill alt="boquete" />
               </div>

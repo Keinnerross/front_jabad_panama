@@ -47,7 +47,7 @@ export const CardHotelsSlider = ({ hotel }) => {
 
             <div className="border-t border-gray-200 pt-4" />
 
-            <div className="flex items-start gap-1 mb-3">
+            <div className="flex items-start gap-1 mb-4">
               <LocationIcon />
               <p className="text-darkBlue text-base font-medium">
                 {hotel?.address ?? "472 Border St. Freeport, NY 1152"}

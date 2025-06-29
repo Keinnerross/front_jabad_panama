@@ -23,7 +23,7 @@ export default function Restaurants() {
             <ActivitiesSection />
             <PackagesHome showVideo={false} isHero={false} href="#whyPackages" title="All inclusive packages: Leave the thinking to us" />
             <WhyPackagesSection />
-            <NewsletterSection />
+      {/*       <NewsletterSection /> */}
             {/*  <ActivitiesSecundarySection /> */}
         </Fragment >
     );

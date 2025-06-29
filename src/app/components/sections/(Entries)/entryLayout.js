@@ -87,7 +87,7 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
                   {filter !== "All" && (
                     <IconComponent className={isActive ? "text-white" : "text-primary"} />
                   )}
-                  <span>{filter}</span>
+                  <span className="font-semibold">{filter}</span>
                 </button>
               );
             })}

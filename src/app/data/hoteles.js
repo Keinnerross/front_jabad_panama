@@ -41,7 +41,7 @@ export const hotelsData = [
   },
   {
     title: "Finca Panda",
-    stars: 3,
+    stars: 4,
     category: "Eco Lodge",
     description: "An eco-friendly farm stay with local charm, perfect for unwinding and exploring.",
     website: "http://www.fincapanda.com",
@@ -61,7 +61,7 @@ export const hotelsData = [
   },
   {
     title: "Villa Alejandro",
-    stars: 3,
+    stars: 4,
     category: "Villa",
     description: "A peaceful colonial-style villa with lush gardens and great value.",
     website: "https://villa-alejandro.com/es/",

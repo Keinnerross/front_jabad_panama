@@ -13,7 +13,7 @@ export default function Restaurants() {
 
                 {/* Gradient bottom */}
 
-                <div className="absolute top-0 left-0 flex flex-col items-center w-screen bg-blueBackground pb-20 h-[70vh] overflow-hidden">
+                <div className="absolute top-0 left-0 flex flex-col items-center w-full bg-blueBackground pb-20 h-[70vh] overflow-hidden">
 
                     <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
 

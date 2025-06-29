@@ -1,8 +1,38 @@
+
+'use client'
 import React from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { FaCheckCircle } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { GoTriangleRight } from "react-icons/go";
+
+// Componente separado para el iframe de YouTube
+const YouTubeEmbed = () => (
+  <iframe
+    className="w-full h-full"
+    src="https://www.youtube.com/embed/7vFZTwLxQLE?autoplay=1&mute=1"
+    title="All-inclusive Kosher vacations to Boquete, Panama"
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    allowFullScreen
+  />
+);
+
+// Importación dinámica del iframe para evitar problemas de hidratación
+const DynamicYouTubeEmbed = dynamic(() => Promise.resolve(YouTubeEmbed), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center bg-gray-800">
+      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-[10px] border-white bg-opacity-20 flex items-center justify-center">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center">
+          <GoTriangleRight className="text-white text-7xl ml-2" />
+        </div>
+      </div>
+    </div>
+  )
+});
 
 export const PackagesHome = ({ title = "All inclusive packages", showVideo = true, isHero = true, href = "#" }) => {
   const data = {
@@ -25,15 +55,13 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
             </p>
             <br />
             <p className="text-gray-text text-base md:text-base mb-8 leading-relaxed">
-
-              Pay once in the U.S., and everything’s handled—no stress, no planning, just show up and enjoy. Packages start at $3,500 per adult.
+              Pay once in the U.S., and everything's handled—no stress, no planning, just show up and enjoy. Packages start at $3,500 per adult.
             </p>
 
             {/* Badges Section */}
             <div>
               <p className="font-semibold mb-6 text-lg">Check out our plans below: </p>
               {/* Badges */}
-
               <div className={`flex flex-wrap gap-4 items-center mb-8 `}>
                 {data?.packages.map((item, i) => (
                   <div className="flex gap-2 items-center" key={i}>
@@ -81,70 +109,41 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
                     </g>
                     <path d="M282.444 0.677734C282.444 6.92773 277.199 11.9798 270.721 11.9798C277.199 11.9798 282.444 17.0319 282.444 23.2819C282.444 17.0319 287.688 11.9798 294.167 11.9798C287.688 11.9798 282.444 6.92773 282.444 0.677734Z" fill="#201E4D" />
                   </svg>
-
                 </div>
               )}
 
               {/* Imagen inferior derecha */}
               <div className="absolute bottom-[10%] right-0 w-[60%] aspect-square rounded-xl overflow-hidden  z-0" >
-
                 <Image src="/assets/pictures/rio.jpg" fill alt="boquete" />
               </div>
 
               {/* Imagen superior izquierda */}
               <div className="absolute top-0 left-0 w-[65%] aspect-square rounded-xl overflow-hidden  z-10">
-
                 <Image src="/assets/pictures/raf2.jpg" fill alt="boquete" />
               </div>
-
             </div>
           </div>
         </div>
-      </section >
+      </section>
 
       {/* Video Section */}
-      {
-        showVideo && (
-          <section className="bg-blueBackground pt-8 pb-16 flex justify-center items-center">
-            <div className="w-full max-w-7xl px-4 sm:px-6">
-              {/* Header Video Section */}
-              <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">
-                  Everything about our packages
-                </h2>
-                <ButtonTheme title="Check Details" href={href} />
-              </div>
+      {showVideo && (
+        <section className="bg-blueBackground pt-8 pb-16 flex justify-center items-center">
+          <div className="w-full max-w-7xl px-4 sm:px-6">
+            {/* Header Video Section */}
+            <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">
+                Everything about our packages
+              </h2>
+              <ButtonTheme title="Check Details" href={href} />
+            </div>
 
-              <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full z-20">
-                <iframe
-                  className="w-full h-full"
-                  src="https://www.youtube.com/embed/7vFZTwLxQLE?autoplay=1&mute=1"
-                  title="All-inclusive Kosher vacations to Boquete, Panama"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                ></iframe>
-
-
-
-
-              </div>
-
-
-              {/*  <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-[10px] border-white bg-opacity-20 flex items-center justify-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center">
-                <GoTriangleRight className="text-white text-7xl ml-2" />
-              </div>
+            <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full z-20">
+              <DynamicYouTubeEmbed />
             </div>
           </div>
-        </div> */}
-            </div>
-          </section>
-        )
-      }
-    </div >
+        </section>
+      )}
+    </div>
   );
 };

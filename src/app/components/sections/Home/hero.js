@@ -7,7 +7,7 @@ import Image from "next/image";
 
 export const Hero = () => {
     return (
-        <section className="relative h-[75vh] min-h-[480px] w-full overflow-hidden">
+        <section className="relative h-[65vh]  w-full overflow-hidden">
             {/* Imagen de fondo con animación sutil */}
             <div className="w-full h-full absolute inset-0 bg-[url('#')] bg-cover bg-center">
                 <Image

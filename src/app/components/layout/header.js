@@ -51,11 +51,12 @@ export const Header = () => {
 
     return (
         <header className="w-full bg-white relative z-50">
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="max-w-7xl mx-auto px-4 py-4">
+
                 <div className="flex items-center justify-between">
                     <Link href="/" className="w-32 md:w-40 lg:w-48 h-auto transform scale-[1.5] hover:scale-[1.55] transition-transform duration-300">
-                        <div className="w-full h-12 md:h-14 relative">
-                            <div className="w-28 h-28">
+                        <div className="w-full h-12 md:h-12 relative">
+                            <div className="w-24 h-24">
                                 <Image src="/assets/site/logo.png" alt="Chabad Logo" fill className="object-contain" />
                             </div>
                         </div>

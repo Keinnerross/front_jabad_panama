@@ -44,8 +44,8 @@ export default function ShabbatAndHolidays() {
                                 stay spiritually enriching and unforgettable.
                             </p>
                             <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                <ButtonTheme title="Register for Shabbat" variation={2} />
-                                <ButtonTheme title="About Shabbat Box" />
+                            {/*     <ButtonTheme title="Register for Shabbat" variation={2} />
+                                <ButtonTheme title="About Shabbat Box" /> */}
                             </div>
                         </div>
 
@@ -66,8 +66,8 @@ export default function ShabbatAndHolidays() {
 
 
                 <div className="absolute -bottom-[80px] flex gap-10 z-20 left-1/2 -translate-x-1/2">
-                    <CardHero />
-                    <CardHero />
+                 {/*    <CardHero />
+                    <CardHero /> */}
                 </div>
 
 

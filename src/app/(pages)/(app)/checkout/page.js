@@ -1,7 +1,10 @@
+'use client'
 import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
+import { useCart } from "../../../context/CartContext";
 
 export default function Checkout() {
+    const { cartItems, total } = useCart();
     return (
         <div className="w-full flex justify-center bg-white relative pb-28 ">
 
@@ -29,17 +32,30 @@ export default function Checkout() {
                                 {/* Order Details */}
                                 <div className=" flex flex-col justify-between">
                                     <div className="space-y-6">
-                                        {/* Cost Price */}
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-gray-text font-medium">Cost price</span>
-                                            <span className="text-gray-text font-medium">$62.00</span>
-                                        </div>
-
-                                        {/* Kids Price */}
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-gray-text font-medium">Kids 3-10 yo</span>
-                                            <span className="text-gray-text font-medium">$42.00</span>
-                                        </div>
+                                        {cartItems.length > 0 ? (
+                                            cartItems.map((item, index) => (
+                                                <div key={index} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                                                    <div className="flex flex-col flex-1">
+                                                        <span className="text-gray-text font-medium">{item.meal}</span>
+                                                        <span className="text-gray-400 text-sm">{item.priceType} × {item.quantity}</span>
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            <span className="font-medium">{item.shabbatName}</span>
+                                                            {item.shabbatDate && <span> - {item.shabbatDate}</span>}
+                                                            {item.productType && (
+                                                                <span className="ml-2 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
+                                                                    {item.productType === 'shabbatBox' ? 'Shabbat Box' : 'Meal Reservation'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-gray-text font-medium">${item.totalPrice.toFixed(2)}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center text-gray-500 py-8">
+                                                No items in cart
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Divider and Total */}
@@ -47,7 +63,7 @@ export default function Checkout() {
                                         <div className="border-t border-gray-200 my-4"></div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-darkBlue font-medium text-lg">Total:</span>
-                                            <span className="text-darkBlue font-medium text-lg">$104.00</span>
+                                            <span className="text-darkBlue font-medium text-lg">${total.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>

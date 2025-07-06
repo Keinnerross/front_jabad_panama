@@ -105,9 +105,9 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
             </svg>
 
             {isRestaurant ? (
-              <a href={data.website} rel="noopener noreferrer" target="_blank" className="underline leading-3 text-sm">
+              <Link href={`/single-restaurant?id=${data.id}`} className="underline leading-3 text-sm">
                 View Restaurant
-              </a>
+              </Link>
             ) : (
               <a
                 href={data.website ? data.website : "https://api.whatsapp.com/send/?phone=17866303496&text&type=phone_number&app_absent=0"}

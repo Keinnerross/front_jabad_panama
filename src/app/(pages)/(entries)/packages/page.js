@@ -24,18 +24,11 @@ export default function Restaurants() {
                     <div className="w-full h-full bg-red-300" />
                 </div> */}
             </section>
-
-
-            
             <div className="transform md:-translate-y-[50px] ">
                 <WhyPackagesSection />
                 {/*    <NewsletterSection /> */}
                 {/*   <ActivitiesSecundarySection /> */}
             </div>
-
         </Fragment >
     );
 };
-
-
-

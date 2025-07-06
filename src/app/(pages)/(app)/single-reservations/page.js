@@ -1,86 +1,126 @@
 "use client"
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
+import { useSearchParams } from 'next/navigation';
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
 import { PopupReservations } from "@/app/components/sections/(Entries)/shabbatHolidays/popupReservations";
+import { getSortedShabbats, formatShabbatDate, pricesRegistrationShabbat } from "@/app/data/shabbatData";
 
 
 
 export default function SingleReservations() {
 
+    const searchParams = useSearchParams();
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedShabbatData, setSelectedShabbatData] = useState(null);
+    const [selectedMeal, setSelectedMeal] = useState(null);
 
-    const [modalOpen, setModalOpen] = useState(false)
+    // Get sorted Shabbats
+    const sortedShabbats = getSortedShabbats();
 
-
-    const handleModal = (vaule) => {
-        setModalOpen(vaule)
+    const handleModal = (value) => {
+        setModalOpen(value);
     }
 
 
-    const dataEntry = [];
+    useEffect(() => {
+        const shabbatIndex = searchParams.get('shabbat');
+        if (shabbatIndex !== null && sortedShabbats[shabbatIndex]) {
+            setSelectedShabbatData(sortedShabbats[shabbatIndex]);
+        }
+    }, [searchParams, sortedShabbats]);
+
+    const handleMealSelection = (meal) => {
+        setSelectedMeal(meal);
+        setModalOpen(true);
+    };
+
+    const handleGeneralRegistration = () => {
+        setSelectedMeal(pricesRegistrationShabbat[0]);
+        setModalOpen(true);
+    };
+
 
     return (
 
         <Fragment>
-            <div className="w-full flex justify-center py-20">
-                <div className="w-full max-w-7xl px-6 md:px-0">
+            <div className="w-full flex justify-center mt-10  pb-6 md:pb-20">
+                <div className="w-full max-w-7xl px-4 md:px-0">
                     {/* Hero Section */}
-                    <section className="mb-16 md:mb-24">
+                    <section className="mb-16">
                         <div className="flex flex-col md:flex-row justify-between items-start mb-6">
-                            <div className="md:w-[60%]">
-                                <h1 className="text-4xl font-bold text-darkBlue mb-6 md:max-w-[80%]">
-                                    Registration for Shabbat and Holiday meals
-                                </h1>
+                            <div className="md:w-[60%] mb-4 md:mb-0">
+                                <div>
+
+                                    <h1 className="text-4xl font-bold text-darkBlue md:max-w-[80%]">
+                                        Registration for Shabbat and Holiday meals
+                                    </h1>
+                                </div>
                             </div>
-                            <ButtonTheme title="Register Now" variation={2} onClick={() => handleModal(true)} disableLink={true} />
+
+
+                            <div className="hidden md:block">
+                                <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} />
+                            </div>
+
+                            <div className="flex w-full md:hidden">
+                                <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
+                            </div>
+
                         </div>
-                        <div className="flex items-center gap-4 mb-8">
+                        <div className="flex justify-center md:justify-start items-center gap-4 mb-8">
                             <CategoryTag categoryTitle="Shabbat Meals" />
                             <CategoryTag categoryTitle="Kosher Foods" />
                         </div>
-                        <div className="w-full h-80 md:h-[500px] rounded-xl bg-red-300 overflow-hidden">
+                        <div className="w-full h-80 md:h-[500px] rounded-xl  overflow-hidden relative">
                             {/* Replace with Next.js Image component */}
-                            <div className="w-full h-full object-cover bg-red-300" />
+                            <Image fill src="/assets/pictures/shabbat-meals/meals-single.jpg" alt="picture-shabbat-meal" className="w-full h-full object-cover" />
                         </div>
                     </section>
+
+
+
+
                     {/* Main Content Section */}
-                    <div className="flex flex-col lg:flex-row gap-12">
+                    <div className="flex flex-col lg:flex-row md:gap-12">
                         {/* About Section */}
                         <div className="lg:w-[70%]">
                             <section className="mb-12">
                                 <h2 className="text-3xl font-bold text-darkBlue mb-6">
-                                    SHABBOS MEALS TAKE OUT OPTION
+                                    Shabbat times:
                                 </h2>
                                 <div className="text-gray-text text-sm leading-relaxed space-y-4">
-                                    <h3>Friday night – Friday 12/09/2025</h3>
-                                    <p>
-                                        Today's events will be held at <strong>CHABAD OF PANAMA CITY PTY</strong>,
-                                        C. Gil Colunge 9a, Panamá, Provincia de Panamá, Panama •
-                                        <a href="#">Navigate</a>
-                                    </p>
-                                    <ul>
-                                        <li><strong>18:02</strong> Candle lighting time</li>
-                                        <li><strong>19:00</strong> Kabbalat Shabbat and Maariv</li>
-                                        <li><strong>19:30</strong> Friday night Dinner</li>
-                                    </ul>
+                                    {selectedShabbatData && (
+                                        <>
 
-                                    <h3>Shabbat day – Saturday 13/09/2025</h3>
-                                    <p>
-                                        Today's events will be held at <strong>CHABAD OF PANAMA CITY PTY</strong>,
-                                        C. Gil Colunge 9a, Panamá, Provincia de Panamá, Panama •
-                                        <a href="#">Navigate</a>
-                                    </p>
-                                    <ul>
-                                        <li><strong>09:00</strong> Chassidut lesson</li>
-                                        <li><strong>10:00</strong> Shabbat morning prayer</li>
-                                        <li><strong>12:00</strong> Shabbat Lunch</li>
-                                        <li><strong>17:45</strong> Shabbat Mincha prayer</li>
-                                        <li><strong>18:50</strong> Shabbat ends</li>
-                                    </ul>
+                                            <div className="border border-gray-200 p-4 rounded-2xl">
+                                                <h3 className="font-semibold text-myBlack text-base mb-2">Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</h3>
+                                                <ul>
+                                                    {selectedShabbatData.fridayNight?.map((event, index) => (
+                                                        <li key={index}><strong className="text-myBlack">{event.hora}</strong> {event.activity}</li>
+                                                    ))}
+                                                </ul>
 
+                                            </div>
+
+
+                                            <div className="border border-gray-200 p-4 rounded-2xl">
+
+                                                <h3 className="font-semibold text-myBlack text-base mb-2">Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</h3>
+
+                                                <ul>
+                                                    {selectedShabbatData.shabbatDay?.map((event, index) => (
+                                                        <li key={index}><strong className="text-myBlack">{event.hora}</strong> {event.activity}</li>
+                                                    ))}
+
+                                                </ul>
+                                            </div>
+
+                                        </>
+                                    )}
                                 </div>
                             </section>
                         </div>
@@ -92,13 +132,13 @@ export default function SingleReservations() {
                                     <div className="w-12 h-12 bg-red-300 rounded-full"></div>
                                     <div className="space-y-3">
                                         <h3 className="text-2xl font-bold text-darkBlue">
-                                            {dataEntry.title ? dataEntry.title : "Parashat Ki Tavo"}
+                                            {selectedShabbatData?.name || "Error to fetch"}
                                         </h3>
                                         <p className="text-gray-text text-sm">
                                             Enjoy a warm stay near the Chabad House, with nearby kosher-friendly hotels and easy access to Shabbat services.
                                         </p>
 
-                                        <ButtonTheme title="Register for Shabbat Meals" variation={2} onClick={() => handleModal(true)} disableLink={true} />
+                                        <ButtonTheme title="Register for Shabbat Meals" variation={2} onClick={handleGeneralRegistration} disableLink={true} />
                                     </div>
                                 </div>
                             </div>
@@ -108,7 +148,13 @@ export default function SingleReservations() {
             </div>
 
             <RestaurantsSection />
-            <PopupReservations isOpen={modalOpen} handleModal={handleModal} />
+            <PopupReservations
+                isOpen={modalOpen}
+                handleModal={handleModal}
+                selectedMeal={selectedMeal}
+                shabbatData={selectedShabbatData}
+                allMeals={pricesRegistrationShabbat}
+            />
 
 
         </Fragment>

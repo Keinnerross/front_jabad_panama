@@ -2,6 +2,10 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "./components/layout/header";
 import { Footer } from "./components/layout/footer";
+import { CartProvider } from "./context/CartContext";
+import { NotificationProvider } from "./context/NotificationContext";
+import { NotificationContainer } from "./components/ui/notifications/NotificationContainer";
+import { NotificationDemo } from "./components/ui/notifications/NotificationDemo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,9 +26,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Header />
-        {children}
-        <Footer />
+        <NotificationProvider>
+          <CartProvider>
+            <Header />
+            {children}
+            <Footer />
+            <NotificationContainer />
+           {/*  <NotificationDemo /> */}
+          </CartProvider>
+        </NotificationProvider>
       </body>
     </html>
   );

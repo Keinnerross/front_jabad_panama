@@ -2,26 +2,31 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { FiChevronDown, FiShoppingCart } from "react-icons/fi";
-import { FaHeart, FaHome, FaCog, FaBed, FaUtensils, FaMapMarkedAlt, FaGift } from "react-icons/fa";
+import { FaHeart, FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift } from "react-icons/fa";
 import { MdInfo, MdContactMail } from "react-icons/md";
 import Link from "next/link";
 import { ButtonTheme } from "../ui/common/buttonTheme";
+import { CartPopup } from "../ui/cart/cartPopup";
+import { useCart } from "../../context/CartContext";
 
 export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [hoveredDropdown, setHoveredDropdown] = useState(null);
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
-    // Estado para el carrito
-    const [cartItemsCount, setCartItemsCount] = useState(0); // Ejemplo con 1 item
+    // Hook personalizado para el carrito
+    const { itemCount } = useCart();
+
+    const pathDonate = "/donation"
 
     const menuItems = [
         {
             name: "Chabat House",
-            hasDropdown: false,
+            hasDropdown: true,
             subItems: [
-                { name: "Programs", path: "/chabat/programs", icon: FaHome },
-                { name: "Services", path: "/chabat/services", icon: FaCog }
+                { name: "Visitor Information", path: "/visitor-information", icon: FaHome },
+                { name: "Shabbat & Holidays Meals", path: "/shabbat-holidays", icon: FaUtensils }
             ],
             path: "/about"
         },
@@ -36,7 +41,7 @@ export const Header = () => {
             ]
         },
         { name: "About us", hasDropdown: false, path: "/about", icon: MdInfo },
-        { name: "Contact", hasDropdown: false, path: "http://wa.me/50762430666", icon: MdContactMail }
+        { name: "Contact", hasDropdown: false, path: "/contact", icon: MdContactMail }
     ];
 
     const toggleMobileDropdown = (index) => {
@@ -51,7 +56,7 @@ export const Header = () => {
 
     return (
         <header className="w-full bg-white relative z-50">
-            <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="max-w-7xl mx-auto py-4">
 
                 <div className="flex items-center justify-between">
                     <Link href="/" className="w-32 md:w-40 lg:w-48 h-auto transform scale-[1.5] hover:scale-[1.55] transition-transform duration-300">
@@ -76,7 +81,6 @@ export const Header = () => {
                                         <Link
                                             href={item.path}
                                             className="flex items-center text-myBlack font-medium text-sm lg:text-base hover:text-primary transition-all duration-300 cursor-pointer group"
-                                            {...(item.name === "Contact" && { target: "_blank", rel: "noopener noreferrer" })}
                                         >
                                             <span className="transform group-hover:scale-105 transition-transform duration-200">
                                                 {item.name}
@@ -123,8 +127,8 @@ export const Header = () => {
 
                         <div className="flex items-center space-x-4 md:space-x-6">
                             {/* Carrito de compras */}
-                            <Link
-                                href="/#"
+                            <button
+                                onClick={() => setIsCartOpen(true)}
                                 className="flex items-center text-myBlack font-medium text-sm lg:text-base hover:text-primary transition-all duration-300 gap-2 group relative"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="16" viewBox="0 0 14 16" fill="none">
@@ -140,16 +144,15 @@ export const Header = () => {
                                 </svg>
 
                                 <span className="transform group-hover:scale-105 transition-transform duration-200">Cart</span>
-                                {cartItemsCount > 0 && (
+                                {itemCount > 0 && (
                                     <span className="absolute -top-[6px] -right-[12px] bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
-                                        {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                                        {itemCount > 99 ? '99+' : itemCount}
                                     </span>
                                 )}
-                            </Link>
+                            </button>
 
                             <a
-                                href="https://api.whatsapp.com/send/?phone=50762430666&text&type=phone_number&app_absent=0"
-                                target="blank"
+                                href={pathDonate}
                                 className="hidden md:flex items-center bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
                             >
                                 <FaHeart className="mr-2 animate-pulse" />
@@ -190,7 +193,6 @@ export const Header = () => {
                                         href={item.path}
                                         className="w-full flex justify-between items-center text-myBlack font-medium py-2 hover:text-primary transition-colors duration-200"
                                         onClick={closeMobileMenu} // Cerrar menú al hacer clic
-                                        {...(item.name === "Contact" && { target: "_blank", rel: "noopener noreferrer" })}
                                     >
                                         <span className="transform hover:translate-x-1 transition-transform duration-200">
                                             {item.name}
@@ -239,17 +241,16 @@ export const Header = () => {
                         ))}
 
                         {/* Carrito en móvil */}
-                        <Link
-                            href="/cart"
+                        <button
+                            onClick={() => { setIsCartOpen(true); closeMobileMenu(); }}
                             className="w-full flex items-center justify-center text-red-500 hover:text-red-600 px-4 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition-all duration-300"
-                            onClick={closeMobileMenu} // Cerrar menú al ir al carrito
                         >
                             <FiShoppingCart className="mr-2 w-5 h-5" />
-                            <span className="font-semibold">Cart ({cartItemsCount})</span>
-                        </Link>
+                            <span className="font-semibold">Cart ({itemCount})</span>
+                        </button>
 
                         <a
-                            href="https://api.whatsapp.com/send/?phone=50762430666&text&type=phone_number&app_absent=0"
+                            href={pathDonate}
                             className="w-full flex items-center justify-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg mt-4 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                             onClick={closeMobileMenu} // Cerrar menú al ir a donación
                         >
@@ -259,6 +260,12 @@ export const Header = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Cart Popup */}
+            <CartPopup 
+                isOpen={isCartOpen} 
+                handleModal={setIsCartOpen}
+            />
         </header>
     );
 };

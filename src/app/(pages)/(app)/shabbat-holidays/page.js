@@ -1,34 +1,93 @@
-import React, { Fragment } from "react";
+"use client"
+import React, { Fragment, useState } from "react";
 import Image from "next/image";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
-import { CardHero } from "@/app/components/sections/(cards)/cardHero";
+import Link from "next/link";
 import { City } from "@/app/components/ui/illustrations/city";
-import { FaUtensils, FaTruck } from "react-icons/fa";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
+import { CardShabbatMeals } from "@/app/components/sections/(cards)/cardShabbatMeals";
+import { MdKeyboardArrowDown } from "react-icons/md";
+import { FaCheck } from "react-icons/fa";
+import { getSortedShabbats, formatShabbatDate } from "@/app/data/shabbatData";
 
 export default function ShabbatAndHolidays() {
 
-    const picturesSize = "200px";
-    const picturesGap = "6"
+    const [selectedShabbat, setSelectedShabbat] = useState('');
+    
+    // Get sorted Shabbats (closest first, future only)
+    const sortedShabbats = getSortedShabbats();
 
+    // Configuración de imágenes (preparado para Strapi)
+    const heroImages = [
+        { id: 1, src: "/assets/pictures/about/pic_about (1).jpg", alt: "Shabbat celebration at Chabad Panama" },
+        { id: 2, src: "/assets/pictures/about/pic_about (2).jpg", alt: "Community gathering for Jewish holidays" },
+        { id: 4, src: "/assets/pictures/about/pic_about (4).jpg", alt: "Traditional Shabbat table setting" },
+        { id: 5, src: "/assets/pictures/about/pic_about (5).jpg", alt: "Kosher meal preparation" },
+        { id: 6, src: "/assets/pictures/about/pic_about (6).jpg", alt: "Jewish community in Panama" },
+        { id: 7, src: "/assets/pictures/about/pic_about (7).jpg", alt: "Holiday services at Chabad" },
+        { id: 8, src: "/assets/pictures/about/pic_about (8).jpg", alt: "Family-friendly Shabbat experience" },
+        { id: 9, src: "/assets/pictures/about/pic_about (9).jpg", alt: "Chabad House Panama activities" }
+    ];
+    const dataCardsHero = [
+        {
+            title: "Shabbat begins",
+            icon: "/assets/icons/shabbat-meals/candles.svg",
+            href: "/restaurants",
+            hour: "18:20",
+
+        },
+        {
+            title: "Shabbat ends",
+            icon: "/assets/icons/shabbat-meals/sun.svg",
+            href: "/tourist-info",
+            hour: "19:12",
+        },
+
+    ];
     return (
-
         <Fragment>
 
-            <section className="w-full bg-blueBackground py-20 px-4 md:px-8 lg:px-12 relative pb-28">
+            <section className="w-full bg-blueBackground py-20 px-4 md:px-8 lg:px-12 relative pb-28 ">
                 <div className="max-w-[90vw] mx-auto">
                     {/* Grid Layout for Images and Content */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                         {/* Left Image Grid */}
-
-                        <div className="flex flex-col gap-6">
+                        <div className="hidden md:flex flex-col gap-6">
                             <div className="flex gap-6">
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[0].src}
+                                        alt={heroImages[0].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[1].src}
+                                        alt={heroImages[1].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
                             </div>
                             <div className="flex gap-6 justify-end">
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[2].src}
+                                        alt={heroImages[2].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[3].src}
+                                        alt={heroImages[3].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -44,7 +103,7 @@ export default function ShabbatAndHolidays() {
                                 stay spiritually enriching and unforgettable.
                             </p>
                             <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            {/*     <ButtonTheme title="Register for Shabbat" variation={2} />
+                                {/*     <ButtonTheme title="Register for Shabbat" variation={2} />
                                 <ButtonTheme title="About Shabbat Box" /> */}
                             </div>
                         </div>
@@ -52,35 +111,69 @@ export default function ShabbatAndHolidays() {
                         {/* Right Image Grid */}
                         <div className="flex flex-col gap-6">
                             <div className="flex gap-6 justify-end">
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[4].src}
+                                        alt={heroImages[4].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[5].src}
+                                        alt={heroImages[5].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
                             </div>
-                            <div className="flex gap-6 ">
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
-                                <div className={`w-[${picturesSize}] h-[${picturesSize}] bg-red-300 rounded-lg aspect-square`} />
+                            <div className="flex gap-6">
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[6].src}
+                                        alt={heroImages[6].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                                <div className="w-48 h-48 md:w-52 md:h-52 rounded-lg overflow-hidden relative">
+                                    <Image
+                                        src={heroImages[7].src}
+                                        alt={heroImages[7].alt}
+                                        fill
+                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
                             </div>
                         </div>
 
                     </div>
                 </div>
 
+                <div className="md:absolute md:-bottom-[80px] flex flex-col md:flex-row gap-10 z-20 md:left-1/2 md:-translate-x-1/2 mt-10 md:mt-0">
 
-                <div className="absolute -bottom-[80px] flex gap-10 z-20 left-1/2 -translate-x-1/2">
-                 {/*    <CardHero />
-                    <CardHero /> */}
+                    {dataCardsHero?.map((dataCard, i) => (
+                        <div key={i}>
+                            <CardShabbatMeals data={dataCard} />
+                        </div>
+                    ))}
                 </div>
 
 
             </section>
 
-            <section className="w-full flex justify-center items-center bg-white py-32">
-                <div className="w-full bg-darkBlue max-w-6xl mx-auto  rounded-2xl relative overflow-hidden">
+            <section className="w-full flex justify-center items-center bg-white py-0 md:pt-48 md:pb-32 px-4 ">
+                <div className="w-full bg-darkBlue max-w-6xl mx-auto  rounded-2xl relative overflow-hidden -translate-y-10">
                     <div className="flex flex-col lg:flex-row gap-8 md:gap-12 z-10 relative px-20 py-32">
                         {/* Left Content Section */}
                         <div className="lg:w-1/2 flex flex-col gap-6 text-white">
                             {/* Logo/Icon */}
-                            <div className="w-16 h-16 bg-blueBackground rounded-full flex items-center justify-center">
-                                <div className="w-8 h-12 bg-red-300" /> {/* Replace with actual icon */}
+                            <div className="w-20 h-20  bg-[#F4F7FB] rounded-full flex justify-center items-center" >
+
+                                <div className="rounded-full  w-16 h-16 relative">
+                                    <Image src="/assets/icons/about/about.svg" fill className="object-contain w-full h-full" alt="icon" />
+                                </div>
                             </div>
 
                             {/* Heading */}
@@ -98,15 +191,21 @@ export default function ShabbatAndHolidays() {
                                 <h3 className="text-lg font-bold mb-4">What's included?</h3>
                                 <ul className="space-y-4">
                                     <li className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-red-300 mt-0.5" /> {/* Icon */}
+                                        <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
+                                            <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                                        </div>
                                         <span className="text-blueBackground font-medium">Inspiring services & divrei Torah</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-red-300 mt-0.5" /> {/* Icon */}
+                                        <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
+                                            <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                                        </div>
                                         <span className="text-blueBackground font-medium">Traditional meals shared in community</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <div className="w-6 h-6 bg-red-300 mt-0.5" /> {/* Icon */}
+                                        <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
+                                            <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                                        </div>
                                         <span className="text-blueBackground font-medium">A sense of belonging wherever you come from</span>
                                     </li>
                                 </ul>
@@ -121,28 +220,44 @@ export default function ShabbatAndHolidays() {
 
                             {/* Date Selector */}
                             <div className="mb-8">
-                                <div className="relative">
-                                    <select className="w-full p-4 border border-gray-text rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                        <option>Parashat Beha'alotcha (13-14/06/2025)</option>
-                                        <option>Parashat Beha'alotcha (13-14/06/2025)</option>
-                                        <option>Parashat Beha'alotcha (13-14/06/2025)</option>
-                                        <option>Parashat Beha'alotcha (13-14/06/2025)</option>
-                                        <option>Parashat Beha'alotcha (13-14/06/2025)</option>
-                                        {/* Add more options dynamically */}
+                                <div className="relative cursor-pointer">
+                                    <select 
+                                        className="w-full p-4 border border-gray-text rounded-lg  appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer"
+                                        value={selectedShabbat}
+                                        onChange={(e) => setSelectedShabbat(e.target.value)}
+                                    >
+                                        <option value="">Select a Shabbat date</option>
+                                        {sortedShabbats.map((shabbat, index) => (
+                                            <option key={index} value={index} className="cursor-pointer">
+                                                {shabbat.name} ({formatShabbatDate(shabbat)})
+                                            </option>
+                                        ))}
                                     </select>
-                                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                                        <div className="w-4 h-4 bg-red-300" /> {/* Dropdown icon */}
+                                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none cursor-pointer">
+                                        <MdKeyboardArrowDown className="text-xl" />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Register Button */}
-                            <button className="w-full sm:w-auto px-8 py-4 border-2 border-darkBlue text-darkBlue font-medium rounded-lg hover:bg-blueBackground transition-colors duration-200">
+                            <Link 
+                                href={selectedShabbat !== '' ? `/single-reservations?shabbat=${selectedShabbat}` : '#'} 
+                                className={`w-full sm:w-auto px-8 py-4 border-2 border-darkBlue font-medium rounded-lg transition-colors duration-200 ${
+                                    selectedShabbat !== '' 
+                                        ? 'text-darkBlue hover:bg-blueBackground cursor-pointer' 
+                                        : 'text-gray-400 border-gray-400 cursor-not-allowed'
+                                }`}
+                                onClick={(e) => {
+                                    if (selectedShabbat === '') {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            >
                                 Register
-                            </button>
+                            </Link>
 
                             {/* Footer Note */}
-                            <p className="mt-8 text-xs text-gray-text text-center">
+                            <p className="mt-8 text-xs text-gray-text">
                                 Registration is quick and easy in a few simple steps
                             </p>
 
@@ -158,7 +273,6 @@ export default function ShabbatAndHolidays() {
                     </div>
                 </div>
             </section>
-
 
 
             <section className="w-full pb-12 md:pb-20 px-4 sm:px-6 lg:px-8 bg-white flex justify-center ">
@@ -204,15 +318,13 @@ export default function ShabbatAndHolidays() {
                                     covered—delivered to your hotel or served in a warm community
                                     setting.
                                 </p>
-                                <ButtonTheme title="Reserve Your Box" />
+                                <ButtonTheme title="Reserve Your Box" href="/single-shabbatbox" />
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-
         </Fragment>
-
     );
 };

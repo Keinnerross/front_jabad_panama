@@ -1,12 +1,15 @@
-import React, { Fragment } from "react";
+'use client'
+import React, { Fragment, useState } from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
+import { PopupShabbatBox } from "@/app/components/sections/(Entries)/shabbatHolidays/popupShabbatBox";
+import { shabbatBoxOptions, shabbatAndHolidays } from "@/app/data/shabbatData";
 
 export default function SingleReservations() {
-
+    const [isShabbatBoxModalOpen, setIsShabbatBoxModalOpen] = useState(false);
     const dataEntry = [];
 
     return (
@@ -23,15 +26,18 @@ export default function SingleReservations() {
                                     Order Your Shabbos Meals
                                 </h1>
                             </div>
-                            <ButtonTheme title="Order food for Shabbat" variation={2} />
+                            <ButtonTheme 
+                                title="Order food for Shabbat" 
+                                variation={2} 
+                                onClick={() => setIsShabbatBoxModalOpen(true)}
+                            />
                         </div>
                         <div className="flex items-center gap-4 mb-8">
                             <CategoryTag categoryTitle="Shabbat Box" />
                             <CategoryTag categoryTitle="Kosher Food" />
                         </div>
-                        <div className="w-full h-80 md:h-[500px] rounded-xl bg-red-300 overflow-hidden">
-                            {/* Replace with Next.js Image component */}
-                            <div className="w-full h-full object-cover bg-red-300" />
+                        <div className="w-full h-80 md:h-[500px] rounded-xl  overflow-hidden relative">
+                            <Image src="/assets/pictures/shabbat-meals/shabbatbox-single.png" fill alt="shabbat Box" className="w-full h-full object-cover " />
                         </div>
                     </section>
                     {/* Main Content Section */}
@@ -84,7 +90,11 @@ export default function SingleReservations() {
                                             Enjoy a warm stay near the Chabad House, with nearby kosher-friendly hotels and easy access to Shabbat services.
                                         </p>
 
-                                        <ButtonTheme title="Register for Shabbat Meals" variation={2} />
+                                        <ButtonTheme 
+                            title="Register for Shabbat Meals" 
+                            variation={2} 
+                            onClick={() => setIsShabbatBoxModalOpen(true)}
+                        />
                                     </div>
                                 </div>
                             </div>
@@ -94,6 +104,14 @@ export default function SingleReservations() {
             </div>
 
             <RestaurantsSection />
+            
+            {/* Shabbat Box Popup */}
+            <PopupShabbatBox 
+                isOpen={isShabbatBoxModalOpen}
+                handleModal={setIsShabbatBoxModalOpen}
+                shabbatBoxOptions={shabbatBoxOptions}
+                shabbatAndHolidays={shabbatAndHolidays}
+            />
         </Fragment>
     );
 };

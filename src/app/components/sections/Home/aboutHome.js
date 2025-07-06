@@ -18,7 +18,7 @@ export const AboutHome = () => {
   return (
     <div id="aboutHero" className="w-full bg-blueBackground md:pt-0 pb-24">
       <div
-        
+
         className={`max-w-7xl mx-auto px-4`}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -78,7 +78,10 @@ export const AboutHome = () => {
                 "A brand new, large tree house.",
               ].map((feature, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <FaCheck className="text-primary text-xl mt-0.5 flex-shrink-0" />
+                  <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
+                    <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                  </div>
+
                   <span className="text-myBlack font-bold text-lg">
                     {feature}
                   </span>

@@ -21,7 +21,7 @@ export const CategoryTag = ({ categoryTitle = "Category" }) => {
     const categoryIcon = categoryIcons[categoryTitle] || <FaTag />;
 
     return (
-        <div className="flex items-center gap-2 bg-white rounded-lg border border-solid border-gray-200 px-3 py-1 w-fit ">
+        <div className="flex items-center gap-2 bg-white rounded-lg border border-solid border-gray-200 px-3 py-1 w-fit cursor-pointer ">
             <span className="text-primary">{categoryIcon}</span>
             <span className="text-myBlack font-bold text-sm">{categoryTitle}</span>
         </div>

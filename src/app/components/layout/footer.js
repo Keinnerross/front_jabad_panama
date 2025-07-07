@@ -64,7 +64,7 @@ export const Footer = () => {
 
   return (
     <footer className="w-full bg-blueBackground pt-12 pb-6">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-6 md:px-0">
         {/* Grid principal */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8 mb-12">
           {/* Columnas de menú */}

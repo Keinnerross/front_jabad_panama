@@ -85,8 +85,6 @@ export default function Checkout() {
             };
             
             // Here you would integrate with Stripe
-            console.log('Payment data ready for Stripe:', paymentData);
-            
             // TODO: Implement Stripe payment integration
             // const response = await fetch('/api/create-payment-intent', {
             //     method: 'POST',
@@ -101,7 +99,7 @@ export default function Checkout() {
             }, 2000);
             
         } catch (error) {
-            console.error('Payment error:', error);
+            // TODO: Implement proper error logging service
             setIsSubmitting(false);
         }
     };
@@ -177,10 +175,15 @@ export default function Checkout() {
 
                     {/* Checkout Form Section */}
                     <div className="w-full lg:w-[60%] bg-white rounded-lg xs:rounded-xl border border-gray-200 p-3 xs:p-4 sm:p-6 md:p-8 order-1 lg:order-2">
-                        <form onSubmit={handleSubmit} className="space-y-4 xs:space-y-6 sm:space-y-8">
+                        <form 
+                            onSubmit={handleSubmit} 
+                            className="space-y-4 xs:space-y-6 sm:space-y-8"
+                            aria-label="Checkout form"
+                            noValidate
+                        >
                             {/* Personal Information Section */}
-                            <div>
-                                <h2 className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Personal Information</h2>
+                            <fieldset>
+                                <legend className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Personal Information</legend>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4 md:gap-6">
                                     {/* First Name */}
@@ -239,11 +242,11 @@ export default function Checkout() {
                                         {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                                     </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             {/* Contact Information Section */}
-                            <div>
-                                <h2 className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Contact Information</h2>
+                            <fieldset>
+                                <legend className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Contact Information</legend>
 
                                 <div className="space-y-3 xs:space-y-4 sm:space-y-6">
                                     {/* Email Address */}
@@ -285,10 +288,11 @@ export default function Checkout() {
                                         />
                                     </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             {/* Terms and Conditions */}
-                            <div>
+                            <fieldset>
+                                <legend className="sr-only">Terms and Conditions</legend>
                                 <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
                                     {/* Terms Checkbox */}
                                     <div className="flex items-start gap-2.5 xs:gap-3">
@@ -326,7 +330,7 @@ export default function Checkout() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             {/* Payment Button */}
                             <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">

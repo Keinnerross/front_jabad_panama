@@ -42,7 +42,7 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
   return (
     <div className="w-full bg-blueBackground">
       {/* Hero Section */}
-      <section className={`max-w-7xl mx-auto px-6 sm:px-6  pt-10 md:pt-18 md:pb-10 pb-0 `}>
+      <section className={`max-w-7xl mx-auto px-6 md:px-0  pt-10 md:pt-18 md:pb-10 pb-0 `}>
         <div className="flex flex-col lg:flex-row gap-12 ">
           {/* Text Content */}
           <div className="w-full lg:w-5/12 flex flex-col">
@@ -114,12 +114,12 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
 
               {/* Imagen inferior derecha */}
               <div className="absolute bottom-[10%] right-0 w-[60%] aspect-square rounded-xl overflow-hidden  z-0" >
-                <Image src="/assets/pictures/rio.jpg" fill alt="boquete" />
+                <Image src="/assets/pictures/rio.jpg" fill alt="Beautiful river landscape in Boquete, Panama" />
               </div>
 
               {/* Imagen superior izquierda */}
               <div className="absolute top-0 left-0 w-[65%] aspect-square rounded-xl overflow-hidden  z-10">
-                <Image src="/assets/pictures/raf2.jpg" fill alt="boquete" />
+                <Image src="/assets/pictures/raf2.jpg" fill alt="Scenic mountain views of Boquete, Panama" />
               </div>
             </div>
           </div>
@@ -129,7 +129,7 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
       {/* Video Section */}
       {showVideo && (
         <section className="bg-blueBackground pt-8 pb-16 flex justify-center items-center">
-          <div className="w-full max-w-7xl px-6 sm:px-6">
+          <div className="w-full max-w-7xl px-6 md:px-0">
             {/* Header Video Section */}
             <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">

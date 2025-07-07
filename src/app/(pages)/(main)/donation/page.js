@@ -44,12 +44,15 @@ export default function Donation() {
     };
 
     const handleSubmit = () => {
-        // Preparado para integración con Strapi
-        console.log('Donation data ready for Strapi:', {
+        // TODO: Integrate with payment processing service
+        const donationData = {
             amount: parseFloat(formData.amount),
             frequency: formData.frequency,
             customMonths: formData.frequency === 'other' ? parseInt(formData.customMonths) : null
-        });
+        };
+        
+        // TODO: Send donation data to API
+        alert('Donation feature coming soon!');
     };
 
     return (

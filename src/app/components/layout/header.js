@@ -1,8 +1,14 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift } from "react-icons/fa";
 import { MdInfo, MdContactMail } from "react-icons/md";
-import { CartPopup } from "../ui/cart/cartPopup";
+
+// Lazy load cart popup for better performance
+const CartPopup = lazy(() => 
+    import("../ui/cart/cartPopup").then(module => ({
+        default: module.CartPopup
+    }))
+);
 
 // Componentes modulares del header
 import { Logo } from "./header/Logo";
@@ -96,11 +102,13 @@ export const Header = () => {
                 />
             </div>
             
-            {/* Cart Popup */}
-            <CartPopup 
-                isOpen={isCartOpen} 
-                handleModal={setIsCartOpen}
-            />
+            {/* Lazy loaded Cart Popup with suspense boundary */}
+            <Suspense fallback={null}>
+                <CartPopup 
+                    isOpen={isCartOpen} 
+                    handleModal={setIsCartOpen}
+                />
+            </Suspense>
         </header>
     );
 };

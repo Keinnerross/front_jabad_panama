@@ -41,7 +41,7 @@ export const WhyPackagesSection = () => {
 
     return (
         <section id="whyPackages" className="w-full flex justify-center items-center">
-            <div className="w-full max-w-7xl px-4 py-12 md:py-24">
+            <div className="w-full max-w-7xl px-6 md:px-0 py-12 md:py-24">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <h2 className="text-3xl font-bold text-darkBlue">

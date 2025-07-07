@@ -5,6 +5,9 @@ export const MobileMenuButton = ({ isMenuOpen, onClick }) => {
         <button
             className="lg:hidden text-myBlack relative w-10 h-10 flex flex-col justify-center items-center group"
             onClick={onClick}
+            aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-navigation"
         >
             <div className="relative w-7 h-7 flex flex-col justify-center items-center">
                 <span

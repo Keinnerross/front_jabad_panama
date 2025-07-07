@@ -154,7 +154,12 @@ export default function TouristInfo() {
                         </div>
                         <div className="w-full h-80 md:h-[450px] rounded-2xl  overflow-hidden relative">
                             {/* Replace with Next.js Image component */}
-                            <Image src="/assets/pictures/tourist-info/Picture2.png" fill className="w-full h-full object-cover" />
+                            <Image 
+                                src="/assets/pictures/tourist-info/Picture2.png" 
+                                fill 
+                                className="w-full h-full object-cover"
+                                alt="Panama City tourist information and skyline view"
+                            />
 
                         </div>
 

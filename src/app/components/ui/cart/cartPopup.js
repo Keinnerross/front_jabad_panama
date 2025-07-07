@@ -7,6 +7,11 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
     const router = useRouter();
     const { cartItems, total, removeFromCart, clearCart } = useCart();
     const [showClearConfirmation, setShowClearConfirmation] = React.useState(false);
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const goToCheckout = () => {
         handleModal(false);
@@ -48,7 +53,12 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
 
                 {/* Cart Items */}
                 <div className="flex-1 overflow-y-auto max-h-[50vh] md:max-h-96">
-                    {cartItems.length > 0 ? (
+                    {!isClient ? (
+                        <div className="p-6 sm:p-8 text-center text-gray-500">
+                            <FaShoppingCart size={32} className="mx-auto mb-4 text-gray-300 sm:w-10 sm:h-10" />
+                            <p className="text-sm sm:text-base">Loading cart...</p>
+                        </div>
+                    ) : cartItems.length > 0 ? (
                         <div className="p-4 sm:p-6 space-y-3">
                             {cartItems.map((item, index) => (
                                 <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-100 rounded-lg">
@@ -88,7 +98,7 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                 </div>
 
                 {/* Footer */}
-                {cartItems.length > 0 && (
+                {isClient && cartItems.length > 0 && (
                     <div className="p-4 sm:p-6 border-t border-gray-100 bg-white flex-shrink-0">
                         {/* Total */}
                         <div className="flex justify-between items-center mb-4 sm:mb-6">

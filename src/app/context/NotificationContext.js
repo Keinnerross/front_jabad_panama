@@ -27,12 +27,8 @@ export const NotificationProvider = ({ children }) => {
 
         setNotifications(prev => [...prev, newNotification]);
 
-        // Auto-dismiss si tiene duración
-        if (newNotification.duration > 0) {
-            setTimeout(() => {
-                removeNotification(id);
-            }, newNotification.duration);
-        }
+        // El auto-dismiss ahora se maneja en el componente NotificationItem
+        // para permitir animaciones de salida
 
         return id;
     }, []);

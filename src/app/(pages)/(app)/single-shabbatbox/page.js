@@ -1,12 +1,18 @@
 'use client'
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, lazy, Suspense } from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
-import { PopupShabbatBox } from "@/app/components/sections/(Entries)/shabbatHolidays/popupShabbatBox";
 import { shabbatBoxOptions, shabbatAndHolidays } from "@/app/data/shabbatData";
+
+// Lazy load the popup component for better performance
+const PopupShabbatBox = lazy(() => 
+    import("@/app/components/sections/(Entries)/shabbatHolidays/popupShabbatBox").then(module => ({
+        default: module.PopupShabbatBox
+    }))
+);
 
 export default function SingleReservations() {
     const [isShabbatBoxModalOpen, setIsShabbatBoxModalOpen] = useState(false);
@@ -103,13 +109,16 @@ export default function SingleReservations() {
             </div>
 
             <RestaurantsSection />
-            {/* Shabbat Box Popup */}
-            <PopupShabbatBox
-                isOpen={isShabbatBoxModalOpen}
-                handleModal={setIsShabbatBoxModalOpen}
-                shabbatBoxOptions={shabbatBoxOptions}
-                shabbatAndHolidays={shabbatAndHolidays}
-            />
+            
+            {/* Lazy loaded Shabbat Box Popup with suspense boundary */}
+            <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div></div>}>
+                <PopupShabbatBox
+                    isOpen={isShabbatBoxModalOpen}
+                    handleModal={setIsShabbatBoxModalOpen}
+                    shabbatBoxOptions={shabbatBoxOptions}
+                    shabbatAndHolidays={shabbatAndHolidays}
+                />
+            </Suspense>
         </Fragment>
     );
 };

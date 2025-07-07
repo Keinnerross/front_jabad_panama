@@ -256,12 +256,12 @@ export default function ShabbatAndHolidays() {
                             </Link>
 
                             {/* Footer Note */}
-                            <p className="mt-8 text-xs text-gray-text">
+                            <p className="mt-10 text-base text-gray-text ">
                                 Registration is quick and easy in a few simple steps
                             </p>
 
                             {/* Legal Text */}
-                            <p className="mt-6 text-[10px] text-gray-500">
+                            <p className="mt-6 text-base text-gray-500">
                                 This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
                             </p>
                         </div>

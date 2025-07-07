@@ -8,16 +8,28 @@ export const NotificationItem = ({ notification, onRemove }) => {
 
     // Animación de entrada
     useEffect(() => {
-        const timer = setTimeout(() => setIsVisible(true), 50);
+        const timer = setTimeout(() => setIsVisible(true), 100);
         return () => clearTimeout(timer);
     }, []);
 
-    // Manejar cierre con animación
+    // Auto-dismiss con animación
+    useEffect(() => {
+        if (notification.duration > 0) {
+            const timer = setTimeout(() => {
+                handleClose();
+            }, notification.duration);
+            return () => clearTimeout(timer);
+        }
+    }, [notification.duration]);
+
+    // Manejar cierre con animación mejorada
     const handleClose = () => {
+        if (isLeaving) return; // Prevenir doble ejecución
         setIsLeaving(true);
+        // Tiempo suficiente para que la animación se complete
         setTimeout(() => {
             onRemove(notification.id);
-        }, 300); // Duración de la animación de salida
+        }, 500);
     };
 
     // Configuración por tipo de notificación
@@ -28,6 +40,7 @@ export const NotificationItem = ({ notification, onRemove }) => {
                 borderColor: 'border-green-200',
                 textColor: 'text-green-800',
                 iconColor: 'text-green-600',
+                hoverColor: 'hover:bg-green-100',
                 icon: FaCheckCircle
             },
             error: {
@@ -35,6 +48,7 @@ export const NotificationItem = ({ notification, onRemove }) => {
                 borderColor: 'border-red-200',
                 textColor: 'text-red-800',
                 iconColor: 'text-red-600',
+                hoverColor: 'hover:bg-red-100',
                 icon: FaTimesCircle
             },
             warning: {
@@ -42,6 +56,7 @@ export const NotificationItem = ({ notification, onRemove }) => {
                 borderColor: 'border-yellow-200',
                 textColor: 'text-yellow-800',
                 iconColor: 'text-yellow-600',
+                hoverColor: 'hover:bg-yellow-100',
                 icon: FaExclamationTriangle
             },
             info: {
@@ -49,6 +64,7 @@ export const NotificationItem = ({ notification, onRemove }) => {
                 borderColor: 'border-blue-200',
                 textColor: 'text-blue-800',
                 iconColor: 'text-blue-600',
+                hoverColor: 'hover:bg-blue-100',
                 icon: FaInfoCircle
             }
         };
@@ -61,13 +77,15 @@ export const NotificationItem = ({ notification, onRemove }) => {
     return (
         <div
             className={`
-                relative w-full max-w-sm mb-3 p-4 rounded-lg shadow-lg border transition-all duration-300 ease-in-out
+                relative w-full max-w-sm mb-3 p-4 rounded-lg shadow-lg border 
                 ${config.bgColor} ${config.borderColor}
-                ${isVisible && !isLeaving 
-                    ? 'opacity-100 transform translate-x-0' 
-                    : 'opacity-0 transform translate-x-full'
+                transition-all duration-500 ease-in-out
+                ${!isVisible 
+                    ? 'opacity-0 transform translate-x-full scale-95' 
+                    : isLeaving
+                        ? 'opacity-0 transform translate-x-full scale-90'
+                        : 'opacity-100 transform translate-x-0 scale-100'
                 }
-                ${isLeaving ? 'opacity-0 transform translate-x-full' : ''}
             `}
             role="alert"
             aria-live="polite"
@@ -96,7 +114,7 @@ export const NotificationItem = ({ notification, onRemove }) => {
                         onClick={handleClose}
                         className={`
                             flex-shrink-0 p-1 rounded-md transition-colors duration-200
-                            ${config.textColor} hover:bg-black hover:bg-opacity-10
+                            ${config.textColor} ${config.hoverColor}
                             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:ring-gray-400
                         `}
                         aria-label="Cerrar notificación"
@@ -107,7 +125,7 @@ export const NotificationItem = ({ notification, onRemove }) => {
             </div>
 
             {/* Barra de progreso para auto-dismiss */}
-            {notification.duration > 0 && (
+            {notification.duration > 0 && !isLeaving && (
                 <div className={`absolute bottom-0 left-0 h-1 ${config.borderColor} rounded-bl-lg overflow-hidden`}>
                     <div 
                         className={`h-full ${config.iconColor.replace('text-', 'bg-')} transition-all linear`}

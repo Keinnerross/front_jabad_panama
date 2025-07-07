@@ -112,7 +112,12 @@ export default function Single() {
                             <div className="space-y-4">
 
                                 <div className="w-8 h-8 bg-gray-100 rounded-full relative">
-                                    <Image src="/assets/icons/restaurants/fork.svg" fill className="object-cover" />
+                                    <Image 
+                                        src="/assets/icons/restaurants/fork.svg" 
+                                        fill 
+                                        className="object-cover"
+                                        alt="Restaurant icon"
+                                    />
                                 </div>
                                 <h3 className="text-2xl font-bold text-darkBlue">
                                     {restaurant.title}

@@ -8,6 +8,8 @@ export const CartButton = ({ onClick, className = "" }) => {
         <button
             onClick={onClick}
             className={`flex items-center text-myBlack font-medium text-base hover:text-primary transition-all duration-300 gap-1 cursor-pointer group relative ${className}`}
+            aria-label={`Shopping cart with ${itemCount} item${itemCount !== 1 ? 's' : ''}`}
+            aria-describedby="cart-count"
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="16" viewBox="0 0 14 16" fill="none">
                 <g clipPath="url(#clip0_3719_23275)">
@@ -21,7 +23,7 @@ export const CartButton = ({ onClick, className = "" }) => {
                 </defs>
             </svg>
 
-            <span >Cart ({itemCount > 99 ? '99+' : itemCount})</span>
+            <span id="cart-count">Cart ({itemCount > 99 ? '99+' : itemCount})</span>
 
         </button>
     );

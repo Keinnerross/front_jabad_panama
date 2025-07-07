@@ -25,11 +25,11 @@ export const NotificationContainer = () => {
                 </div>
             </div>
 
-            {/* Mobile: Parte superior (debajo del header) */}
+            {/* Mobile: Parte superior centrada (debajo del header) */}
             <div className="block md:hidden fixed top-20 left-4 right-4 z-50">
-                <div className="space-y-3">
+                <div className="space-y-3 flex flex-col items-center">
                     {notifications.map((notification) => (
-                        <div key={notification.id} className="w-full">
+                        <div key={notification.id} className="w-full max-w-sm">
                             <NotificationItem
                                 notification={notification}
                                 onRemove={removeNotification}

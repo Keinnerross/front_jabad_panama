@@ -34,7 +34,7 @@ export const CartProvider = ({ children }) => {
             const totalItems = savedCart.reduce((sum, item) => sum + item.quantity, 0);
             setItemCount(totalItems);
         } catch (error) {
-            console.error('Error loading cart:', error);
+            // Handle cart loading error gracefully
             setCartItems([]);
             setTotal(0);
             setItemCount(0);
@@ -64,7 +64,6 @@ export const CartProvider = ({ children }) => {
             showSuccess(message);
             
         } catch (error) {
-            console.error('Error adding to cart:', error);
             showError('Failed to add items to cart. Please try again.');
         }
     };
@@ -89,7 +88,6 @@ export const CartProvider = ({ children }) => {
                 showSuccess(`${itemToRemove.meal} removed from cart`);
             }
         } catch (error) {
-            console.error('Error removing from cart:', error);
             showError('Failed to remove item from cart. Please try again.');
         }
     };
@@ -102,7 +100,6 @@ export const CartProvider = ({ children }) => {
             setItemCount(0);
             showSuccess('Cart cleared successfully');
         } catch (error) {
-            console.error('Error clearing cart:', error);
             showError('Failed to clear cart. Please try again.');
         }
     };

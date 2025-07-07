@@ -12,16 +12,19 @@ export const FoodHomeSlider = () => {
 
 
     const ref = useRef(null);
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
 
-    useScrollAppear(
+   /*  useScrollAppear(
         ref,
         () => setIsVisible(true),
         () => setIsVisible(false)
     );
+ */
+
+ /*    ${isVisible ? `animate-fade-up opacity-100` : 'opacity-0 translate-y-8'} */
 
     return (
-        <div ref={ref} className={`${isVisible ? `animate-fade-up opacity-100` : 'opacity-0 translate-y-8'}bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6`}>
+        <div ref={ref} className={` bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6`}>
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">

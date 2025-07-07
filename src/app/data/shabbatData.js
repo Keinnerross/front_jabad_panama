@@ -515,6 +515,7 @@ export const shabbatBoxOptions = [
                 description: "+70 deposit",
                 basePrice: 100.00,
                 details: "$30 rental + $70 deposit",
+                servingSize: "-"
             },
             {
                 id: 6,

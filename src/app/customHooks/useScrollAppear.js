@@ -25,7 +25,6 @@ export function useScrollAppear(ref, onVisible, onHidden, delayThreshold = 0.3, 
 
     if (ref.current) {
       observer.observe(ref.current);
-      console.log('observing');
     }
 
     return () => {

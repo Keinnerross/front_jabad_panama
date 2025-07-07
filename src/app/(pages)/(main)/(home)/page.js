@@ -13,10 +13,11 @@ export default function Home() {
       <Hero />
 
       <div className="w-full bg-blueBackground flex justify-center ">
-        <div className="w-full max-w-7xl px-4 z-10 -translate-y-[50px] md:-translate-y-[70px] lg:-translate-y-[70px]">
+        <div className="w-full max-w-7xl px-4  mx:px-0 z-10 -translate-y-[50px] md:-translate-y-[70px] lg:-translate-y-[70px]">
           <CardsHeroSection />
         </div>
       </div>
+      
       <AboutHome />
       <FoodHomeSlider />
       <PackagesHome href="/packages" title="All inclusive packages: Leave the thinking to us" />

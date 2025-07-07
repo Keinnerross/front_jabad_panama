@@ -9,10 +9,10 @@ export const CardFoodSlider = ({
 }) => {
     return (
 
-<div className="group flex flex-col min-w-[280px] max-w-[280px] h-auto md:h-[474px] rounded-xl overflow-hidden transition-all duration-300 mr-8">
+<div className="group flex flex-col min-w-[280px] max-w-[280px] h-auto md:h-[474px] rounded-xl transition-all duration-300 mr-8">
 
             {/* Contenedor de la imagen */}
-            <div className="relative w-full aspect-square md:h-[320px] rounded-xl overflow-hidden bg-red-300">
+            <div className="relative w-full aspect-square md:h-[320px] rounded-xl overflow-hidden ">
                 {imageUrl ? (
                     <Image
                         src={imageUrl}
@@ -30,11 +30,11 @@ export const CardFoodSlider = ({
 
             {/* Contenido de texto */}
             <div className="flex flex-col gap-2 mt-4">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-darkBlue text-xl md:text-[22.5px] leading-tight">
+                <div className="flex justify-between items-start ">
+                    <h3 className="font-bold text-darkBlue group-hover:text-primary duration-400 ease-in-out text-xl md:text-[22.5px] leading-tight">
                         {title}
                     </h3>
-                    <FiArrowRight className="text-darkBlue text-xl mt-1" />
+                    <FiArrowRight className="text-darkBlue group-hover:text-primary group-hover:translate-x-1 duration-400 ease-in-out text-2xl mt-1 " />
                 </div>
                 <p className="text-gray-text text-sm leading-snug pt-2 w-[80%]">
                     {description}

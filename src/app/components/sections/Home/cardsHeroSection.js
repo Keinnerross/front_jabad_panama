@@ -36,7 +36,7 @@ export const CardsHeroSection = () => {
     ];
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(3,minmax(0,1fr))] lg:grid-cols-6 gap-4 w-full px-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(3,minmax(0,1fr))] lg:grid-cols-6 gap-4 w-full ">
             {dataCardsHero.map((dataCard, i) => (
                 <div
                     key={i}

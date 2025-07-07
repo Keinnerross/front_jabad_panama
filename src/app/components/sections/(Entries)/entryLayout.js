@@ -60,7 +60,7 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
   };
 
   return (
-    <div ref={contentRef} className="w-full px-4 md:px-0 py-12 flex justify-center">
+    <div ref={contentRef} className="w-full px-6 md:px-0 py-12 flex justify-center">
       <div className="w-full max-w-7xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <h2 className="text-3xl font-bold text-darkBlue">

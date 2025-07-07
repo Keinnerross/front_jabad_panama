@@ -7,6 +7,12 @@ import { Amenities } from "@/app/components/sections/(Entries)/amenites";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { useSearchParams } from "next/navigation";
 import { getRestaurantById } from "@/app/data/restaurantsData";
+import { CiGlobe } from "react-icons/ci";
+import { IoLocationOutline } from "react-icons/io5";
+import { LocationIcon } from "@/app/components/ui/icons/locationIcon";
+
+
+
 
 export default function Single() {
     const searchParams = useSearchParams();
@@ -16,7 +22,7 @@ export default function Single() {
     // Si no se encuentra el restaurante, mostrar mensaje de error
     if (!restaurant) {
         return (
-            <div className="w-full flex justify-center py-20">
+            <div className="w-full flex justify-center py-20 border-t border-gray-200">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-darkBlue mb-4">Restaurant not found</h1>
                     <p className="text-gray-text">The restaurant you're looking for doesn't exist.</p>
@@ -29,31 +35,35 @@ export default function Single() {
     const galleryImages = restaurant.imageUrls.slice(1);
 
     return (
-        <div className="w-full flex justify-center py-20">
+        <div className="w-full flex justify-center pt-10 pb-20 md:py-20 border-t border-gray-200">
             <div className="w-full max-w-7xl px-6 md:px-0">
                 {/* Hero Section */}
-                <section className="mb-16 md:mb-24">
-                    <div className="flex flex-col md:flex-row justify-between items-start mb-6">
+                <section className="w-full mb-16 md:mb-24">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-8 md:mb-6">
                         <div className="md:w-[60%]">
-                            <h1 className="text-4xl font-bold text-darkBlue mb-6">
+                            <h1 className="text-5xl font-bold text-darkBlue mb-6">
                                 {restaurant.title}
                             </h1>
                             <p className="text-gray-text text-sm leading-relaxed mb-6 md:mb-0">
                                 {restaurant.fullDescription}
                             </p>
                         </div>
-                        <ButtonTheme title="Browse gallery" href="#gallery"   />
+                        <ButtonTheme title="Browse gallery" href="#gallery" />
                     </div>
-                    <div className="flex items-center gap-4 mb-8">
+
+
+
+                    <div className="w-full flex flex-wrap items-center gap-4 mb-8">
                         <CategoryTag categoryTitle={restaurant.category} />
                         {restaurant.tags.map((tag, index) => (
                             <CategoryTag key={index} categoryTitle={tag} />
                         ))}
                     </div>
 
+
                     <div className="w-full h-80 md:h-[500px] rounded-xl overflow-hidden relative">
-                        <Image 
-                            src={restaurant.imageUrls[0]} 
+                        <Image
+                            src={restaurant.imageUrls[0]}
                             alt={restaurant.title}
                             fill
                             className="w-full h-full object-cover"
@@ -61,24 +71,15 @@ export default function Single() {
                     </div>
                 </section>
                 {/* Main Content Section */}
-                <div className="flex flex-col lg:flex-row gap-12">
+                <div className="flex flex-col-reverse lg:flex-row gap-12">
                     {/* About Section */}
                     <div className="lg:w-[70%]">
-                      
+
                         {/* Custom Amenities Section */}
-                        <section className="mb-12">
-                            <h2 className="text-3xl font-bold text-darkBlue mb-6">
-                                Services & Features
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {restaurant.amenities.map((amenity, index) => (
-                                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                                        <span className="text-gray-text font-medium">{amenity}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+
+                        <Amenities />
+
+
 
                         {/* Gallery Section - Only render if there are gallery images */}
                         {galleryImages.length > 0 && (
@@ -92,7 +93,7 @@ export default function Single() {
                                             key={index}
                                             className="aspect-square rounded-xl overflow-hidden relative"
                                         >
-                                            <Image 
+                                            <Image
                                                 src={imageUrl}
                                                 alt={`${restaurant.title} gallery image ${index + 1}`}
                                                 fill
@@ -108,38 +109,40 @@ export default function Single() {
                     {/* Sidebar */}
                     <div className="lg:w-[30%]">
                         <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
-                            <div className="space-y-8">
-                                <div className="w-12 h-12 bg-red-300 rounded-full"></div>
+                            <div className="space-y-4">
+
+                                <div className="w-8 h-8 bg-gray-100 rounded-full relative">
+                                    <Image src="/assets/icons/restaurants/fork.svg" fill className="object-cover" />
+                                </div>
                                 <h3 className="text-2xl font-bold text-darkBlue">
                                     {restaurant.title}
                                 </h3>
                                 <p className="text-gray-text text-sm">
                                     {restaurant.description}
                                 </p>
-
-                                <div className="space-y-4">
-                                    <div className="bg-gray-50 p-4 rounded-lg">
-                                        <h4 className="font-semibold text-darkBlue mb-2">Category</h4>
-                                        <p className="text-gray-text text-sm">{restaurant.category}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-4 rounded-lg">
-                                        <h4 className="font-semibold text-darkBlue mb-2">Location</h4>
+                                <div className="space-y-4 mb-4" >
+                                    <div className="flex gap-2 items-center">
+                                        <IoLocationOutline size={20} />
                                         <p className="text-gray-text text-sm">{restaurant.location}</p>
                                     </div>
                                     {restaurant.website !== "/#" && (
-                                        <div className="bg-gray-50 p-4 rounded-lg">
-                                            <h4 className="font-semibold text-darkBlue mb-2">Website</h4>
+                                        <div className="flex gap-2 items-center">
+                                            <CiGlobe size={20} />
                                             <a
                                                 href={restaurant.website}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-primary underline hover:text-darkBlue transition-colors text-sm"
+                                                className="text-gray-text text-sm"
                                             >
-                                                Visit Website
+                                                {restaurant.website}
                                             </a>
                                         </div>
                                     )}
                                 </div>
+
+
+                                <ButtonTheme title="View Menu" href="https://www.google.com" variation={2} isFull />
+
                             </div>
                         </div>
                     </div>

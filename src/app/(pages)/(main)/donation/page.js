@@ -1,8 +1,57 @@
+'use client'
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 
 export default function Donation() {
+    const [currentStep, setCurrentStep] = useState(1);
+    const [formData, setFormData] = useState({
+        amount: '',
+        frequency: '',
+        customMonths: ''
+    });
+
+    const frequencyOptions = [
+        { value: 'one-time', label: 'One time' },
+        { value: '12-months', label: '12 Months' },
+        { value: '24-months', label: '24 Months' },
+        { value: 'monthly', label: 'Monthly donation' },
+        { value: 'other', label: 'Other' }
+    ];
+
+    const handleAmountChange = (e) => {
+        setFormData({ ...formData, amount: e.target.value });
+    };
+
+    const handleFrequencyChange = (e) => {
+        setFormData({ ...formData, frequency: e.target.value, customMonths: '' });
+    };
+
+    const handleCustomMonthsChange = (e) => {
+        setFormData({ ...formData, customMonths: e.target.value });
+    };
+
+    const handleNext = () => {
+        if (currentStep === 1 && formData.amount) {
+            setCurrentStep(2);
+        }
+    };
+
+    const handleBack = () => {
+        if (currentStep === 2) {
+            setCurrentStep(1);
+        }
+    };
+
+    const handleSubmit = () => {
+        // Preparado para integración con Strapi
+        console.log('Donation data ready for Strapi:', {
+            amount: parseFloat(formData.amount),
+            frequency: formData.frequency,
+            customMonths: formData.frequency === 'other' ? parseInt(formData.customMonths) : null
+        });
+    };
+
     return (
 
         <Fragment>
@@ -46,45 +95,103 @@ export default function Donation() {
                         <div className="lg:w-[43%]">
                             <div className="bg-white rounded-xl border border-gray-200 p-8">
                                 <h2 className="text-3xl font-bold text-darkBlue mb-4">
-                                    Choose your donation
+                                    {currentStep === 1 ? 'Choose your donation' : 'Select frequency'}
                                 </h2>
 
                                 <p className="text-gray-text mb-8">
-                                    Help us light Shabbat candles, fund Torah classes and support our community.
+                                    {currentStep === 1 
+                                        ? 'Help us light Shabbat candles, fund Torah classes and support our community.'
+                                        : 'Choose how often you would like to contribute.'}
                                 </p>
 
                                 <div className="text-3xl font-bold text-darkBlue mb-6">
-                                    $399.00 USD
+                                    {formData.amount ? `$${formData.amount} USD` : '$0.00 USD'}
                                 </div>
 
 
-                                {/* Donation Amount */}
-                                <div className="mb-6">
-                                    <label className="block text-gray-text mb-2">Amount (USD)</label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            placeholder="00.00"
-                                            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
-                                        />
-                                        <span className="absolute right-4 top-4 text-gray-text">$</span>
+                                {/* Step 1: Donation Amount */}
+                                {currentStep === 1 && (
+                                    <div className="mb-6">
+                                        <label className="block text-gray-text mb-2">Amount (USD)</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                placeholder="00.00"
+                                                value={formData.amount}
+                                                onChange={handleAmountChange}
+                                                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
+                                                min="1"
+                                                step="0.01"
+                                            />
+                                            <span className="absolute right-4 top-4 text-gray-text">$</span>
+                                        </div>
                                     </div>
+                                )}
+
+                                {/* Step 2: Donation Frequency */}
+                                {currentStep === 2 && (
+                                    <div className="mb-6">
+                                        <label className="block text-gray-text mb-2">Select duration</label>
+                                        <select 
+                                            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
+                                            value={formData.frequency}
+                                            onChange={handleFrequencyChange}
+                                        >
+                                            <option value="">Choose an option</option>
+                                            {frequencyOptions.map((option) => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        
+                                        {/* Custom months input */}
+                                        {formData.frequency === 'other' && (
+                                            <div className="mt-4">
+                                                <label className="block text-gray-text mb-2">Number of months</label>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Enter number of months"
+                                                    value={formData.customMonths}
+                                                    onChange={handleCustomMonthsChange}
+                                                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
+                                                    min="1"
+                                                    max="60"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+
+                                {/* Navigation Buttons */}
+                                <div className="space-y-3">
+                                    {currentStep === 1 ? (
+                                        <button 
+                                            onClick={handleNext}
+                                            disabled={!formData.amount || parseFloat(formData.amount) <= 0}
+                                            className="cursor-pointer w-full py-4 border-1 border-darkBlue rounded-lg text-darkBlue font-medium hover:bg-darkBlue hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Next
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <button 
+                                                onClick={handleSubmit}
+                                                disabled={!formData.frequency || (formData.frequency === 'other' && !formData.customMonths)}
+                                                className="cursor-pointer w-full py-4 bg-darkBlue rounded-lg text-white font-medium hover:bg-darkBlue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Complete Donation
+                                            </button>
+                                            <button 
+                                                onClick={handleBack}
+                                                className="cursor-pointer w-full py-4 border-1 border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+                                            >
+                                                Back
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
-
-                                {/* Donation Type */}
-                                {/*   <div className="mb-8">
-                                <label className="block text-gray-text mb-2">Select duration</label>
-                                <select className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue">
-                                    <option>One-time donation</option>
-                                    <option>Monthly donation</option>
-                                    <option>Annual donation</option>
-                                </select>
-                            </div> */}
-
-
-                                <button className="cursor-pointer w-full py-4 border-1 border-darkBlue rounded-lg text-darkBlue font-medium hover:bg-darkBlue hover:text-white transition-colors">
-                                    Next
-                                </button>
                             </div>
 
 

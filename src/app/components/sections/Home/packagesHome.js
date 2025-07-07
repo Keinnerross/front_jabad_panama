@@ -42,8 +42,8 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
   return (
     <div className="w-full bg-blueBackground">
       {/* Hero Section */}
-      <section className={`max-w-7xl mx-auto px-4 sm:px-6 ${showVideo ? "pt-24 md:pb-10 pb-0" : "pt-24 md:pb-16 pb-0"}`}>
-        <div className="flex flex-col lg:flex-row gap-12 items-center">
+      <section className={`max-w-7xl mx-auto px-6 sm:px-6  pt-10 md:pt-18 md:pb-10 pb-0 `}>
+        <div className="flex flex-col lg:flex-row gap-12 ">
           {/* Text Content */}
           <div className="w-full lg:w-5/12 flex flex-col">
             <h1 className="text-4xl md:text-4xl font-bold text-myBlack mb-6">
@@ -78,7 +78,7 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
           {/* Image Grid */}
           <div className="w-full lg:w-7/12 relative">
             {/* Container que mantiene el aspect ratio */}
-            <div className="relative pb-[100%] w-full h-0">
+            <div className="relative pb-[90%] w-full h-0">
               {/* Cinta decorativa */}
               {isHero && (
                 <div className="hidden md:inline absolute top-4 right-4 w-[200px] h-10  rounded-md z-10">
@@ -129,7 +129,7 @@ export const PackagesHome = ({ title = "All inclusive packages", showVideo = tru
       {/* Video Section */}
       {showVideo && (
         <section className="bg-blueBackground pt-8 pb-16 flex justify-center items-center">
-          <div className="w-full max-w-7xl px-4 sm:px-6">
+          <div className="w-full max-w-7xl px-6 sm:px-6">
             {/* Header Video Section */}
             <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">

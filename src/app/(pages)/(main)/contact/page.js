@@ -1,8 +1,9 @@
 'use client'
 
 import { MapSection } from "@/app/components/sections/Contact/mapSection";
+import Image from "next/image";
 import React, { useState } from "react";
-import { FiSend, FiMessageSquare, FiPlus, FiMinus  } from "react-icons/fi";
+import { FiSend, FiMessageSquare, FiPlus, FiMinus } from "react-icons/fi";
 
 export default function Contact() {
 
@@ -27,10 +28,7 @@ export default function Contact() {
             question: "What are the Shabbat service times?",
             answer: "Shabbat services typically begin at sunset on Friday evening and Saturday morning. Exact times vary by season - please check our website or contact us for current schedule."
         },
-        {
-            question: "Custom",
-            answer: "Shabbat services typically begin at sunset on Friday evening and Saturday morning. Exact times vary by season - please check our website or contact us for current schedule."
-        }
+       
     ];
 
     // State to track which FAQ is open
@@ -40,20 +38,12 @@ export default function Contact() {
         setActiveIndex(activeIndex === index ? null : index);
     };
 
-
-
-
-
-
-
-
-
     return (
         <div className="w-full bg-blueBackground relative overflow-hidden">
             {/* Contact Section */}
             <div className="w-full flex justify-center items-center  relative">
 
-                <section className="w-full max-w-7xl px-4 py-16 md:py-24 relative">
+                <section className="w-full max-w-7xl px-6 md:px-0 py-16 md:py-24 relative">
                     {/* Header */}
                     <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
                         <h2 className="text-3xl md:text-4xl font-bold text-darkBlue mb-4">
@@ -67,16 +57,16 @@ export default function Contact() {
 
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Image Section */}
-                        <div className="lg:w-1/2">
-                            <div className="w-full h-64 md:h-[500px] rounded-xl  overflow-hidden">
+                        <div className="hidden md:block lg:w-1/2 h-64 md:h-[600px]  ">
+                            <div className="w-full h-full rounded-xl overflow-hidden relative">
                                 {/* Replace with Next.js Image component */}
-                                <div className="w-full h-full object-cover bg-red-300" />
+                                <Image src="/assets/pictures/about/pic_about (8).jpg" fill alt="contact Chabbat Panama" className="w-full h-full object-cover" />
                             </div>
                         </div>
 
                         {/* Contact Form */}
                         <div className="lg:w-1/2">
-                            <div className="bg-white rounded-xl border border-gray-200  p-6 md:p-8">
+                            <div className="bg-white rounded-xl border h-full border-gray-200  p-6 md:px-8 md:py-12">
                                 <form className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {/* Name Field */}
@@ -182,7 +172,7 @@ export default function Contact() {
             </div>
 
             {/* FAQ Section */}
-           {/*  <section className="container mx-auto px-4 py-16">
+            <section className="container mx-auto px-6 pt-16 pb-16">
                 <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-darkBlue mb-4">
                         Frequently asked questions
@@ -220,7 +210,7 @@ export default function Contact() {
                         </div>
                     ))}
                 </div>
-            </section> */}
+            </section> *
 
 
 

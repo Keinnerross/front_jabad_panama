@@ -13,7 +13,7 @@ export const ButtonTheme = ({
 }) => {
   const router = useRouter()
 
-  const baseClasses = `group inline-flex items-center gap-2 px-6 py-3 border rounded-lg transition-colors text-base text-medium cursor-pointer ${
+  const baseClasses = `group inline-flex items-center gap-2 px-6 py-3 border rounded-lg transition-colors text-base text-medium cursor-pointer ease-in-out duration-300 ${
     isFull ? "w-full justify-center" : "w-fit"
   }`
 

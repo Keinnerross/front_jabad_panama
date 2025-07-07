@@ -15,8 +15,15 @@ export const AboutHome = () => {
     () => setIsVisible(false)
   );
 
+  const links = {
+    cta: "/about",
+    wsapGroup: "#"
+  }
+
+
+
   return (
-    <div id="aboutHero" className="w-full bg-blueBackground md:pt-0 pb-24">
+    <div id="aboutHero" className="w-full bg-blueBackground md:pt-12 pb-24">
       <div
 
         className={`max-w-7xl mx-auto px-4`}
@@ -24,7 +31,7 @@ export const AboutHome = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="order-1 lg:order-none">
             <div className="text-primary font-bold text-lg md:text-xl tracking-wider mb-2">
-              Chabad OF BOQUETE, PANAMA
+              Chabad OF BOQUETE, PANAMA.
             </div>
 
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-myBlack mb-6 leading-tight">
@@ -38,7 +45,7 @@ export const AboutHome = () => {
             <div className="flex items-center gap-3 mb-12 ">
               <FaWhatsapp className="text-2xl text-green-500" />
               <a
-                href="#"
+                href={links.wsapGroup}
                 className="text-myBlack font-medium text-lg underline hover:text-primary transition-colors"
               >
                 Join our WhatsApp group
@@ -58,7 +65,7 @@ export const AboutHome = () => {
 
           <div className="relative order-2">
             <div className="hidden md:flex justify-end items-center h-36 ">
-              <ButtonTheme title="Join our Shabbat Table!" variation={3} href="/#" />
+              <ButtonTheme title="Join our Shabbat Table!" variation={3} href={links.cta} />
             </div>
 
             <div className="hidden md:inline-block relative w-full h-64 md:h-80 lg:h-[700px] rounded-2xl overflow-hidden mb-14 ">

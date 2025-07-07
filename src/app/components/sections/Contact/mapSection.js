@@ -8,19 +8,22 @@ export const MapSection = () => {
   useEffect(() => setIsMounted(true), []);
 
   return (
-    <section className="w-full flex justify-center items-center pb-24 pt-10 md:pt-16  px-4 md:px-0">
+    <section className="w-full flex justify-center items-center pb-24 pt-10 md:pt-16  px-6 md:px-0">
       <div className="max-w-7xl w-7xl mx-auto flex flex-col justify-center items-center gap-10 ">
         <h2 className="text-center text-myBlack font-bold text-3xl md:text-4xl">
           You will find us here
         </h2>
 
-        <div className="flex justify-between w-full md:w-[70%] text-gray-800 font-medium">
+        <div className="flex justify-between items-center w-full md:w-[70%] text-gray-800 font-medium gap-4 md:gap-0">
           <div>
             <p>Bajo Boquete, Chiriqui, Panama </p>
             <p>Calle 4a con Calle C, (reference: Hotel Isla Verde).</p>
             <p>Ph: 507-6243-0666</p>
           </div>
-          <ButtonTheme title="Navigate" href="https://maps.app.goo.gl/Q3txjtyXyjXDsNDY6" variation={3} />
+          <div>
+            <ButtonTheme title="Navigate" href="https://maps.app.goo.gl/Q3txjtyXyjXDsNDY6" variation={3} />
+          </div>
+
         </div>
 
         <div className="w-full h-[200px] md:h-[500px] rounded-3xl overflow-hidden ">

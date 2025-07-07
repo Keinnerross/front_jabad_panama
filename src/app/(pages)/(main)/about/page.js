@@ -6,7 +6,7 @@ import { aboutData } from "@/app/data/about.Data";
 
 export default function About() {
     return (
-        <div className="w-full flex justify-center py-20">
+        <div className="w-full flex justify-center py-20 border-t border-gray-200">
             <div className="w-full max-w-7xl px-6 md:px-0">
                 {/* Hero Section */}
                 <section className="mb-16 md:mb-24">

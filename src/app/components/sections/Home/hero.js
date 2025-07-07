@@ -32,7 +32,7 @@ export const Hero = () => {
             {/* Contenido principal con animaciones escalonadas */}
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center text-white overflow-hidden">
                 <h1
-                    className="sm:w-[30%] md:w-[40%] text-3xl md:text-6xl font-bold opacity-0 translate-y-8"
+                    className="sm:w-[30%] md:w-[40%] text-4xl md:text-6xl font-bold opacity-0 translate-y-8"
                     style={{
                         animation: 'slideUpFade 1s ease-out 0.3s forwards'
                     }}

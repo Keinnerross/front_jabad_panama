@@ -22,7 +22,7 @@ export default function Restaurants() {
 
 
                 {/* Main content container */}
-                <div className="w-full max-w-7xl px-4 md:px-6 h-full flex items-center justify-center z-10 relative">
+                <div className="w-full max-w-7xl px-6 h-full flex items-center justify-center z-10 relative">
                     {/* Text content - using flex for centering */}
                     <div className="w-full flex flex-col items-center justify-center text-center py-12 md:py-0">
                         <h1 className="md:w-[50%] text-4xl md:text-5xl lg:text-[46px] font-bold text-darkBlue mb-6 leading-tight">

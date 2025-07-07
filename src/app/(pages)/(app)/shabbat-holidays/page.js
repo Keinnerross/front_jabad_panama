@@ -13,7 +13,7 @@ import { getSortedShabbats, formatShabbatDate } from "@/app/data/shabbatData";
 export default function ShabbatAndHolidays() {
 
     const [selectedShabbat, setSelectedShabbat] = useState('');
-    
+
     // Get sorted Shabbats (closest first, future only)
     const sortedShabbats = getSortedShabbats();
 
@@ -47,7 +47,7 @@ export default function ShabbatAndHolidays() {
     return (
         <Fragment>
 
-            <section className="w-full bg-blueBackground py-20 px-4 md:px-8 lg:px-12 relative pb-28 ">
+            <section className="w-full bg-blueBackground py-20 px-6 md:px-8 lg:px-12 relative pb-28 ">
                 <div className="max-w-[90vw] mx-auto">
                     {/* Grid Layout for Images and Content */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
@@ -163,9 +163,9 @@ export default function ShabbatAndHolidays() {
 
             </section>
 
-            <section className="w-full flex justify-center items-center bg-white py-0 md:pt-48 md:pb-32 px-4 ">
-                <div className="w-full bg-darkBlue max-w-6xl mx-auto  rounded-2xl relative overflow-hidden -translate-y-10">
-                    <div className="flex flex-col lg:flex-row gap-8 md:gap-12 z-10 relative px-20 py-32">
+            <section className="w-full flex justify-center items-center bg-white py-0 md:pt-48 md:pb-20 px-6 ">
+                <div className="w-full bg-darkBlue max-w-7xl mx-auto  rounded-2xl relative overflow-hidden -translate-y-10">
+                    <div className="flex flex-col lg:flex-row gap-8 md:gap-12 z-10 relative px-8 md:px-20 py-10 md:py-32">
                         {/* Left Content Section */}
                         <div className="lg:w-1/2 flex flex-col gap-6 text-white">
                             {/* Logo/Icon */}
@@ -220,8 +220,8 @@ export default function ShabbatAndHolidays() {
 
                             {/* Date Selector */}
                             <div className="mb-8">
-                                <div className="relative cursor-pointer">
-                                    <select 
+                                <div className="relative cursor-pointer ">
+                                    <select
                                         className="w-full p-4 border border-gray-text rounded-lg  appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer"
                                         value={selectedShabbat}
                                         onChange={(e) => setSelectedShabbat(e.target.value)}
@@ -233,20 +233,19 @@ export default function ShabbatAndHolidays() {
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none cursor-pointer">
+                                    <div className="absolute top-1 inset-y-0 right-4 flex items-center pointer-events-none cursor-pointer bg-white h-[90%]">
                                         <MdKeyboardArrowDown className="text-xl" />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Register Button */}
-                            <Link 
-                                href={selectedShabbat !== '' ? `/single-reservations?shabbat=${selectedShabbat}` : '#'} 
-                                className={`w-full sm:w-auto px-8 py-4 border-2 border-darkBlue font-medium rounded-lg transition-colors duration-200 ${
-                                    selectedShabbat !== '' 
-                                        ? 'text-darkBlue hover:bg-blueBackground cursor-pointer' 
-                                        : 'text-gray-400 border-gray-400 cursor-not-allowed'
-                                }`}
+                            <Link
+                                href={selectedShabbat !== '' ? `/single-reservations?shabbat=${selectedShabbat}` : '#'}
+                                className={`w-full sm:w-auto px-8 py-4 border-2 border-darkBlue font-medium rounded-lg transition-colors duration-200 ${selectedShabbat !== ''
+                                    ? 'text-darkBlue hover:bg-blueBackground cursor-pointer'
+                                    : 'text-gray-400 border-gray-400 cursor-not-allowed'
+                                    }`}
                                 onClick={(e) => {
                                     if (selectedShabbat === '') {
                                         e.preventDefault();
@@ -275,7 +274,7 @@ export default function ShabbatAndHolidays() {
             </section>
 
 
-            <section className="w-full pb-12 md:pb-20 px-4 sm:px-6 lg:px-8 bg-white flex justify-center ">
+            <section className="w-full pb-12 md:pb-20 px-6 sm:px-6 lg:px-8 bg-white flex justify-center ">
                 <div className="max-w-7xl w-full">
                     {/* Header Section */}
                     <div className="w-full text-center mb-12 md:mb-16 flex items-center flex-col ">
@@ -293,17 +292,16 @@ export default function ShabbatAndHolidays() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-6 overflow-hidden  rounded-2xl border border-gray-200">
 
                         {/* Image Section */}
-                        <div className="lg:col-span-1 h-64 md:h-96 lg:h-[536px] bg-red-300 relative">
-                            {/* Replace with Next.js Image component */}
-                            <div className="w-full h-full object-cover bg-red-300" />
+                        <div className="lg:col-span-1 h-64 md:h-96 lg:h-[536px] overflow-hidden relative">
+                            <Image src="/assets/pictures/shabbat-meals/shabbatbox-single.png" alt="shabbat box" fill className="w-full h-full object-cover" />
                         </div>
 
                         {/* Content Section */}
                         <div className="lg:col-span-1 bg-white p-6 md:p-8 lg:p-12 ">
                             {/* Filter Buttons */}
                             <div className="flex flex-wrap gap-3 mb-6">
-                                <CategoryTag title="Meat" />
-                                <CategoryTag title="Delivery" />
+                                <CategoryTag categoryTitle="Meat" />
+                                <CategoryTag categoryTitle="Delivery" />
                             </div>
 
                             {/* Main Content */}

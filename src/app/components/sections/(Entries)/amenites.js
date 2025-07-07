@@ -34,7 +34,7 @@ export const Amenities = () => {
     return (
 
 
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto ">
             {/* Header */}
             <h2 className="text-3xl md:text-4xl font-bold text-darkBlue mb-8">
                 Amenities available

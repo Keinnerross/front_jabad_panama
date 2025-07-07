@@ -41,7 +41,7 @@ export const FoodHomeSlider = () => {
                     {/* Carousel */}
                     <CarouselWrapper>
                         {foodData?.map((restaurant, i) => (
-                            <Link href="/restaurants" key={i} className="">
+                            <Link href={`/single-restaurant?id=${restaurant.id}`} key={i} className="">
                                 <CardFoodSlider imageUrl={restaurant.imageUrls[0]} title={restaurant.title} description={restaurant.description} />
                             </Link>
                         ))}

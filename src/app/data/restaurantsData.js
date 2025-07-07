@@ -3,7 +3,7 @@ export const foodData = [
     id: 1,
     title: "Morton's Bakehouse",
     description: "Artisan kosher bakery in Boquete since 2008, known for its sourdough, bagels, babka and premium coffee.",
-    fullDescription: "Welcome to Morton's Bakehouse, a beloved artisan kosher bakery that has been serving the Boquete community since 2008. We specialize in traditional Jewish baked goods including our famous sourdough bread, fresh bagels, and rich babka. Our commitment to kosher practices and high-quality ingredients makes us a cornerstone of the local Jewish community. Whether you're looking for your daily bread or special occasion treats, Morton's Bakehouse offers an authentic taste of tradition in the heart of Panama.",
+    fullDescription: "Welcome to Morton's Bakehouse, a beloved artisan kosher bakery that has been serving the Boquete community since 2008. We specialize in traditional Jewish baked goods including our famous sourdough bread, fresh bagels, and rich babka.",
     imageUrls: [
       "/assets/pictures/restaurantes/thumb1.jpg",
       "/assets/pictures/restaurantes/thumb1.jpg",

@@ -2,57 +2,161 @@
 import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
+import { useState } from "react";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
+    
+    // Form state
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        nationality: '',
+        phone: '',
+        email: '',
+        donation: '',
+        agreeTerms: false,
+        agreeUpdates: false
+    });
+    
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Handle input changes
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+        
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+    
+    // Validate form
+    const validateForm = () => {
+        const newErrors = {};
+        
+        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+        if (!formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
+        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Email is invalid';
+        }
+        if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
+        if (!formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+    
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!validateForm()) return;
+        
+        setIsSubmitting(true);
+        
+        try {
+            // Prepare data for Stripe payment
+            const paymentData = {
+                customer: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    nationality: formData.nationality
+                },
+                items: cartItems,
+                total: total + parseFloat(formData.donation || 0),
+                donation: parseFloat(formData.donation || 0),
+                metadata: {
+                    orderType: 'reservation',
+                    agreeTerms: formData.agreeTerms,
+                    agreeUpdates: formData.agreeUpdates
+                }
+            };
+            
+            // Here you would integrate with Stripe
+            console.log('Payment data ready for Stripe:', paymentData);
+            
+            // TODO: Implement Stripe payment integration
+            // const response = await fetch('/api/create-payment-intent', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(paymentData)
+            // });
+            
+            // For now, just simulate payment
+            setTimeout(() => {
+                setIsSubmitting(false);
+                alert('Payment structure ready for Stripe integration!');
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Payment error:', error);
+            setIsSubmitting(false);
+        }
+    };
+    
     return (
-        <div className="w-full flex justify-center bg-white relative pb-28 ">
+        <div className="w-full min-h-screen flex justify-center bg-white relative">
 
-            <div className="w-screen h-[600px] bg-blueBackground absolute top-0 left-0 " />
-            <div className="z-10">
+            <div className="w-full h-[250px] xs:h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] bg-blueBackground absolute top-0 left-0" />
+            <div className="z-10 w-full">
 
-                <div className="text-center pt-20 flex flex-col items-center gap-4">
-                    <h2 className="text-4xl font-bold">Checkout</h2>
-                    <p className="text-gray-text text-sm w-[30%] " >Enter your payment method below to reserve your spot. We accept major credit cards.</p>
+                <div className="text-center pt-6 xs:pt-8 sm:pt-12 md:pt-16 lg:pt-20 flex flex-col items-center gap-2 xs:gap-3 sm:gap-4 px-6 xs:px-6">
+                    <h2 className="text-3xl xs:text-3xl sm:text-3xl md:text-4xl font-bold">Checkout</h2>
+                    <p className="text-gray-text text-xs xs:text-sm sm:text-base w-full max-w-xs xs:max-w-sm sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] leading-relaxed" >Enter your payment method below to reserve your spot. We accept major credit cards.</p>
                 </div>
-                <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-10  pt-14">
+                <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 xs:gap-6 sm:gap-8 md:gap-10 pt-6 xs:pt-8 sm:pt-10 md:pt-12 lg:pt-14 px-6 xs:px-6 pb-6 xs:pb-8 sm:pb-16 md:pb-20 lg:pb-28">
 
-                    {/* Order Summary Section - Now with square aspect ratio */}
-                    <div className="w-full lg:w-[40%]">
-                        <div className="  bg-white rounded-xl border border-gray-200 overflow-hidden p-6">
-                            <div className=" inset-0 p-6 flex flex-col">
+                    {/* Order Summary Section */}
+                    <div className="w-full lg:w-[40%] order-2 lg:order-1">
+                        <div className="bg-white rounded-lg xs:rounded-xl border border-gray-200 overflow-hidden p-3 xs:p-4 sm:p-6">
+                            <div className="flex flex-col">
                                 {/* Header */}
-                                <div className="flex items-center gap-4 mb-8">
-
-                                    <h3 className="text-xl md:text-2xl font-bold text-darkBlue">
+                                <div className="flex items-center gap-2 xs:gap-4 mb-4 xs:mb-6 sm:mb-8">
+                                    <h3 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-darkBlue">
                                         Final order review
                                     </h3>
                                 </div>
 
                                 {/* Order Details */}
-                                <div className=" flex flex-col justify-between">
-                                    <div className="space-y-6">
+                                <div className="flex flex-col justify-between">
+                                    <div className="space-y-3 xs:space-y-4 sm:space-y-6">
                                         {cartItems.length > 0 ? (
                                             cartItems.map((item, index) => (
-                                                <div key={index} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
-                                                    <div className="flex flex-col flex-1">
-                                                        <span className="text-gray-text font-medium">{item.meal}</span>
-                                                        <span className="text-gray-400 text-sm">{item.priceType} × {item.quantity}</span>
+                                                <div key={index} className="flex justify-between items-start p-2 xs:p-3 bg-gray-50 rounded-lg">
+                                                    <div className="flex flex-col flex-1 min-w-0 pr-2">
+                                                        <span className="text-gray-text font-medium truncate text-xs xs:text-sm sm:text-base">{item.meal}</span>
+                                                        <span className="text-gray-400 text-xs truncate">{item.priceType} × {item.quantity}</span>
                                                         <div className="text-xs text-gray-500 mt-1">
-                                                            <span className="font-medium">{item.shabbatName}</span>
-                                                            {item.shabbatDate && <span> - {item.shabbatDate}</span>}
+                                                            <div className="truncate">
+                                                                <span className="font-medium">{item.shabbatName}</span>
+                                                                {item.shabbatDate && <span className="hidden xs:inline"> - {item.shabbatDate}</span>}
+                                                            </div>
                                                             {item.productType && (
-                                                                <span className="ml-2 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
-                                                                    {item.productType === 'shabbatBox' ? 'Shabbat Box' : 'Meal Reservation'}
-                                                                </span>
+                                                                <div className="mt-1">
+                                                                    <span className="inline-block px-1.5 xs:px-2 py-0.5 xs:py-1 bg-primary/10 text-primary rounded text-xs">
+                                                                        {item.productType === 'shabbatBox' ? 'Shabbat Box' : 'Meal'}
+                                                                    </span>
+                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <span className="text-gray-text font-medium">${item.totalPrice.toFixed(2)}</span>
+                                                    <span className="text-gray-text font-medium flex-shrink-0 text-xs xs:text-sm sm:text-base">${item.totalPrice.toFixed(2)}</span>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-center text-gray-500 py-8">
+                                            <div className="text-center text-gray-500 py-4 xs:py-6 sm:py-8 text-sm">
                                                 No items in cart
                                             </div>
                                         )}
@@ -60,10 +164,10 @@ export default function Checkout() {
 
                                     {/* Divider and Total */}
                                     <div>
-                                        <div className="border-t border-gray-200 my-4"></div>
+                                        <div className="border-t border-gray-200 my-3 xs:my-4"></div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-darkBlue font-medium text-lg">Total:</span>
-                                            <span className="text-darkBlue font-medium text-lg">${total.toFixed(2)}</span>
+                                            <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">Total:</span>
+                                            <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">${total.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -72,115 +176,183 @@ export default function Checkout() {
                     </div>
 
                     {/* Checkout Form Section */}
-                    <div className="w-full lg:w-[60%] bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-                        {/* Personal Information Section */}
-                        <div className="mb-8">
-                            <h2 className="text-xl font-bold text-darkBlue mb-6">Personal Information</h2>
+                    <div className="w-full lg:w-[60%] bg-white rounded-lg xs:rounded-xl border border-gray-200 p-3 xs:p-4 sm:p-6 md:p-8 order-1 lg:order-2">
+                        <form onSubmit={handleSubmit} className="space-y-4 xs:space-y-6 sm:space-y-8">
+                            {/* Personal Information Section */}
+                            <div>
+                                <h2 className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Personal Information</h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 ">
-                                {/* First Name */}
-                                <div>
-                                    <label className="block text-sm font-bold text-darkBlue mb-2">First Name</label>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 h-14">
-                                        <input placeholder="Matt Cannon" className="text-gray-text font-medium "></input>
-                                    </div>
-                                </div>
-
-                                {/* Last Name */}
-                                <div>
-                                    <label className="block text-sm font-bold text-darkBlue mb-2">Last Name</label>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 h-14">
-                                        <p className="text-gray-text font-medium">Cannon</p>
-                                    </div>
-                                </div>
-
-                                {/* Nationality */}
-                                <div>
-                                    <label className="block text-sm font-bold text-darkBlue mb-2">Nationality *</label>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 h-14">
-                                        <p className="text-gray-text font-medium">e.g. Israeli</p>
-                                    </div>
-                                </div>
-
-                                {/* Phone Number */}
-                                <div>
-                                    <label className="block text-sm font-bold text-darkBlue mb-2">Phone Number</label>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 h-14">
-                                        <p className="text-gray-text font-medium">(123) 456 - 7890</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Contact Information Section */}
-                        <div className="mb-8">
-                            <h2 className="text-xl font-bold text-darkBlue mb-6">Contact Information</h2>
-
-                            <div className="space-y-6">
-                                {/* Email Address */}
-                                <div>
-                                    <label className="block text-sm font-bold text-darkBlue mb-2">Email Address</label>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 h-14">
-                                        <p className="text-gray-text font-medium">example@email.com</p>
-                                    </div>
-                                </div>
-
-                                {/* Donation Information */}
-                                <div className="pt-6 border-t border-gray-200">
-                                    <div className="mb-4">
-                                        <p className="text-sm text-gray-500 leading-relaxed">
-                                            Please be advised that Chabad of Panama is not funded by Chabad
-                                            headquarters in New York. We are responsible for all funds. We are
-                                            supported exclusively by the generous contributions of individuals
-                                            and foundations that care about our action. All funds go directly
-                                            into programs and services for the center and visitors.
-                                        </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4 md:gap-6">
+                                    {/* First Name */}
+                                    <div>
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">First Name *</label>
+                                        <input
+                                            type="text"
+                                            name="firstName"
+                                            value={formData.firstName}
+                                            onChange={handleInputChange}
+                                            placeholder="Matt"
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-200'}`}
+                                        />
+                                        {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
                                     </div>
 
-                                    <label className="block text-sm font-bold text-darkBlue mb-2">Your Donation</label>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 h-14">
-                                        <p className="text-gray-text font-medium">$ 00,00</p>
+                                    {/* Last Name */}
+                                    <div>
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Last Name *</label>
+                                        <input
+                                            type="text"
+                                            name="lastName"
+                                            value={formData.lastName}
+                                            onChange={handleInputChange}
+                                            placeholder="Cannon"
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.lastName ? 'border-red-500' : 'border-gray-200'}`}
+                                        />
+                                        {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+                                    </div>
+
+                                    {/* Nationality */}
+                                    <div>
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Nationality *</label>
+                                        <input
+                                            type="text"
+                                            name="nationality"
+                                            value={formData.nationality}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g. Israeli"
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.nationality ? 'border-red-500' : 'border-gray-200'}`}
+                                        />
+                                        {errors.nationality && <p className="text-red-500 text-xs mt-1">{errors.nationality}</p>}
+                                    </div>
+
+                                    {/* Phone Number */}
+                                    <div className="sm:col-span-2">
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Phone Number *</label>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleInputChange}
+                                            placeholder="(123) 456-7890"
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}
+                                        />
+                                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Terms and Conditions */}
-                        <div className="mb-8">
-                            <div className="space-y-4">
-                                {/* Terms Checkbox */}
-                                <div className="flex items-start gap-3">
-                                    <div className="flex items-center justify-center w-5 h-5 mt-1 bg-white border border-gray-300 rounded-md">
-                                        <FaCheck className="text-primary text-xs" />
-                                    </div>
-                                    <p className="text-gray-text text-sm">
-                                        I have read and agreed to the terms of the regulations
-                                        <span className="text-primary"> *</span>
-                                        <a href="#" className="text-primary underline ml-1">Terms and Conditions</a>
-                                    </p>
-                                </div>
+                            {/* Contact Information Section */}
+                            <div>
+                                <h2 className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Contact Information</h2>
 
-                                {/* Newsletter Checkbox */}
-                                <div className="flex items-start gap-3">
-                                    <div className="flex items-center justify-center w-5 h-5 mt-1 bg-white border border-gray-300 rounded-md">
-                                        <FaCheck className="text-primary text-xs" />
+                                <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+                                    {/* Email Address */}
+                                    <div>
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Email Address *</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            placeholder="example@email.com"
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
+                                        />
+                                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                     </div>
-                                    <p className="text-gray-text text-sm">
-                                        I consent to receive future updates regarding my order *
-                                    </p>
+
+                                    {/* Donation Information */}
+                                    <div className="pt-3 xs:pt-4 sm:pt-6 border-t border-gray-200">
+                                        <div className="mb-3 xs:mb-4">
+                                            <p className="text-xs leading-relaxed text-gray-500">
+                                                Please be advised that Chabad of Panama is not funded by Chabad
+                                                headquarters in New York. We are responsible for all funds. We are
+                                                supported exclusively by the generous contributions of individuals
+                                                and foundations that care about our action. All funds go directly
+                                                into programs and services for the center and visitors.
+                                            </p>
+                                        </div>
+
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Your Donation (Optional)</label>
+                                        <input
+                                            type="number"
+                                            name="donation"
+                                            value={formData.donation}
+                                            onChange={handleInputChange}
+                                            placeholder="0.00"
+                                            min="0"
+                                            step="0.01"
+                                            className="w-full bg-white border border-gray-200 rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Payment Button */}
-                        <div className="space-y-4">
-                            <button className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-opacity-90 transition">
-                                Pay now
-                            </button>
-                            <p className="text-gray-text text-xs text-center">
-                                *The registration will not be completed without completing the payment
-                            </p>
-                        </div>
+                            {/* Terms and Conditions */}
+                            <div>
+                                <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
+                                    {/* Terms Checkbox */}
+                                    <div className="flex items-start gap-2.5 xs:gap-3">
+                                        <input
+                                            type="checkbox"
+                                            name="agreeTerms"
+                                            checked={formData.agreeTerms}
+                                            onChange={handleInputChange}
+                                            className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 xs:mt-1 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                        />
+                                        <div className="flex-1">
+                                            <p className="text-gray-text text-xs leading-relaxed">
+                                                I have read and agreed to the terms of the regulations
+                                                <span className="text-primary"> *</span>
+                                                <a href="#" className="text-primary underline ml-1">Terms and Conditions</a>
+                                            </p>
+                                            {errors.agreeTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeTerms}</p>}
+                                        </div>
+                                    </div>
+
+                                    {/* Newsletter Checkbox */}
+                                    <div className="flex items-start gap-2.5 xs:gap-3">
+                                        <input
+                                            type="checkbox"
+                                            name="agreeUpdates"
+                                            checked={formData.agreeUpdates}
+                                            onChange={handleInputChange}
+                                            className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 xs:mt-1 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                        />
+                                        <div className="flex-1">
+                                            <p className="text-gray-text text-xs leading-relaxed">
+                                                I consent to receive future updates regarding my order *
+                                            </p>
+                                            {errors.agreeUpdates && <p className="text-red-500 text-xs mt-1">{errors.agreeUpdates}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Payment Button */}
+                            <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
+                                <button 
+                                    type="submit"
+                                    disabled={isSubmitting || cartItems.length === 0}
+                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${
+                                        isSubmitting || cartItems.length === 0 
+                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                            : 'bg-primary text-white hover:bg-opacity-90 cursor-pointer active:bg-opacity-80'
+                                    }`}
+                                >
+                                    {isSubmitting ? (
+                                        <div className="flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-4 xs:h-5 w-4 xs:w-5 border-2 xs:border-4 border-gray-300 border-t-current mr-2"></div>
+                                            <span className="text-sm xs:text-base">Processing...</span>
+                                        </div>
+                                    ) : (
+                                        `Pay now - $${(total + parseFloat(formData.donation || 0)).toFixed(2)}`
+                                    )}
+                                </button>
+                                <p className="text-gray-text text-xs text-center leading-relaxed px-2">
+                                    *The registration will not be completed without completing the payment
+                                </p>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

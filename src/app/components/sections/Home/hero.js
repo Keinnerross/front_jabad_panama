@@ -14,7 +14,7 @@ export const Hero = () => {
                     src="/assets/pictures/home/hero.jpg"
                     fill
                     className="w-full h-full object-cover animate-pulse"
-                    alt=""
+                    alt="Chabad House of Boquete, Panama - Scenic mountain view of the Jewish community center"
                     style={{
                         animation: 'fadeInZoom 2s ease-out forwards'
                     }}

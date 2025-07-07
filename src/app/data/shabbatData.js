@@ -19,8 +19,6 @@ export const formatShabbatDate = (shabbat) => {
     return `${startDay}-${endDay}/${month}/${year}`;
 };
 
-
-
 export const shabbatAndHolidays = [
     {
         name: "Parashat Chukat",

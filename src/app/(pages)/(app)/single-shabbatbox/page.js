@@ -13,7 +13,6 @@ export default function SingleReservations() {
     const dataEntry = [];
 
     return (
-
         <Fragment>
             <div className="w-full flex justify-center pt-10 pb-10 md:pb-0 border-t border-gray-200">
                 <div className="w-full max-w-7xl px-6 md:px-0">
@@ -68,7 +67,6 @@ export default function SingleReservations() {
                                     <p>
                                         This reservation form is made for particulars, if you are interested to order Shabbos catering for a group (12+ guests) please contact us and we will happily attend you.
                                     </p>
-
                                     <p>
                                         Looking forward to servicing
                                     </p>
@@ -82,7 +80,7 @@ export default function SingleReservations() {
                             <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
                                 <div >
                                     <div className="w-8 h-8 bg-gray-100 rounded-full relative mb-4">
-                                        <Image src="/assets/icons/restaurants/fork.svg" fill className="object-cover" />
+                                        <Image src="/assets/icons/restaurants/fork.svg" fill alt="shabbatbox" className="object-cover" />
                                     </div>
 
                                     <h3 className="text-2xl font-bold text-darkBlue mb-2">
@@ -105,7 +103,6 @@ export default function SingleReservations() {
             </div>
 
             <RestaurantsSection />
-
             {/* Shabbat Box Popup */}
             <PopupShabbatBox
                 isOpen={isShabbatBoxModalOpen}

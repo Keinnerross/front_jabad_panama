@@ -129,7 +129,9 @@ export default function SingleReservations() {
                         <div className="lg:w-[30%]">
                             <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
                                 <div className="space-y-6">
-                                    <div className="w-12 h-12 bg-red-300 rounded-full"></div>
+                                    <div className="w-8 h-8 bg-gray-100 rounded-full relative mb-4">
+                                        <Image src="/assets/icons/restaurants/fork.svg" fill alt="shabbatbox" className="object-cover" />
+                                    </div>
                                     <div className="space-y-3">
                                         <h3 className="text-2xl font-bold text-darkBlue">
                                             {selectedShabbatData?.name || "Error to fetch"}

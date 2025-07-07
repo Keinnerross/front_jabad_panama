@@ -10,7 +10,12 @@ export const TouristInfoEntry = ({ data }) => {
                 <div dangerouslySetInnerHTML={{ __html: data?.shortDescription }} />
             </div>
             <div className="w-full h-[330px] overflow-hidden rounded-2xl relative">
-                <Image src={data.pictureUrl} fill className="w-full h-full object-cover" />
+                <Image 
+                    src={data.pictureUrl} 
+                    fill 
+                    className="w-full h-full object-cover"
+                    alt={data?.title || "Tourist information image"}
+                />
             </div>
             <div className="text-gray-text text-sm leading-relaxed space-y-4 mt-4">
                 <div dangerouslySetInnerHTML={{ __html: data?.longDescription }} />

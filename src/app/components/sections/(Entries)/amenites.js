@@ -20,15 +20,15 @@ export const Amenities = () => {
         { icon: <FaParking />, name: "Street parking" },
         { icon: <FaWifi />, name: "Free WiFi" },
         { icon: <FaSmokingBan />, name: "No smoking" },
-        { icon: <FaStar />, name: "Military discount" },
+       /*  { icon: <FaStar />, name: "Military discount" }, */
         { icon: <FaWheelchair />, name: "Wheelchair accessible" },
         { icon: <FaCreditCard />, name: "Accepts credit cards" },
         { icon: <FaCalendarCheck />, name: "Appointment only" },
         { icon: <FaBicycle />, name: "Bike parking" },
-        { icon: <FaShieldVirus />, name: "Covid-19 safety" },
+  /*       { icon: <FaShieldVirus />, name: "Covid-19 safety" }, */
         { icon: <FaPaw />, name: "Pet friendly" },
-        { icon: <FaMobileAlt />, name: "Mobile tickets" },
-        { icon: <FaSyringe />, name: "Vaccination required" }
+/*         { icon: <FaMobileAlt />, name: "Mobile tickets" }, */
+       /*  { icon: <FaSyringe />, name: "Vaccination required" } */
     ];
 
     return (

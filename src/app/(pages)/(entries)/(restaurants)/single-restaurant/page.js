@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, { Suspense } from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
@@ -14,7 +14,7 @@ import { LocationIcon } from "@/app/components/ui/icons/locationIcon";
 
 
 
-export default function Single() {
+function SingleRestaurantContent() {
     const searchParams = useSearchParams();
     const restaurantId = searchParams.get('id');
     const restaurant = getRestaurantById(restaurantId);
@@ -154,5 +154,13 @@ export default function Single() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function Single() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div></div>}>
+            <SingleRestaurantContent />
+        </Suspense>
     );
 };

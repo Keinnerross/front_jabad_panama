@@ -17,8 +17,7 @@ const PopupReservations = lazy(() =>
 
 
 
-export default function SingleReservations() {
-
+function SingleReservationsContent() {
     const searchParams = useSearchParams();
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedShabbatData, setSelectedShabbatData] = useState(null);
@@ -170,5 +169,13 @@ export default function SingleReservations() {
 
 
         </Fragment>
+    );
+}
+
+export default function SingleReservations() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div></div>}>
+            <SingleReservationsContent />
+        </Suspense>
     );
 };

@@ -61,7 +61,7 @@ export const Header = () => {
 
     return (
         <header className="w-full bg-white relative z-50">
-            <div className="max-w-7xl mx-auto py-6">
+            <div className="max-w-7xl mx-auto py-4 md:py-6">
                 <div className="flex items-center justify-between px-4 lg:px-0">
                     {/* Logo */}
                     <Logo />

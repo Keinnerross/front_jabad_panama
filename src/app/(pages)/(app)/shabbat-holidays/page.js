@@ -191,20 +191,20 @@ export default function ShabbatAndHolidays() {
                                 <h3 className="text-lg font-bold mb-4">What's included?</h3>
                                 <ul className="space-y-4">
                                     <li className="flex items-start gap-3">
-                                        <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
-                                            <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                                        <div className="bg-primary rounded-full w-6 h-6 min-w-6 min-h-6 flex justify-center items-center flex-shrink-0">
+                                            <FaCheck className="text-white text-sm flex-shrink-0" />
                                         </div>
                                         <span className="text-blueBackground font-medium">Inspiring services & divrei Torah</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
-                                            <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                                        <div className="bg-primary rounded-full w-6 h-6 min-w-6 min-h-6 flex justify-center items-center flex-shrink-0">
+                                            <FaCheck className="text-white text-sm flex-shrink-0" />
                                         </div>
                                         <span className="text-blueBackground font-medium">Traditional meals shared in community</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
-                                            <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                                        <div className="bg-primary rounded-full w-6 h-6 min-w-6 min-h-6 flex justify-center items-center flex-shrink-0">
+                                            <FaCheck className="text-white text-sm flex-shrink-0" />
                                         </div>
                                         <span className="text-blueBackground font-medium">A sense of belonging wherever you come from</span>
                                     </li>
@@ -279,7 +279,7 @@ export default function ShabbatAndHolidays() {
                     {/* Header Section */}
                     <div className="w-full text-center mb-12 md:mb-16 flex items-center flex-col ">
 
-                        <h2 className=" text-4xl font-bold text-darkBlue mb-4 leading-tight w-[50%]">
+                        <h2 className=" text-4xl font-bold text-darkBlue mb-4 leading-tight md:w-[50%]">
                             Kosher food for Shabbat and Holiday in Panama City
                         </h2>
                         <p className="text-gray-text text-base md:text-lg max-w-2xl mx-auto">

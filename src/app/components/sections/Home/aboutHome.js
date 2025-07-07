@@ -85,8 +85,8 @@ export const AboutHome = () => {
                 "A brand new, large tree house.",
               ].map((feature, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className="bg-primary  rounded-full w-6 h-6 flex justify-center items-center">
-                    <FaCheck className="text-white text-sm mt-0.5 flex-shrink-0" />
+                  <div className="bg-primary rounded-full w-6 h-6 min-w-6 min-h-6 flex justify-center items-center flex-shrink-0">
+                    <FaCheck className="text-white text-sm flex-shrink-0" />
                   </div>
 
                   <span className="text-myBlack font-bold text-lg">

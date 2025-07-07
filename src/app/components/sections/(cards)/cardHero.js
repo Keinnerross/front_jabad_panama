@@ -6,7 +6,7 @@ import { FaUtensils } from "react-icons/fa"; // Puedes cambiar el ícono si usas
 
 export const CardHero = ({ data }) => {
 
-  const sizeIcon = 40
+  const sizeIcon = 45;
 
 
   return (
@@ -17,16 +17,15 @@ export const CardHero = ({ data }) => {
 
       <div className="flex justify-center items-center relative mb-4">
         <div className="w-14 h-14 bg-blueBackground rounded-full absolute top-1/2 -translate-y-1/2" />
-        {/* Este ícono puede reemplazarse por una imagen dinámica más adelante */}
         <div className={`overflow-hidden flex justify-center items-center`}>
           <Image src={data.icon} alt={data.title}
             width={sizeIcon}
             height={sizeIcon}
-            className={`${data.title == "Tourist Info" || "All-Inclusive Packages" ? "ml-2" : ""} object-contain z-10 w-full h-full `} />
+            className={`${data.title == "Tourist Info"  ? "ml-2" : ""} object-contain z-10 w-full h-full `} />
         </div>
       </div>
       {/* Título */}
-      <h3 className="text-center text-myBlack group-hover:text-primary duration-400 ease-in-out font-bold text-sm md:text-base leading-4">
+      <h3 className="text-center text-myBlack group-hover:text-primary duration-400 ease-in-out font-bold text-base leading-4 mt-4 md:mt-0">
         {data?.title}
       </h3>
     </Link>

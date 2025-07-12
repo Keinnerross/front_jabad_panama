@@ -16,6 +16,7 @@ export default async function Home() {
   const hotelsData = await api.hotels();
   const siteConfig = await api.siteConfig();
   const packagesData = await api.packages();
+  const activitiesData = await api.activities();
 
 
 
@@ -34,10 +35,9 @@ export default async function Home() {
       <AboutHome aboutData={aboutData} />
       <FoodHomeSlider restaurantsData={restaurantsData} />
       <PackagesHome packagesData={packagesData} href="/packages" />
-
       <PackagesVideo packagesData={packagesData} />
       <HotelHomeSlider hotelsData={hotelsData} />
-      <AttractionsHome />
+      <AttractionsHome activitiesData={activitiesData} />
       <MapSection siteConfig={siteConfig} />
     </div>
   );

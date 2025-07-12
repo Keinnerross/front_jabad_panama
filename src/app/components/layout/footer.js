@@ -1,14 +1,60 @@
-'use client';
+
 import React from "react";
 import Image from "next/image";
 import { FiMail } from "react-icons/fi";
-import { activitiesData } from "@/app/data/activities";
+import { api } from "@/app/services/strapiApiFetch";
+import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
 
-export const Footer = () => {
+export const Footer = async ({ siteConfig }) => {
+
+  const activitiesData = await api.activities();
+
+  const fallbackData = [
+    {
+      imageUrls: ["/assets/global/asset001.png"]
+    },
+    {
+      imageUrls: ["/assets/global/asset001.png"]
+    },
+    {
+      imageUrls: ["/assets/global/asset001.png"]
+    },
+
+  ];
 
 
-  const firstThreeActivities = activitiesData.slice(0, 3);
+  let allImages = [];
+
+  const arrayAllImages = (data) => {
+    if (Array.isArray(data)) {
+      data.forEach(activity => {
+        if (activity.imageUrls) {
+          // Si imageUrls es un array, concatenamos sus elementos
+          if (Array.isArray(activity.imageUrls)) {
+            allImages = allImages.concat(activity.imageUrls);
+          }
+          // Si imageUrls es un string, lo añadimos directamente
+          else if (typeof activity.imageUrls === 'string') {
+            allImages.push(activity.imageUrls);
+          }
+        }
+      });
+    }
+
+    return allImages;
+  }
+  const arrayAllImagesUrl = arrayAllImages(activitiesData);
+  const imageUrls = imagesArrayValidation(arrayAllImagesUrl, fallbackData);
+
+  const categoriesActivities = activitiesData?.map((activity) => ({
+    title: activity.title || "lorep Ipsum",
+  }))
+  const displayedActivitiesPictures = imageUrls.slice(-3);
+  const displayedInfoActivities = categoriesActivities.slice(-3)
+
+
+
 
   // Datos de navegación que podrían venir de Strapi
   const menuSections = [
@@ -17,8 +63,8 @@ export const Footer = () => {
       links: [
         { name: "Home", path: "/" },
         { name: "About us", path: "/about" },
-        { name: "Contact", path: "/http://wa.me/50762430666" },
-        { name: "Donations", path: "/http://wa.me/50762430666" }
+        { name: "Contact", path: "/contact" },
+        { name: "Donations", path: "/donations" }
       ]
     },
     {
@@ -33,23 +79,23 @@ export const Footer = () => {
     {
       title: "Services",
       links: [
-        { name: "Shabbat Box", path: "/about" },
-        { name: "Reservations", path: "/http://wa.me/50762430666" }
+        { name: "Shabbat Box", path: "/shabbat-holidays" },
+        { name: "Reservations", path: "/shabbat-holidays" }
       ]
     },
     {
       title: "Attractions",
-      links: firstThreeActivities.map(activity => ({
+      links: displayedInfoActivities.map((activity, i) => ({
         name: activity.title,
         path: "/packages",
-        image: activity.imageUrls
+        image: displayedActivitiesPictures[i]
       }))
     },
     {
       title: "Help",
       links: [
-        { name: "Tourist Info", path: "/#" },
-        { name: "Community", path: "/#" }
+        { name: "Tourist Info", path: "/visitor-information" },
+        { name: "Community", path: "/visitor-information" }
       ]
     },
     {
@@ -102,17 +148,17 @@ export const Footer = () => {
               </div>
               <div>
                 <h3 className="text-white font-bold text-xl mb-2">
-                  Stay Connected with 
+                  Stay Connected with
                 </h3>
                 <p className="text-blue-100">
                   Get updates about Shabbat meals, upcoming holidays, and
                   community events while you're visiting Panama.
                 </p>
-               
-                  <p className="text-blue-100 text-sm mt-2">
-                    Contact us: 
-                  </p>
-                
+
+                <p className="text-blue-100 text-sm mt-2">
+                  Contact us:
+                </p>
+
               </div>
             </div>
 
@@ -134,7 +180,7 @@ export const Footer = () => {
 
         {/* Derechos de autor */}
         <p className="mt-4 text-center text-gray-500">
-          © {new Date().getFullYear()} {'Chabad Website'}. All rights reserved.
+          © {new Date().getFullYear()} {siteConfig.site_title || "Site Title"}. All rights reserved.
         </p>
       </div>
     </footer>

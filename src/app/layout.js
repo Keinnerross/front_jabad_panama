@@ -14,38 +14,36 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
+
+const urlApi = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+
+
+
+//Llamada a la Api
+const siteConfig = await api.siteConfig();
+
+
 export const metadata = {
   title: {
-    default: "Chabbat Template",
+    default: siteConfig.site_title || "Site Title",
   },
-
+  description: siteConfig.site_description || "Site description",
+  icons: {
+    icon: `${urlApi}${siteConfig.logo.url}` || "/assets/global/asset001.png",
+    shortcut: `${urlApi}${siteConfig.logo.url}` || "/assets/global/asset001.png",
+    apple: `${urlApi}${siteConfig.logo.url}` || "/assets/global/asset001.png"
+  },
 };
 
 
-
-
-
 export default async function RootLayout({ children }) {
-
-  const siteConfig = await api.siteConfig();
-
-
-
-
-
-
-
-
-
-  
   return (
     <html lang="en">
-
       <body className={`${inter.variable} font-sans antialiased`}>
         <AppWrapper siteConfig={siteConfig}>
-          <Header data={siteConfig}/>
+          <Header data={siteConfig} />
           {children}
-          <Footer />
+          <Footer siteConfig={siteConfig} />
           <NotificationContainer />
         </AppWrapper>
       </body>

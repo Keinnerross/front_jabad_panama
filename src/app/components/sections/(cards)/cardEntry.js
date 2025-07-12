@@ -107,7 +107,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
               </Link>
             ) : (
               <a
-                href={data.website ? data.website : "https://api.whatsapp.com/send/?phone=17866303496&text&type=phone_number&app_absent=0"}
+                href={data.link_contact_packages || "/#"}
                 target="_blank"
                 className="underline md:leading-3 text-sm"
               >

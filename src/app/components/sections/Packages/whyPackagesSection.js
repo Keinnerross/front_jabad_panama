@@ -1,24 +1,31 @@
 import { FaArrowRight, } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import Image from "next/image";
+import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
 
-export const WhyPackagesSection = () => {
+export const WhyPackagesSection = ({ packagesData }) => {
 
 
-    const packages = [
+    const whyPackageData = packagesData.whyPackages
+    const apiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL
+
+
+    // Datos de fallback
+    const fallbackData = [
         {
             id: 1,
-            title: "Pay Once",
+            title: "Pay Oncxde",
             description: "Pay safely in the US and leave your wallet at home, we'll prepay every aspect of your trip.",
-            image: "/assets/pictures/packages/whyPackages/a.jpg",
-            icon: <FaArrowRight />
+            image: "/assets/global/asset001.png",
+            icon: <FaArrowRight />,
+
         },
         {
             id: 2,
             title: "All-inclusive packages",
             description: "Including all your Kosher meals, hotels, transfers and activities. Activities are custom tailored to the ages in your group.",
-            image: "/assets/pictures/packages/whyPackages/b.jpg",
+            image: "/assets/global/asset001.png",
 
             icon: <FaArrowRight />
         },
@@ -26,18 +33,41 @@ export const WhyPackagesSection = () => {
             id: 3,
             title: "3 price tiers",
             description: "Gold: $3500\nPlatinum: $4500\nUltra Luxury: Custom\nVarying in part, by hotel options.",
-            image: "/assets/pictures/packages/whyPackages/c.jpg",
-
+            image: "/assets/global/asset001.png",
             icon: <FaArrowRight />
         },
         {
             id: 4,
             title: "Optional",
             description: "Spend a day in Panama City, see the Canal, visit the old city, enjoy lunch and race back to the airport on your way to Boquete.",
-            image: "/assets/pictures/packages/whyPackages/d.jpg",
+            image: "/assets/global/asset001.png",
             icon: <FaArrowRight />
         }
     ];
+
+
+    // Datos Api Construidos
+
+    const processedData = whyPackageData?.map(whyPackage => ({
+        title_card: whyPackage.title_card || fallbackData.title_card,
+        description_card: whyPackage.description_card || fallbackData.description_card,
+        picture: `${apiUrl}${whyPackage.picture.url}` || fallbackData.image,
+        icon: <FaArrowRight />,
+    })) || [];
+
+
+
+
+    const dataToUse = processedData.length > 0 ? processedData : fallbackData;
+
+
+
+
+
+
+
+
+
 
     return (
         <section id="whyPackages" className="w-full flex justify-center items-center">
@@ -48,22 +78,22 @@ export const WhyPackagesSection = () => {
                         Why Packages?
                     </h2>
 
-                    <ButtonTheme title="Explore Packages" href="https://wa.me/17866303496" />
+                    <ButtonTheme title="Explore Packages" href={packagesData.link_contact_packages || "/#"} />
                 </div>
 
                 {/* Packages Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {packages.map((pkg) => (
-                        <div key={pkg.id} className="bg-white group cursor-pointer">
+                    {dataToUse.map((pkg, i) => (
+                        <div key={i} className="bg-white group cursor-pointer">
                             {/* Image */}
                             <div className="relative h-[300px] w-full">
                                 <div className="w-full h-full rounded-xl overflow-hidden relative">
                                     {/* Replace with Next.js Image component */}
-                                    <Image 
-                                        src={pkg.image} 
-                                        fill 
-                                        alt={pkg.title} 
-                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                                    <Image
+                                        src={pkg.picture}
+                                        fill
+                                        alt={pkg.title_card}
+                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                                     />
                                 </div>
                             </div>
@@ -71,12 +101,12 @@ export const WhyPackagesSection = () => {
                             {/* Content */}
                             <div className="pt-4 px-2">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-xl font-bold text-darkBlue group-hover:text-primary transition-colors duration-300">{pkg.title}</h3>
+                                    <h3 className="text-xl font-bold text-darkBlue group-hover:text-primary transition-colors duration-300">{pkg.title_card}</h3>
                                     <span className="text-darkBlue text-lg group-hover:text-primary transition-colors duration-300">{pkg.icon}</span>
                                 </div>
 
                                 <p className="text-gray-text whitespace-pre-line text-sm">
-                                    {pkg.description}
+                                    {pkg.description_card}
                                 </p>
                             </div>
                         </div>

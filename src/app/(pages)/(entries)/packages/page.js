@@ -7,14 +7,26 @@ import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 import { WhyPackagesSection } from "@/app/components/sections/Packages/whyPackagesSection";
 import { NewsletterSection } from "@/app/components/sections/Common/newsletterSection";
 import { ActivitiesSecundarySection } from "@/app/components/sections/Activities/activitiesSecundarySection";
+import { api } from "@/app/services/strapiApiFetch";
+import { PackagesVideo } from "@/app/components/sections/Home/packagesVideo";
 
 
-export default function Restaurants() {
+export default async function Packages() {
+
+
+    const packagesData = await api.packages();
+
+
+    console.log("DesdePagina", packagesData)
+
+
     return (
         <Fragment>
             {/* HERO */}
             <section className="relative flex flex-col items-center w-full bg-white">
-                <PackagesHome title="Choose your package, secure your spot, and celebrate with us!" href="https://api.whatsapp.com/send/?phone=17866303496&text&type=phone_number&app_absent=0" />
+                <PackagesHome
+                    packagesData={packagesData}
+                />
                 {/* Decorative background elements */}
                 < div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
                 {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
@@ -25,7 +37,10 @@ export default function Restaurants() {
                 </div> */}
             </section>
             <div className="transform md:-translate-y-[50px] ">
-                <WhyPackagesSection />
+                <WhyPackagesSection packagesData={packagesData} />
+
+                <PackagesVideo packagesData={packagesData} />
+
                 {/*    <NewsletterSection /> */}
                 {/*   <ActivitiesSecundarySection /> */}
             </div>

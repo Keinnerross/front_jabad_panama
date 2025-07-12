@@ -6,6 +6,7 @@ import { AttractionsHome } from "@/app/components/sections/Home/attractionsHome"
 import { CardsHeroSection } from "@/app/components/sections/Home/cardsHeroSection";
 import { Hero } from "@/app/components/sections/Home/hero";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
+import { PackagesVideo } from "@/app/components/sections/Home/packagesVideo";
 import { api } from "@/app/services/strapiApiFetch";
 
 
@@ -14,6 +15,7 @@ export default async function Home() {
   const restaurantsData = await api.restaurants();
   const hotelsData = await api.hotels();
   const siteConfig = await api.siteConfig();
+  const packagesData = await api.packages();
 
 
 
@@ -31,7 +33,9 @@ export default async function Home() {
       </div>
       <AboutHome aboutData={aboutData} />
       <FoodHomeSlider restaurantsData={restaurantsData} />
-      <PackagesHome href="/packages" title="All inclusive packages: Leave the thinking to us" />
+      <PackagesHome packagesData={packagesData} href="/packages" />
+
+      <PackagesVideo packagesData={packagesData} />
       <HotelHomeSlider hotelsData={hotelsData} />
       <AttractionsHome />
       <MapSection siteConfig={siteConfig} />

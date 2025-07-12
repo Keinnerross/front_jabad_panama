@@ -11,6 +11,7 @@ export default async function Restaurants() {
     // Content data - can be moved to a separate file or fetched from CMS
 
     const activitiesData = await api.activities();
+    const packagesData = await api.packages();
 
 
     return (
@@ -20,9 +21,9 @@ export default async function Restaurants() {
                 <HeroActivities activitiesData={activitiesData} />
             </section>
 
-            <ActivitiesSection activitiesData={activitiesData} />
-            <PackagesHome showVideo={false} isHero={false} href="#whyPackages" title="All inclusive packages: Leave the thinking to us" />
-            <WhyPackagesSection />
+            <ActivitiesSection activitiesData={activitiesData} packagesData={packagesData} />
+            <PackagesHome packagesData={packagesData} isHero={false} href="#whyPackages" />
+            <WhyPackagesSection packagesData={packagesData} />
             {/*       <NewsletterSection /> */}
             {/*  <ActivitiesSecundarySection /> */}
         </Fragment >

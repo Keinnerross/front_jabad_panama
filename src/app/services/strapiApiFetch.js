@@ -18,8 +18,7 @@ const singleRestaurantEndpoint = "/restaurants"
 const hotelsEndpoint = "/hotels?populate=*"
 const activitiesEndpoint = "/activities?populate=*"
 const infoTouristEndpoint = "/visitor-infos?populate=*"
-
-
+const packagesEndpoint = "/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"
 
 
 
@@ -108,18 +107,6 @@ export async function strapiFetchById(endpoint, id, populate) {
 
 
 
-/* export const api = {
-    siteConfig() { return strapiFetch(siteConfigEndpoint) },
-    aboutPage() { return strapiFetch(aboutEndpoint) },
-    homeAbout() { return strapiFetch(aboutHomeEndpoint) },
-    restaurants() { return strapiFetch(restaurantsEndpoint) },
-    singleRestaurant(id, populate) { return strapiFetchById(singleRestaurantEndpoint, id, populate) },
-    hotels() { return strapiFetch(hotelsEndpoint) },
-    activities() { return strapiFetch(activitiesEndpoint) },
-    infoTourist() { return strapiFetch(infoTouristEndpoint) },
-
-}
- */
 
 
 export const api = {
@@ -131,6 +118,7 @@ export const api = {
     hotels: () => strapiFetch(hotelsEndpoint),
     activities: () => strapiFetch(activitiesEndpoint),
     infoTourist: () => strapiFetch(infoTouristEndpoint),
+    packages: () => strapiFetch(packagesEndpoint),
 }
 
 

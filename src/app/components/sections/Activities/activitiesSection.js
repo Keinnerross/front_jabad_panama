@@ -4,7 +4,7 @@ import { EntryLayout } from "../(Entries)/entryLayout";
 import { CardEntry } from "../(cards)/cardEntry";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
-export const ActivitiesSection = ({ activitiesData }) => {
+export const ActivitiesSection = ({ activitiesData, packagesData }) => {
 
 
   const fallbackData = [
@@ -13,14 +13,14 @@ export const ActivitiesSection = ({ activitiesData }) => {
       title: "Activity",
       description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
       category: "Hotel",
-      imageUrls: ["/assets/global/asset001.png"]
+      imageUrls: ["/assets/global/asset001.png"],
     },
     {
       id: 2,
       title: "Ipsum Activity",
       description: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       category: "Hotel",
-      imageUrls: ["/assets/global/asset001.png"]
+      imageUrls: ["/assets/global/asset001.png"],
     }
   ];
 
@@ -34,8 +34,8 @@ export const ActivitiesSection = ({ activitiesData }) => {
     imageUrls: imagesArrayValidation(activity.imageUrls, fallbackData) || [],
     website: activity.website,
     address: activity.address,
-    tags: activity.Tags
-
+    tags: activity.Tags,
+    link_contact_packages: packagesData.link_contact_packages || "/#"
   })) || [];
 
 

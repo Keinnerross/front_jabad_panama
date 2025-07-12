@@ -206,10 +206,10 @@ export const HeroActivities = ({ activitiesData }) => {
                     {/* Texto */}
                     <div className="text-center mb-8 animate-fade-in-left">
                         <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-myBlack transform transition-all duration-700 ease-out">
-                            Explore the best things to see and do in Boquete
+                            What to See, Do, and Experience During Your Visit
                         </h2>
                         <p className="text-gray-text text-sm leading-7 mb-6 transform transition-all duration-700 ease-out delay-200 max-w-md mx-auto">
-                            From misty mountain trails and vibrant flower gardens to world-class coffee and adrenaline-pumping adventures, Boquete offers unforgettable moments for every kind of explorer.
+                            From breathtaking views and local flavors to cultural gems and outdoor adventures, every moment here invites you to explore, feel, and connect.
                         </p>
                         <div className="transform transition-all duration-700 ease-out delay-400">
                             <ButtonTheme title="Let's explore experiences!" href="#activitiesSection" variation={2} />

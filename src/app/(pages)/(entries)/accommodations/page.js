@@ -23,21 +23,13 @@ export default async function Acomodations() {
                     {/* Text content - using flex for centering */}
                     < div className="w-full flex flex-col items-center justify-center text-center py-12 md:py-0" >
                         <h1 className="md:w-[50%] text-4xl md:text-5xl lg:text-[46px] font-bold text-darkBlue mb-6 leading-tight">
-                            Comfortable Stays Close to Chabad in Boquete
+                            Find a Cozy Place to Stay Near Chabad
                         </h1>
                         <p className="text-base  text-gray-text max-w-2xl mx-auto" >
-                            Relax in charming hotels just around the corner from the Chabad House — comfort and convenience for your stay in the mountains.
+                            Relax in charming stays just around the corner from the Chabad House, offering comfort and convenience throughout your visit.
                         </ p>
                     </div >
                 </div >
-                {/* Decorative background elements */}
-                {/* <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]" >
-                    <div className="w-full h-full bg-red-300" />
-                </div >
-
-                <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div> */}
             </section >
             <div className="z-10 relative">
                 <AccommodationsSection hotelsData={hotelsData} />

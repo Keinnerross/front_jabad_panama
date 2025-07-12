@@ -21,6 +21,12 @@ const infoTouristEndpoint = "/visitor-infos?populate=*"
 const packagesEndpoint = "/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"
 
 
+const shabbatsAndHolidaysEndpoint = "/shabbat-and-holidays?populate=*"
+
+
+
+
+
 
 export async function strapiFetch(endpoint) {
     try {
@@ -119,6 +125,7 @@ export const api = {
     activities: () => strapiFetch(activitiesEndpoint),
     infoTourist: () => strapiFetch(infoTouristEndpoint),
     packages: () => strapiFetch(packagesEndpoint),
+    shabbatsAndHolidays: () => strapiFetch(shabbatsAndHolidaysEndpoint),
 }
 
 

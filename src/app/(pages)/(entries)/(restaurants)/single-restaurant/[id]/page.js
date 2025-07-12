@@ -1,38 +1,65 @@
-'use client'
-import React, { Suspense } from "react";
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { Amenities } from "@/app/components/sections/(Entries)/amenites";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
-import { useSearchParams } from "next/navigation";
-import { getRestaurantById } from "@/app/data/restaurantsData";
 import { CiGlobe } from "react-icons/ci";
 import { IoLocationOutline } from "react-icons/io5";
 import { LocationIcon } from "@/app/components/ui/icons/locationIcon";
+import { api } from "@/app/services/strapiApiFetch";
+import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
 
 
 
-function SingleRestaurantContent() {
-    const searchParams = useSearchParams();
-    const restaurantId = searchParams.get('id');
-    const restaurant = getRestaurantById(restaurantId);
 
-    // Si no se encuentra el restaurante, mostrar mensaje de error
-    if (!restaurant) {
-        return (
-            <div className="w-full flex justify-center py-20 border-t border-gray-200">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-darkBlue mb-4">Restaurant not found</h1>
-                    <p className="text-gray-text">The restaurant you're looking for doesn't exist.</p>
-                </div>
-            </div>
-        );
-    }
 
-    // Obtener las imágenes para la galería (excluyendo la primera que es la portada)
-    const galleryImages = restaurant.imageUrls.slice(1);
+
+export default async function Single({ params }) {
+
+    const { id } = await params;
+    const restaurantsData = await api.singleRestaurant(id, true);
+
+
+
+
+
+
+
+    // Datos de fallback
+    const fallbackData =
+    {
+        title: "xd",
+        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        category: "Kosher",
+        website: "#",
+        location: "#",
+        established: "number",
+        tags: [],
+        imageUrls: [],
+        menu: "#",
+        fullDescription: "#"
+    };
+
+
+    // Datos Api Construidos
+    const pageData = {
+        title: restaurantsData?.title || fallbackData.title,
+        description: restaurantsData?.description || fallbackData.description,
+        category: restaurantsData?.category || fallbackData.category,
+        website: restaurantsData?.website || fallbackData.website,
+        location: restaurantsData?.location || fallbackData.location,
+        established: restaurantsData?.established || fallbackData.established,
+        tags: restaurantsData?.tags || fallbackData.tags,
+        imageUrls: imagesArrayValidation(restaurantsData.imageUrls, fallbackData) || fallbackData.imageUrls,
+        menu: restaurantsData?.menu || fallbackData.menu,
+        fullDescription: restaurantsData?.fullDescription || fallbackData.fullDescription
+    };
+
+
+
+    /*     console.log("SINGLE", pageData) */
+
 
     return (
         <div className="w-full flex justify-center pt-10 pb-20 md:py-20 border-t border-gray-200">
@@ -42,29 +69,24 @@ function SingleRestaurantContent() {
                     <div className="flex flex-col md:flex-row justify-between items-center mb-8 md:mb-6">
                         <div className="md:w-[60%]">
                             <h1 className="text-5xl font-bold text-darkBlue mb-6">
-                                {restaurant.title}
+                                {pageData.title}
                             </h1>
                             <p className="text-gray-text text-sm leading-relaxed mb-6 md:mb-0">
-                                {restaurant.fullDescription}
+                                {pageData.fullDescription}
                             </p>
                         </div>
                         <ButtonTheme title="Browse gallery" href="#gallery" />
                     </div>
-
-
-
                     <div className="w-full flex flex-wrap items-center gap-4 mb-8">
-                        <CategoryTag categoryTitle={restaurant.category} />
-                        {restaurant.tags.map((tag, index) => (
-                            <CategoryTag key={index} categoryTitle={tag} />
+                        {pageData.tags?.map((tag, index) => (
+                            <CategoryTag key={index} categoryTitle={tag.tag_name} />
                         ))}
                     </div>
 
-
                     <div className="w-full h-80 md:h-[500px] rounded-xl overflow-hidden relative">
                         <Image
-                            src={restaurant.imageUrls[0]}
-                            alt={restaurant.title}
+                            src={pageData.imageUrls[0]}
+                            alt={pageData.title}
                             fill
                             className="w-full h-full object-cover"
                         />
@@ -76,26 +98,24 @@ function SingleRestaurantContent() {
                     <div className="lg:w-[70%]">
 
                         {/* Custom Amenities Section */}
-
-                        <Amenities />
-
-
+                        {/* 
+                        <Amenities /> */}
 
                         {/* Gallery Section - Only render if there are gallery images */}
-                        {galleryImages.length > 0 && (
-                            <section className="mt-10" id="gallery">
+                        {pageData.imageUrls.length > 1 && (
+                            <section className="mt-10 md:mt-0" id="gallery">
                                 <h2 className="text-3xl font-bold text-darkBlue mb-8">
                                     Photo gallery
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                                    {galleryImages.map((imageUrl, index) => (
+                                    {pageData.imageUrls.slice(1, 7).map((imageUrl, index) => (
                                         <div
                                             key={index}
                                             className="aspect-square rounded-xl overflow-hidden relative"
                                         >
                                             <Image
                                                 src={imageUrl}
-                                                alt={`${restaurant.title} gallery image ${index + 1}`}
+                                                alt={`${pageData.title} gallery image ${index + 2}`}
                                                 fill
                                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                             />
@@ -112,41 +132,41 @@ function SingleRestaurantContent() {
                             <div className="space-y-4">
 
                                 <div className="w-8 h-8 bg-gray-100 rounded-full relative">
-                                    <Image 
-                                        src="/assets/icons/restaurants/fork.svg" 
-                                        fill 
+                                    <Image
+                                        src="/assets/icons/restaurants/fork.svg"
+                                        fill
                                         className="object-cover"
                                         alt="Restaurant icon"
                                     />
                                 </div>
                                 <h3 className="text-2xl font-bold text-darkBlue">
-                                    {restaurant.title}
+                                    {pageData.title}
                                 </h3>
                                 <p className="text-gray-text text-sm">
-                                    {restaurant.description}
+                                    {pageData.description}
                                 </p>
                                 <div className="space-y-4 mb-4" >
                                     <div className="flex gap-2 items-center">
                                         <IoLocationOutline size={20} />
-                                        <p className="text-gray-text text-sm">{restaurant.location}</p>
+                                        <p className="text-gray-text text-sm">{pageData.location}</p>
                                     </div>
-                                    {restaurant.website !== "/#" && (
+                                    {pageData.website !== "/#" && (
                                         <div className="flex gap-2 items-center">
                                             <CiGlobe size={20} />
                                             <a
-                                                href={restaurant.website}
+                                                href={pageData.website}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-gray-text text-sm"
                                             >
-                                                {restaurant.website}
+                                                {pageData.website}
                                             </a>
                                         </div>
                                     )}
                                 </div>
 
 
-                                <ButtonTheme title="View Menu" href="https://www.google.com" variation={2} isFull />
+                                <ButtonTheme title="View Menu" href={pageData.menu} target="_blank" variation={2} isFull />
 
                             </div>
                         </div>
@@ -156,11 +176,3 @@ function SingleRestaurantContent() {
         </div>
     );
 }
-
-export default function Single() {
-    return (
-        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div></div>}>
-            <SingleRestaurantContent />
-        </Suspense>
-    );
-};

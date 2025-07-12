@@ -4,7 +4,7 @@ import { FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift } from "react-icons/f
 import { MdInfo, MdContactMail } from "react-icons/md";
 
 // Lazy load cart popup for better performance
-const CartPopup = lazy(() => 
+const CartPopup = lazy(() =>
     import("../ui/cart/cartPopup").then(module => ({
         default: module.CartPopup
     }))
@@ -18,7 +18,15 @@ import { CartButton } from "./header/CartButton";
 import { DonateButton } from "./header/DonateButton";
 import { MobileMenuButton } from "./header/MobileMenuButton";
 
-export const Header = () => {
+export const Header = ({ data }) => {
+
+
+
+
+
+
+
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [hoveredDropdown, setHoveredDropdown] = useState(null);
@@ -59,16 +67,20 @@ export const Header = () => {
         setActiveDropdown(null);
     };
 
+
+
+
+
     return (
         <header className="w-full bg-white relative z-50">
             <div className="max-w-7xl mx-auto py-4 md:py-6">
                 <div className="flex items-center justify-between px-4 lg:px-0">
                     {/* Logo */}
-                    <Logo />
+                    <Logo logo={data.logo} />
 
                     <div className="flex justify-end gap-8">
                         {/* Desktop Navigation */}
-                        <DesktopNavigation 
+                        <DesktopNavigation
                             menuItems={menuItems}
                             hoveredDropdown={hoveredDropdown}
                             setHoveredDropdown={setHoveredDropdown}
@@ -82,7 +94,7 @@ export const Header = () => {
                             <DonateButton pathDonate={pathDonate} />
 
                             {/* Mobile Menu Button */}
-                            <MobileMenuButton 
+                            <MobileMenuButton
                                 isMenuOpen={isMenuOpen}
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                             />
@@ -91,7 +103,7 @@ export const Header = () => {
                 </div>
 
                 {/* Mobile Menu */}
-                <MobileNavigation 
+                <MobileNavigation
                     isMenuOpen={isMenuOpen}
                     menuItems={menuItems}
                     activeDropdown={activeDropdown}
@@ -101,11 +113,11 @@ export const Header = () => {
                     pathDonate={pathDonate}
                 />
             </div>
-            
+
             {/* Lazy loaded Cart Popup with suspense boundary */}
             <Suspense fallback={null}>
-                <CartPopup 
-                    isOpen={isCartOpen} 
+                <CartPopup
+                    isOpen={isCartOpen}
                     handleModal={setIsCartOpen}
                 />
             </Suspense>

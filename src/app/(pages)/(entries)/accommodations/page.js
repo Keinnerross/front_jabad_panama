@@ -1,9 +1,15 @@
 import { CardEntry } from "@/app/components/sections/(cards)/cardEntry";
 import { AccommodationsSection } from "@/app/components/sections/(Entries)/(accommodations)/accommodationsSection";
 import { EntryLayout } from "@/app/components/sections/(Entries)/entryLayout";
+import { api } from "@/app/services/strapiApiFetch";
 import { Fragment } from "react";
 
-export default function Acomodations() {
+export default async function Acomodations() {
+
+
+    const hotelsData = await api.hotels();
+
+
     return (
         <Fragment>
             {/* Hero */}
@@ -34,7 +40,7 @@ export default function Acomodations() {
                 </div> */}
             </section >
             <div className="z-10 relative">
-                <AccommodationsSection />
+                <AccommodationsSection hotelsData={hotelsData} />
             </div>
         </Fragment >
     )

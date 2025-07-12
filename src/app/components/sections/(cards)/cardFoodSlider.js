@@ -6,10 +6,12 @@ export const CardFoodSlider = ({
     title = "La Finka",
     description = "Eros pellentesque volutpat viverra ac non vitae cursus velit at lobortis.on vitae cursus velit at lobortis.",
     imageUrl = ""
+
 }) => {
     return (
 
-<div className="group flex flex-col min-w-[280px] max-w-[280px] h-auto md:h-[474px] rounded-xl transition-all duration-300 mr-8">
+
+        <div className="group flex flex-col min-w-[280px] max-w-[280px] h-auto md:h-[474px] rounded-xl transition-all duration-300 mr-8">
 
             {/* Contenedor de la imagen */}
             <div className="relative w-full aspect-square md:h-[320px] rounded-xl overflow-hidden ">

@@ -1,3 +1,4 @@
+'use client';
 import React from "react";
 import Image from "next/image";
 import { FiMail } from "react-icons/fi";
@@ -5,7 +6,6 @@ import { activitiesData } from "@/app/data/activities";
 
 
 export const Footer = () => {
-
 
 
   const firstThreeActivities = activitiesData.slice(0, 3);
@@ -102,12 +102,17 @@ export const Footer = () => {
               </div>
               <div>
                 <h3 className="text-white font-bold text-xl mb-2">
-                  Stay Connected with Chabad Panama
+                  Stay Connected with 
                 </h3>
                 <p className="text-blue-100">
                   Get updates about Shabbat meals, upcoming holidays, and
                   community events while you're visiting Panama.
                 </p>
+               
+                  <p className="text-blue-100 text-sm mt-2">
+                    Contact us: 
+                  </p>
+                
               </div>
             </div>
 
@@ -128,7 +133,9 @@ export const Footer = () => {
         </div>
 
         {/* Derechos de autor */}
-        <p className="mt-4 text-center text-gray-500">© {new Date().getFullYear()} Chabad Boquete. All rights reserved.</p>
+        <p className="mt-4 text-center text-gray-500">
+          © {new Date().getFullYear()} {'Chabad Website'}. All rights reserved.
+        </p>
       </div>
     </footer>
   );

@@ -1,48 +1,55 @@
-'use client'
 
 import { MapSection } from "@/app/components/sections/Contact/mapSection";
+import { api } from "@/app/services/strapiApiFetch";
 import Image from "next/image";
-import React, { useState } from "react";
 import { FiSend, FiMessageSquare, FiPlus, FiMinus } from "react-icons/fi";
 
-export default function Contact() {
+export default async function Contact() {
 
-    const faqData = [
-        {
-            question: "What is there to do in Panama City?",
-            answer: "Panama City offers a vibrant Jewish community with various activities including Shabbat services, Torah classes, and community events at Chabad House. There are also kosher restaurants and cultural attractions to explore."
-        },
-        {
-            question: "Are there kosher restaurants in Panama City?",
-            answer: "Yes, Panama City has several kosher restaurants and eateries. Chabad House can provide you with an updated list of certified kosher establishments in the area."
-        },
-        {
-            question: "Is there a Mikveh in Panama City?",
-            answer: "Yes, there is a Mikveh available in Panama City. Please contact Chabad House for more information about location, hours, and arrangements."
-        },
-        {
-            question: "What are the services offered by Chabad of Panama City?",
-            answer: "Chabad of Panama City offers daily prayer services, Shabbat and holiday meals, Torah classes, youth programs, counseling, and assistance for travelers and locals alike."
-        },
-        {
-            question: "What are the Shabbat service times?",
-            answer: "Shabbat services typically begin at sunset on Friday evening and Saturday morning. Exact times vary by season - please check our website or contact us for current schedule."
-        },
-       
-    ];
+
+    const siteConfig = await api.siteConfig();
+
+
+
+
+
+
+
+    /*     const faqData = [
+            {
+                question: "What is there to do in Panama City?",
+                answer: "Panama City offers a vibrant Jewish community with various activities including Shabbat services, Torah classes, and community events at Chabad House. There are also kosher restaurants and cultural attractions to explore."
+            },
+            {
+                question: "Are there kosher restaurants in Panama City?",
+                answer: "Yes, Panama City has several kosher restaurants and eateries. Chabad House can provide you with an updated list of certified kosher establishments in the area."
+            },
+            {
+                question: "Is there a Mikveh in Panama City?",
+                answer: "Yes, there is a Mikveh available in Panama City. Please contact Chabad House for more information about location, hours, and arrangements."
+            },
+            {
+                question: "What are the services offered by Chabad of Panama City?",
+                answer: "Chabad of Panama City offers daily prayer services, Shabbat and holiday meals, Torah classes, youth programs, counseling, and assistance for travelers and locals alike."
+            },
+            {
+                question: "What are the Shabbat service times?",
+                answer: "Shabbat services typically begin at sunset on Friday evening and Saturday morning. Exact times vary by season - please check our website or contact us for current schedule."
+            },
+    
+        ]; */
 
     // State to track which FAQ is open
-    const [activeIndex, setActiveIndex] = useState(null);
+    /*     const [activeIndex, setActiveIndex] = useState(null); */
 
-    const toggleFAQ = (index) => {
-        setActiveIndex(activeIndex === index ? null : index);
-    };
+    /*  const toggleFAQ = (index) => {
+         setActiveIndex(activeIndex === index ? null : index);
+     }; */
 
     return (
         <div className="w-full bg-blueBackground relative overflow-hidden">
             {/* Contact Section */}
             <div className="w-full flex justify-center items-center  relative">
-
                 <section className="w-full max-w-7xl px-6 md:px-0 py-16 md:py-24 relative">
                     {/* Header */}
                     <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
@@ -172,7 +179,7 @@ export default function Contact() {
             </div>
 
             {/* FAQ Section */}
-            <section className="container mx-auto px-6 pt-16 pb-16">
+            {/*    <section className="container mx-auto px-6 pt-16 pb-16">
                 <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-darkBlue mb-4">
                         Frequently asked questions
@@ -211,12 +218,9 @@ export default function Contact() {
                     ))}
                 </div>
             </section> *
-
-
-
+ */}
             {/*Map */}
-            <MapSection />
-
+            <MapSection siteConfig={siteConfig} />
         </div>
     );
 };

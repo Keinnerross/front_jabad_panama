@@ -3,28 +3,51 @@ import Link from "next/link"
 import { ButtonTheme } from "../../ui/common/buttonTheme"
 import { CardFoodSlider } from "../(cards)/cardFoodSlider"
 import { CarouselWrapper } from "./carouselWrapper"
-import { foodData } from "@/app/data/restaurantsData"
-import { useScrollAppear } from "@/app/customHooks/useScrollAppear"
-import { useRef, useState } from "react"
-export const FoodHomeSlider = () => {
+import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation"
 
 
 
 
-    const ref = useRef(null);
-    const [isVisible, setIsVisible] = useState(true);
 
-   /*  useScrollAppear(
-        ref,
-        () => setIsVisible(true),
-        () => setIsVisible(false)
-    );
- */
 
- /*    ${isVisible ? `animate-fade-up opacity-100` : 'opacity-0 translate-y-8'} */
+export const FoodHomeSlider = ({ restaurantsData }) => {
+
+
+    // Datos de fallback
+    const fallbackData = [
+        {
+            id: 1,
+            title: "Lorem Restaurant",
+            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            imageUrls: ["/assets/pictures/home/about-home-1.jpg"]
+        },
+        {
+            id: 2,
+            title: "Ipsum Cafe",
+            description: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            imageUrls: ["/assets/global/asset001.png"]
+        }
+    ];
+
+
+    // Datos Api Construidos
+
+    const processedData = restaurantsData?.map(restaurant => ({
+        id: restaurant.documentId || "#",
+        title: restaurant.name || restaurant.title,
+        description: restaurant.description,
+        imageUrls: imagesArrayValidation(restaurant.imageUrls, fallbackData) || [],
+    })) || [];
+
+
+
+    const dataToUse = processedData.length > 0 ? processedData : fallbackData;
+
+
+
 
     return (
-        <div ref={ref} className={` bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6`}>
+        <div className={` bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6`}>
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">
@@ -43,11 +66,15 @@ export const FoodHomeSlider = () => {
                 <div className="w-full max-w-7xl relative min-h-[500px]">
                     {/* Carousel */}
                     <CarouselWrapper>
-                        {foodData?.map((restaurant, i) => (
-                            <Link href={`/single-restaurant?id=${restaurant.id}`} key={i} className="">
+                        {dataToUse?.map((restaurant, i) =>
+
+                        (
+                            <Link href={`/single-restaurant/${restaurant.id}`} key={i} className="">
                                 <CardFoodSlider imageUrl={restaurant.imageUrls[0]} title={restaurant.title} description={restaurant.description} />
                             </Link>
-                        ))}
+                        )
+
+                        )}
                     </CarouselWrapper>
                 </div>
             </div>

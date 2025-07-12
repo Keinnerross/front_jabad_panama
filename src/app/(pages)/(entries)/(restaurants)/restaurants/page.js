@@ -1,15 +1,18 @@
 import React, { Fragment } from "react";
 import Image from "next/image";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
+import { api } from "@/app/services/strapiApiFetch";
 
-export default function Restaurants() {
+export default async function Restaurants() {
+
+    const restaurantsData = await api.restaurants();
+
 
 
 
     return (
         <Fragment>
             <section className="relative flex flex-col items-center w-full  pt-20 pb-14 ">
-
 
                 {/* Gradient bottom */}
 
@@ -20,24 +23,26 @@ export default function Restaurants() {
                 </div>
 
 
-
                 {/* Main content container */}
                 <div className="w-full max-w-7xl px-6 h-full flex items-center justify-center z-10 relative">
                     {/* Text content - using flex for centering */}
                     <div className="w-full flex flex-col items-center justify-center text-center py-12 md:py-0">
                         <h1 className="md:w-[50%] text-4xl md:text-5xl lg:text-[46px] font-bold text-darkBlue mb-6 leading-tight">
-                            Discover Kosher food in Boquete
+                            Kosher Traditions in Unexpected Corners
                         </h1>
 
                         <p className="text-base  text-gray-text max-w-2xl mx-auto">
-                            Nestled in the highlands of Panama, Boquete offers a peaceful yet delightful kosher experience. While smaller than the capital, the town features artisan bakeries, kosher-style cafés, and Shabbat catering for travelers looking to keep kosher in a serene, nature-filled setting.
+                            Keeping kosher goes beyond the familiar. In places where culture, calm and community come together, small details like a fresh baked challah or a shared Shabbat meal create space for tradition to thrive in unique and meaningful ways.
                         </p>
                     </div>
 
                 </div>
 
+
+
+
                 {/* Decorative background elements */}
-              {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
+                {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
                 </div>
 
@@ -49,7 +54,7 @@ export default function Restaurants() {
 
             <div className="relative z-10">
 
-                <RestaurantsSection />
+                <RestaurantsSection restaurantsData={restaurantsData} />
 
             </div>
 

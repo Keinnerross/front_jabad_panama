@@ -7,19 +7,16 @@ import { StarsHotel } from "../../ui/common/starsHotel";
 export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
   const data = item;
 
-  // 🧠 Manejo dinámico de imageUrl o imageUrls
-  const imageSrc = Array.isArray(data.imageUrls)
-    ? data.imageUrls[0]
-    : data.imageUrls || "/fallback.jpg";
+
 
   return (
     <div className="w-full flex flex-col md:flex-row overflow-hidden gap-6">
       {/* Image Section */}
       <div className="relative w-full md:w-[40%] md:min-w-[40%] h-[350px] md:h-[250px]">
         <Image
-          src={imageSrc}
+          src={data.imageUrls[0]}
           fill
-          alt={data.title}
+          alt={data.title || "restaurant"}
           className="w-full h-full object-cover rounded-2xl"
         />
       </div>
@@ -36,7 +33,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
                 key={index}
                 className="text-primary text-sm underline hover:text-darkBlue transition-colors cursor-pointer"
               >
-                {tag}
+                {tag.tag_name}
               </span>
             ))}
           </div>
@@ -105,7 +102,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
             </svg>
 
             {isRestaurant ? (
-              <Link href={`/single-restaurant?id=${data.id}`} className="underline leading-3 text-sm">
+              <Link href={`/single-restaurant/${data.id}`} className="underline leading-3 text-sm">
                 View Restaurant
               </Link>
             ) : (

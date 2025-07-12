@@ -11,18 +11,70 @@
   --myBlack: #1E1E1E;
   --colorStars: #FBBA3D;
   --font-sans: "Inter", sans-serif;
+  
+  /* Dynamic theme variables - controlled by ThemeContext */
+  --secondary: #0A1F48;
+  --accent: #F4F7FB;
+  --dark: #111828;
+}
+
+/* 🎨 Theme-specific variable overrides */
+[data-theme="blue"] {
+  --primary: #FC5761;
+  --secondary: #0A1F48;
+  --accent: #F4F7FB;
+  --dark: #111828;
+}
+
+[data-theme="green"] {
+  --primary: #10B981;
+  --secondary: #064E3B;
+  --accent: #ECFDF5;
+  --dark: #111828;
+}
+
+[data-theme="red"] {
+  --primary: #EF4444;
+  --secondary: #7F1D1D;
+  --accent: #FEF2F2;
+  --dark: #111828;
+}
+
+[data-theme="purple"] {
+  --primary: #8B5CF6;
+  --secondary: #4C1D95;
+  --accent: #F3F4F6;
+  --dark: #111828;
+}
+
+[data-theme="orange"] {
+  --primary: #F97316;
+  --secondary: #9A3412;
+  --accent: #FFF7ED;
+  --dark: #111828;
+}
+
+[data-theme="pink"] {
+  --primary: #EC4899;
+  --secondary: #831843;
+  --accent: #FDF2F8;
+  --dark: #111828;
 }
 
 /* 🎨 Conectar variables a Tailwind */
 @theme inline {
   --color-background: var(--background);
   --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-dark: var(--dark);
   --color-blueBackground: var(--blueBackground);
   --color-darkBlue: var(--darkBlue);
   --color-gray-text: var(--gray-text);
   --color-middleBlue: var(--middleBlue);
   --color-myBlack: var(--myBlack);
-  --color-colorStars: var(--colorStars) --font-sans: var(--font-sans);
+  --color-colorStars: var(--colorStars);
+  --font-sans: var(--font-sans);
 }
 
 

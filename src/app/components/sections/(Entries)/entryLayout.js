@@ -14,18 +14,18 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
   const filters = ["All", ...new Set(data.map(item => item[filterKey]))];
 
   const iconMap = {
-    Adventure: FaMountain, 
-    Nature: FaLeaf,     
-    Food: FaUtensils,   
-    Cultural: FaHome,   
-    Fishing: FaFish,    
-    Hostel: FaBed,      
-    Hotel: FaBed,       
-    "Boutique Hotel": FaBed, 
-    Resort: FaTree,     
-    Villa: FaHome,      
-    "Eco Lodge": FaTree, 
-    Bakery: FaMugHot,   
+    Adventure: FaMountain,
+    Nature: FaLeaf,
+    Food: FaUtensils,
+    Cultural: FaHome,
+    Fishing: FaFish,
+    Hostel: FaBed,
+    Hotel: FaBed,
+    "Boutique Hotel": FaBed,
+    Resort: FaTree,
+    Villa: FaHome,
+    "Eco Lodge": FaTree,
+    Bakery: FaMugHot,
     Catering: FaUtensils
   };
 
@@ -74,11 +74,10 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
               return (
                 <button
                   key={index}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base cursor-pointer ${
-                    isActive
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base cursor-pointer ${isActive
                       ? "bg-darkBlue text-white"
                       : "bg-white text-darkBlue border border-gray-300"
-                  }`}
+                    }`}
                   onClick={() => {
                     setCurrentFilter(filter);
                     setCurrentPage(1);
@@ -104,25 +103,23 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
 
         {totalPages > 1 && (
           <div className="flex justify-end gap-4">
-            <button 
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors cursor-pointer ${
-                currentPage === 1 
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+            <button
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors cursor-pointer ${currentPage === 1
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-darkBlue text-white hover:bg-opacity-90"
-              }`}
+                }`}
               onClick={handlePrevPage}
               disabled={currentPage === 1}
             >
               <FiChevronLeft />
               <span>Previous</span>
             </button>
-            
-            <button 
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors cursor-pointer ${
-                currentPage === totalPages 
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+
+            <button
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors cursor-pointer ${currentPage === totalPages
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-darkBlue text-white hover:bg-opacity-90"
-              }`}
+                }`}
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
             >

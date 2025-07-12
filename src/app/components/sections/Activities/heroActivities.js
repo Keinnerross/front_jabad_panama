@@ -5,13 +5,84 @@ import Image from "next/image";
 import { FaCompass } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { activitiesData } from "@/app/data/activities";
+import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
-export const HeroActivities = () => {
+export const HeroActivities = ({ activitiesData }) => {
     const sectionRef = useRef(null);
     const imagesRef = useRef([]);
-    
+
+
+
+
+
+    const fallbackData = [
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+        {
+            imageUrls: ["/assets/global/asset001.png"]
+        },
+    ];
+
+
+    let allImages = [];
+
+    const arrayAllImages = (data) => {
+        if (Array.isArray(data)) {
+            data.forEach(activity => {
+                if (activity.imageUrls) {
+                    // Si imageUrls es un array, concatenamos sus elementos
+                    if (Array.isArray(activity.imageUrls)) {
+                        allImages = allImages.concat(activity.imageUrls);
+                    }
+                    // Si imageUrls es un string, lo añadimos directamente
+                    else if (typeof activity.imageUrls === 'string') {
+                        allImages.push(activity.imageUrls);
+                    }
+                }
+            });
+        }
+
+        return allImages;
+    }
+
+
+    const arrayAllImagesUrl = arrayAllImages(activitiesData);
+
+
+    const imageUrls = imagesArrayValidation(arrayAllImagesUrl, fallbackData);
+
+
+    console.log(imageUrls);
+
+
+
+
+
+
+
+
+
+
+
+
     // Seleccionar las primeras 7 actividades para mostrar en el hero
-    const selectedActivities = activitiesData.slice(5, 12);
+    const selectedActivities = imageUrls.slice(-7);
 
     // Configuración del layout: cuántas imágenes por columna
     const columnLayout = [
@@ -20,14 +91,19 @@ export const HeroActivities = () => {
         { images: selectedActivities.slice(5, 7), className: "flex-1 flex flex-col gap-6" }
     ];
 
+
+    console.log(columnLayout)
+
+
+
     // Hook para animaciones de scroll
     useEffect(() => {
         const handleScroll = () => {
             if (!sectionRef.current) return;
-            
+
             const rect = sectionRef.current.getBoundingClientRect();
             const scrollProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
-            
+
             // Aplicar parallax sutil a cada columna con diferentes velocidades
             imagesRef.current.forEach((column, index) => {
                 if (column) {
@@ -40,13 +116,24 @@ export const HeroActivities = () => {
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         handleScroll(); // Ejecutar una vez al montar
-        
+
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+
+
+
+
+
+
+
+
+
+
+
     // Componente reutilizable para cada imagen
-    const ExperienceImage = ({ activity, index, columnIndex, imageIndex }) => (
-        <div 
+    const ExperienceImage = ({ activityImageUrl, index, columnIndex, imageIndex }) => (
+        <div
             className={`
                 relative w-full h-64 lg:h-64 rounded-lg overflow-hidden 
                 transform transition-all duration-700 ease-out
@@ -58,14 +145,18 @@ export const HeroActivities = () => {
             }}
         >
             <Image
-                src={activity.imageUrls}
-                alt={activity.title}
+                src={activityImageUrl}
+                alt={"activity"}
                 fill
                 className="object-cover transition-transform duration-500 ease-out"
             />
             {/* Overlay sutil que aparece en hover */}
         </div>
     );
+
+
+
+
 
     return (
         <section ref={sectionRef} className="w-full flex justify-center items-center md:pb-12 md:pt-4">
@@ -88,8 +179,8 @@ export const HeroActivities = () => {
                     {/* Galería de imágenes */}
                     <div className="w-[65%] h-full flex gap-6 items-center absolute -right-24">
                         {columnLayout.map((column, columnIndex) => (
-                            <div 
-                                key={columnIndex} 
+                            <div
+                                key={columnIndex}
                                 ref={el => imagesRef.current[columnIndex] = el}
                                 className={`${column.className} transform transition-all duration-1000 ease-out`}
                                 style={{
@@ -98,8 +189,8 @@ export const HeroActivities = () => {
                             >
                                 {column.images.map((activity, imageIndex) => (
                                     <ExperienceImage
-                                        key={activity.title}
-                                        activity={activity}
+                                        key={imageIndex}
+                                        activityImageUrl={activity}
                                         index={columnIndex * 3 + imageIndex}
                                         columnIndex={columnIndex}
                                         imageIndex={imageIndex}
@@ -129,8 +220,8 @@ export const HeroActivities = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {selectedActivities.slice(0, 6).map((activity, index) => (
                             <ExperienceImage
-                                key={activity.title}
-                                activity={activity}
+                                key={index}
+                                activityImageUrl={activity}
                                 index={index}
                                 columnIndex={0}
                                 imageIndex={index}

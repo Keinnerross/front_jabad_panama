@@ -7,9 +7,6 @@ import { CategoryTag } from "../../ui/common/categoryTag";
 export const CardHotelsSlider = ({ hotel }) => {
   const [isHover, setIsHover] = useState(false);
 
-  const imageSrc = Array.isArray(hotel?.imageUrls)
-    ? hotel.imageUrls[0]
-    : hotel?.imageUrls || "/fallback.jpg";
 
   return (
     <div
@@ -20,16 +17,13 @@ export const CardHotelsSlider = ({ hotel }) => {
       <div className="md:flex mr-8 h-full w-full md:w-[750px] md:h-[330px] rounded-xl overflow-hidden bg-white shadow-[inset_0_0_0_1px_theme(colors.gray.100)]">
         {/* Image Section */}
         <div className="relative w-full md:w-[40%] min-h-[200px] h-[200px] md:h-full overflow-hidden">
-          {imageSrc ? (
-            <Image
-              src={imageSrc}
-              alt={hotel.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full relative" />
-          )}
+          <Image
+            src={hotel.imageUrls[0]}
+            alt={hotel.title || "Hotels"}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+
 
           {/* Category Badge */}
           <div className="absolute top-4 left-4">
@@ -45,8 +39,7 @@ export const CardHotelsSlider = ({ hotel }) => {
             </h3>
 
             <p className="text-gray-text mb-6">
-              {hotel?.description ??
-                "Urna amet tristique enim hac convallis lacus lorem tempus eget vivamus orci viverra lorem amet."}
+              {hotel?.description}
             </p>
 
             <div className="border-t border-gray-200 pt-4" />
@@ -54,7 +47,7 @@ export const CardHotelsSlider = ({ hotel }) => {
             <div className="flex items-start gap-1 mb-4">
               <LocationIcon />
               <p className="text-darkBlue text-base font-medium">
-                {hotel?.address ?? "472 Border St. Freeport, NY 1152"}
+                {hotel?.address}
               </p>
             </div>
 

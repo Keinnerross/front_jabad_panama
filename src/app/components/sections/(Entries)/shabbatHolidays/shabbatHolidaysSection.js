@@ -9,9 +9,9 @@ import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { CardShabbatMeals } from "@/app/components/sections/(cards)/cardShabbatMeals";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
-import { getSortedShabbats, formatShabbatDate } from "@/app/data/shabbatData";
+// import { getSortedShabbats, formatShabbatDate } from "@/app/data/shabbatData";
 
-export default function ShabbatHolidaysSection({ aboutPicturesData }) {
+export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData }) {
 
     const [selectedShabbat, setSelectedShabbat] = useState('');
     const [showPopup, setShowPopup] = useState(false);
@@ -24,23 +24,18 @@ export default function ShabbatHolidaysSection({ aboutPicturesData }) {
         return () => clearTimeout(timer);
     }, []);
 
-    // Get sorted Shabbats (closest first, future only)
-    const sortedShabbats = getSortedShabbats();
+    // Get sorted Shabbats from API data
+    const sortedShabbats = shabbatsAndHolidaysData || [];
 
-    // Configuración de imágenes (preparado para Strapi)
-    const heroPictures = [
-        { id: 1, src: "/assets/pictures/about/pic_about (1).jpg", alt: "Shabbat celebration at Chabad Panama" },
-        { id: 2, src: "/assets/pictures/about/pic_about (2).jpg", alt: "Community gathering for Jewish holidays" },
-        { id: 4, src: "/assets/pictures/about/pic_about (4).jpg", alt: "Traditional Shabbat table setting" },
-        { id: 5, src: "/assets/pictures/about/pic_about (5).jpg", alt: "Kosher meal preparation" },
-        { id: 6, src: "/assets/pictures/about/pic_about (6).jpg", alt: "Jewish community in Panama" },
-        { id: 7, src: "/assets/pictures/about/pic_about (7).jpg", alt: "Holiday services at Chabad" },
-        { id: 8, src: "/assets/pictures/about/pic_about (8).jpg", alt: "Family-friendly Shabbat experience" },
-        { id: 9, src: "/assets/pictures/about/pic_about (9).jpg", alt: "Chabad House Panama activities" }
-    ];
+    // console.log('shabbatsAndHolidaysData:', shabbatsAndHolidaysData);
 
-
-
+    // Helper function to format date like the old formatShabbatDate
+    const formatShabbatDate = (shabbat) => {
+        if (!shabbat.startDate || !shabbat.endDate) return shabbat.date;
+        const startDate = new Date(shabbat.startDate);
+        const endDate = new Date(shabbat.endDate);
+        return `${startDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}-${endDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+    };
 
 
 
@@ -49,23 +44,29 @@ export default function ShabbatHolidaysSection({ aboutPicturesData }) {
 
 
 
+    // Get current or next Shabbat data for display
+    const currentShabbat = sortedShabbats.find(shabbat => {
+        const today = new Date();
+        const shabbatStart = new Date(shabbat.startDate);
+        return shabbatStart >= today;
+    }) || sortedShabbats[0];
 
+    // console.log('currentShabbat:', currentShabbat);
+    // console.log('sortedShabbats length:', sortedShabbats.length);
 
     const dataCardsHero = [
         {
             title: "Shabbat begins",
             icon: "/assets/icons/shabbat-meals/candles.svg",
             href: "/restaurants",
-            hour: "18:20",
-
+            hour: currentShabbat?.fridayNight?.[0]?.hora || "18:20",
         },
         {
             title: "Shabbat ends",
             icon: "/assets/icons/shabbat-meals/sun.svg",
             href: "/tourist-info",
-            hour: "19:12",
+            hour: currentShabbat?.shabbatDay?.[currentShabbat.shabbatDay.length - 1]?.hora || "19:12",
         },
-
     ];
     return (
         <Fragment>
@@ -246,11 +247,13 @@ export default function ShabbatHolidaysSection({ aboutPicturesData }) {
                                         onChange={(e) => setSelectedShabbat(e.target.value)}
                                     >
                                         <option value="">Select a Shabbat date</option>
-                                        {sortedShabbats.map((shabbat, index) => (
-                                            <option key={index} value={index} className="cursor-pointer">
-                                                {shabbat.name} ({formatShabbatDate(shabbat)})
-                                            </option>
-                                        ))}
+                                        {sortedShabbats
+                                            .filter(shabbat => new Date(shabbat.startDate) >= new Date())
+                                            .map((shabbat, index) => (
+                                                <option key={shabbat.id || index} value={sortedShabbats.indexOf(shabbat)} className="cursor-pointer">
+                                                    {shabbat.name} ({formatShabbatDate(shabbat)})
+                                                </option>
+                                            ))}
                                     </select>
                                     <div className="absolute top-1 inset-y-0 right-4 flex items-center pointer-events-none cursor-pointer bg-white h-[90%]">
                                         <MdKeyboardArrowDown className="text-xl" />
@@ -302,8 +305,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData }) {
                             Kosher food for Shabbat and Holiday
                         </h2>
                         <p className="text-gray-text text-base md:text-lg max-w-2xl mx-auto">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing eli pulvinar enim
-                            vestibulum aliquet eros non faucibus suspendisse sit venenatis arcu.
+                            Enjoy fresh, delicious kosher meals prepared with care for Shabbat and Jewish holidays. Whether you're joining the community or celebrating on your own, pre-order to ensure everything is ready in time.
                         </p>
                     </div>
 

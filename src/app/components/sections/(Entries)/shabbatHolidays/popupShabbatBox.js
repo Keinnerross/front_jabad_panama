@@ -4,11 +4,27 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
+import ReactMarkdown from 'react-markdown';
 
-export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions = [], shabbatAndHolidays = [] }) => {
+export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions = [], shabbatAndHolidays = [], shabbatBoxSingleData = {} }) => {
+    // console.log('PopupShabbatBox - shabbatBoxOptions:', shabbatBoxOptions);
+    // console.log('PopupShabbatBox - shabbatAndHolidays:', shabbatAndHolidays);
+    
+    // Handle popup image - use picture_popup if available, fallback to picture, then default
+    const getPopupImageUrl = () => {
+        if (shabbatBoxSingleData?.picture_popup?.url) {
+            return `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${shabbatBoxSingleData.picture_popup.url}`;
+        }
+        if (shabbatBoxSingleData?.picture?.url) {
+            return `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${shabbatBoxSingleData.picture.url}`;
+        }
+        return "/assets/pictures/shabbat-meals/shabbatbox-single.png";
+    };
+    
+    const popupImageUrl = getPopupImageUrl();
     const router = useRouter();
     const [selectedShabbat, setSelectedShabbat] = useState(null);
-    const [activeTab, setActiveTab] = useState("FRIDAY NIGHT DINNER");
+    const [activeTab, setActiveTab] = useState("");
     const [quantities, setQuantities] = useState({});
     const [additionalGuests, setAdditionalGuests] = useState({});
     const [total, setTotal] = useState(0);
@@ -94,7 +110,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                         .flatMap(cat => cat.options)
                         .find(opt => opt.id === optionId);
 
-                    if (option) {
+                    if (option && option.basePrice) {
                         const basePrice = option.basePrice * quantity;
                         const guestPrice = (additionalGuests[optionId] || 0) * (option.additionalGuestPrice || 0);
                         newTotal += basePrice + guestPrice;
@@ -105,6 +121,13 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
         setTotal(newTotal);
     }, [quantities, additionalGuests, shabbatBoxOptions]);
+
+    // Set first tab as active when data loads
+    useEffect(() => {
+        if (shabbatBoxOptions.length > 0 && !activeTab) {
+            setActiveTab(shabbatBoxOptions[0].category);
+        }
+    }, [shabbatBoxOptions, activeTab]);
 
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
@@ -206,7 +229,8 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
     if (!isOpen) return null;
 
-    const tabs = ["FRIDAY NIGHT DINNER", "SHABBAT LUNCH", "MORE OPTIONS"];
+    // Generate tabs dynamically from API data
+    const tabs = shabbatBoxOptions.map(cat => cat.category);
     const currentCategory = shabbatBoxOptions.find(cat => cat.category === activeTab);
 
     return (
@@ -220,7 +244,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
             >
                 {/* Image Section */}
                 <div className="w-full lg:w-[45%] h-full lg:h-auto relative overflow-hidden">
-                    <Image src="/assets/pictures/shabbat-meals/shabbatbox-single.png" alt="reservation for shabbat" fill className="w-full h-full object-cover" />
+                    <Image src={popupImageUrl} alt="reservation for shabbat" fill className="w-full h-full object-cover" />
 
                 </div>
 
@@ -272,12 +296,12 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex border-b border-gray-200 overflow-x-auto pb-2 md:pb-0">
+                        <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide pb-2 md:pb-0">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
-                                    className={`px-4 py-2 text-sm font-medium whitespace-nowrap cursor-pointer ${activeTab === tab
+                                    className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium whitespace-nowrap cursor-pointer flex-shrink-0 ${activeTab === tab
                                         ? 'text-primary border-b-2 border-primary'
                                         : 'text-gray-500 hover:text-gray-700'
                                         }`}
@@ -304,44 +328,49 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                     {option.includes && (
                                         <div className="mb-4">
                                             <p className="font-medium text-gray-700 mb-2">Includes:</p>
-                                            <ul className="text-sm text-gray-600 space-y-1">
-                                                {option.includes.map((item, index) => (
-                                                    <li key={index} className="flex items-start">
-                                                        <span className="text-primary mr-2">•</span>
-                                                        {item}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                            <div className="text-sm text-gray-600">
+                                                <ReactMarkdown 
+                                                    components={{
+                                                        p: ({children}) => <p className="mb-2">{children}</p>,
+                                                        ul: ({children}) => <ul className="list-disc ml-4 space-y-1">{children}</ul>,
+                                                        ol: ({children}) => <ol className="list-decimal ml-4 space-y-1">{children}</ol>,
+                                                        li: ({children}) => <li className="mb-1">{children}</li>,
+                                                        strong: ({children}) => <strong className="font-semibold text-gray-700">{children}</strong>
+                                                    }}
+                                                >
+                                                    {option.includes}
+                                                </ReactMarkdown>
+                                            </div>
                                         </div>
                                     )}
 
-                                    {option.variants ? (
+                                    {option.variants && option.variants.length > 0 ? (
                                         // Render variants (like Cholent sizes)
                                         <div className="space-y-3">
                                             {option.variants.map((variant, variantIndex) => {
                                                 const variantKey = `${option.id}-variant-${variantIndex}`;
                                                 return (
-                                                    <div key={variantIndex} className="flex items-center justify-between bg-gray-50 p-3 rounded">
-                                                        <div>
-                                                            <span className="font-medium">{variant.size}</span>
-                                                            <span className="text-gray-600 text-sm ml-2">({variant.serves})</span>
+                                                    <div key={variantIndex} className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 rounded gap-3">
+                                                        <div className="flex-1">
+                                                            <span className="font-medium text-sm sm:text-base">{variant.size}</span>
+                                                            <span className="text-gray-600 text-xs sm:text-sm ml-2">({variant.serves})</span>
                                                         </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="font-bold text-darkBlue">${variant.price.toFixed(2)}</span>
+                                                        <div className="flex items-center justify-between sm:gap-3">
+                                                            <span className="font-bold text-darkBlue text-sm sm:text-base">${variant.price.toFixed(2)}</span>
                                                             <div className="flex items-center gap-2">
                                                                 <button
                                                                     onClick={() => updateQuantity(variantKey, -1)}
-                                                                    className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
                                                                 >
                                                                     <FaMinus className="text-gray-text text-xs" />
                                                                 </button>
 
-                                                                <span className="w-8 text-center text-darkBlue font-bold">
+                                                                <span className="w-6 sm:w-8 text-center text-darkBlue font-bold text-sm">
                                                                     {quantities[variantKey] || 0}
                                                                 </span>
                                                                 <button
                                                                     onClick={() => updateQuantity(variantKey, 1)}
-                                                                    className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
                                                                 >
                                                                     <FaPlus className="text-gray-text text-xs" />
                                                                 </button>
@@ -354,47 +383,59 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                     ) : (
                                         // Render regular option
                                         <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <span className="text-gray-600">({option.servingSize})</span>
-                                                    <span className="font-bold text-darkBlue ml-4">${option.basePrice.toFixed(2)}</span>
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                                <div className="flex-1">
+                                                    {option.servingSize && (
+                                                        <span className="text-gray-600 text-sm">({option.servingSize})</span>
+                                                    )}
+                                                    {option.basePrice && (
+                                                        <span className="font-bold text-darkBlue ml-0 sm:ml-4 block sm:inline text-sm sm:text-base">${option.basePrice.toFixed(2)}</span>
+                                                    )}
+                                                    {option.details && (
+                                                        <span className="text-gray-600 ml-0 sm:ml-4 block sm:inline text-sm">{option.details}</span>
+                                                    )}
+                                                    {option.description && !option.basePrice && (
+                                                        <span className="text-gray-600 text-sm">{option.description}</span>
+                                                    )}
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => updateQuantity(option.id.toString(), -1)}
-                                                        className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
-                                                    >
-                                                        <FaMinus className="text-gray-text text-xs" />
-                                                    </button>
-                                                    <span className="w-8 text-center text-darkBlue font-bold">
-                                                        {quantities[option.id] || 0}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => updateQuantity(option.id.toString(), 1)}
-                                                        className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
-                                                    >
-                                                        <FaPlus className="text-gray-text text-xs" />
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Additional guests for eligible options - Always visible */}
-                                            {option.additionalGuestPrice && (
-                                                <div className="flex items-center justify-between bg-gray-50 p-3 rounded">
-                                                    <span className="text-gray-600">Additional guests (+${option.additionalGuestPrice.toFixed(2)} each)</span>
-                                                    <div className="flex items-center gap-2">
+                                                {option.basePrice && (
+                                                    <div className="flex items-center gap-2 justify-end">
                                                         <button
-                                                            onClick={() => updateAdditionalGuests(option.id, -1)}
-                                                            className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                            onClick={() => updateQuantity(option.id.toString(), -1)}
+                                                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
                                                         >
                                                             <FaMinus className="text-gray-text text-xs" />
                                                         </button>
-                                                        <span className="w-8 text-center text-darkBlue font-bold">
+                                                        <span className="w-6 sm:w-8 text-center text-darkBlue font-bold text-sm">
+                                                            {quantities[option.id] || 0}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => updateQuantity(option.id.toString(), 1)}
+                                                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                        >
+                                                            <FaPlus className="text-gray-text text-xs" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Additional guests for eligible options - Only for options with base price */}
+                                            {option.additionalGuestPrice && option.basePrice && (
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 rounded gap-3">
+                                                    <span className="text-gray-600 text-sm sm:text-base">Additional guests (+${option.additionalGuestPrice.toFixed(2)} each)</span>
+                                                    <div className="flex items-center gap-2 justify-end">
+                                                        <button
+                                                            onClick={() => updateAdditionalGuests(option.id, -1)}
+                                                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                        >
+                                                            <FaMinus className="text-gray-text text-xs" />
+                                                        </button>
+                                                        <span className="w-6 sm:w-8 text-center text-darkBlue font-bold text-sm">
                                                             {additionalGuests[option.id] || 0}
                                                         </span>
                                                         <button
                                                             onClick={() => updateAdditionalGuests(option.id, 1)}
-                                                            className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
                                                         >
                                                             <FaPlus className="text-gray-text text-xs" />
                                                         </button>

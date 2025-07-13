@@ -30,6 +30,7 @@ export default async function About() {
     //Separamos Imagenes de Info
     const aboutPageInfo = aboutPageData?.about_page;
     const pictures = aboutPageInfo?.pictures || [];
+    const sidebarData = aboutPageData?.sidebar;
 
 
 
@@ -142,32 +143,46 @@ export default async function About() {
                                 </div>
 
                                 <h3 className="text-2xl font-bold text-darkBlue mb-2">
-                                    Chabad shluchim
+                                    {sidebarData?.title_sidebar || "Chabad shluchim"}
                                 </h3>
                                 <p className="text-gray-text text-sm mb-4">
-                                    Our Chabad shluchim bring warmth, education, and spiritual
-                                    support to Boquete's Jewish community.
+                                    {sidebarData?.description_sidebar || "Our Chabad shluchim bring warmth, education, and spiritual support to Boquete's Jewish community."}
                                 </p>
 
                                 <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
-                                        <p>
-                                            <span className="font-semibold text-darkBlue">
-                                                Rabbi Yakov Poliwoda
-                                            </span>{" "}
-                                            - Chabad Shliach
-                                        </p>
-                                    </div>
-                                    <div className="flex items-start gap-3">
-                                        <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
-                                        <p>
-                                            <span className="font-semibold text-darkBlue">
-                                                Mrs. Hana Poliwoda
-                                            </span>{" "}
-                                            - Chabad Shlucha
-                                        </p>
-                                    </div>
+                                    {sidebarData?.chabad_team?.map((member) => (
+                                        <div key={member.id} className="flex items-start gap-3">
+                                            <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
+                                            <p>
+                                                <span className="font-semibold text-darkBlue">
+                                                    {member.name}
+                                                </span>{" "}
+                                                - {member.rol}
+                                            </p>
+                                        </div>
+                                    )) || (
+                                        // Fallback content if API data is not available
+                                        <>
+                                            <div className="flex items-start gap-3">
+                                                <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
+                                                <p>
+                                                    <span className="font-semibold text-darkBlue">
+                                                        Rabbi Yakov Poliwoda
+                                                    </span>{" "}
+                                                    - Chabad Shliach
+                                                </p>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <FaUser className="text-darkBlue mt-1 flex-shrink-0" />
+                                                <p>
+                                                    <span className="font-semibold text-darkBlue">
+                                                        Mrs. Hana Poliwoda
+                                                    </span>{" "}
+                                                    - Chabad Shlucha
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

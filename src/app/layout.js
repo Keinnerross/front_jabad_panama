@@ -29,9 +29,9 @@ export const metadata = {
   },
   description: siteConfig.site_description || "Site description",
   icons: {
-    icon: `${urlApi}${siteConfig.logo.url}` || "/assets/global/asset001.png",
-    shortcut: `${urlApi}${siteConfig.logo.url}` || "/assets/global/asset001.png",
-    apple: `${urlApi}${siteConfig.logo.url}` || "/assets/global/asset001.png"
+    icon: `${urlApi}${siteConfig?.logo?.url}` || "/assets/global/asset001.png",
+    shortcut: `${urlApi}${siteConfig?.logo?.url}` || "/assets/global/asset001.png",
+    apple: `${urlApi}${siteConfig?.logo?.url}` || "/assets/global/asset001.png"
   },
 };
 

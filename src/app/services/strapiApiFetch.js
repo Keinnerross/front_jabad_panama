@@ -11,7 +11,7 @@ const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN;
 * Endpoints   
 */
 const siteConfigEndpoint = "/site-config?populate=*"
-const aboutEndpoint = "/about-us?populate[about_page][populate][pictures][populate]=*"
+const aboutEndpoint = "/about-us?populate[about_page][populate][pictures][populate]=*&populate[sidebar][populate]=*"
 const aboutHomeEndpoint = "/about-us?populate[home_about][populate][item_list]=true&populate[home_about][populate][pictures]=true"
 const restaurantsEndpoint = "/Restaurants?populate=*"
 const singleRestaurantEndpoint = "/restaurants"
@@ -20,9 +20,10 @@ const activitiesEndpoint = "/activities?populate=*"
 const infoTouristEndpoint = "/visitor-infos?populate=*"
 const packagesEndpoint = "/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"
 
-
 const shabbatsAndHolidaysEndpoint = "/shabbat-and-holidays?populate=*"
-
+const shabbatsRegisterPricesEndpoint = "/shabbat-pricings?populate=*"
+const shabbatBoxOptionsEndpoint = "/shabbat-boxes?populate[options][populate][variants]=*"
+const shabbatBoxSingleEndpoint = "/shabbat-box-page?populate=*"
 
 
 
@@ -126,6 +127,9 @@ export const api = {
     infoTourist: () => strapiFetch(infoTouristEndpoint),
     packages: () => strapiFetch(packagesEndpoint),
     shabbatsAndHolidays: () => strapiFetch(shabbatsAndHolidaysEndpoint),
+    shabbatsRegisterPrices: () => strapiFetch(shabbatsRegisterPricesEndpoint),
+    shabbatBoxOptions: () => strapiFetch(shabbatBoxOptionsEndpoint),
+    shabbatBoxSingle: () => strapiFetch(shabbatBoxSingleEndpoint),
 }
 
 

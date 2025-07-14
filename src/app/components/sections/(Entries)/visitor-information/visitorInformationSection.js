@@ -7,7 +7,7 @@ import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation"
 
 
 
-export const VisitorInformationSection = ({ infoTouristData }) => {
+export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksData }) => {
 
 
     // Datos de fallback
@@ -86,6 +86,19 @@ export const VisitorInformationSection = ({ infoTouristData }) => {
 
     const sectionRefs = useRef([])
     const [activeIndex, setActiveIndex] = useState(0)
+
+
+    /*
+    Social Media Links Setting
+    */
+
+
+
+    const igUrl = socialMediaLinksData?.social_media?.link_instagram || "/#";
+    const fbUrl = socialMediaLinksData?.social_media?.link_facebook || "/#";
+
+
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -188,14 +201,12 @@ export const VisitorInformationSection = ({ infoTouristData }) => {
                             </ul>
 
                             <div className="ml-4 mt-4 flex gap-4 items-center">
-                                <div className="bg-primary p-2 rounded-xl cursor-pointer">
+                                <a href={fbUrl} target="_blank" className="bg-primary p-2 rounded-xl cursor-pointer">
                                     <FaFacebookF fill="white" size={18} />
-                                </div>
-                                <div className="bg-primary p-2 rounded-xl cursor-pointer">
+                                </a>
+                                <a href={igUrl} target="_blank" className="bg-primary p-2 rounded-xl cursor-pointer">
                                     <FaInstagram fill="white" size={19} />
-                                </div>
-
-
+                                </a>
                             </div>
                         </div>
                     </div>

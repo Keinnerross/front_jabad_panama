@@ -24,9 +24,7 @@ const shabbatsAndHolidaysEndpoint = "/shabbat-and-holidays?populate=*"
 const shabbatsRegisterPricesEndpoint = "/shabbat-pricings?populate=*"
 const shabbatBoxOptionsEndpoint = "/shabbat-boxes?populate[options][populate][variants]=*"
 const shabbatBoxSingleEndpoint = "/shabbat-box-page?populate=*"
-
-
-
+const socialMediaLinksEndpoint = "/site-config/?fields[0]=id&populate[social_media]=*"
 
 
 export async function strapiFetch(endpoint) {
@@ -49,19 +47,14 @@ export async function strapiFetch(endpoint) {
             cache: 'no-cache' //Manejo de caché
         });
 
+
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
-
         const json = await response.json()
-
         const data = json.data; // <--- directo
-
         /*    console.log('✅ Response:', data) */
         return data// <--- directo
-
-
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -130,6 +123,7 @@ export const api = {
     shabbatsRegisterPrices: () => strapiFetch(shabbatsRegisterPricesEndpoint),
     shabbatBoxOptions: () => strapiFetch(shabbatBoxOptionsEndpoint),
     shabbatBoxSingle: () => strapiFetch(shabbatBoxSingleEndpoint),
+    socialMediaLinks: () => strapiFetch(socialMediaLinksEndpoint),
 }
 
 

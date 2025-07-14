@@ -4,10 +4,13 @@ import { api } from "@/app/services/strapiApiFetch";
 
 export default async function TouristInfo() {
     const infoTouristData = await api.infoTourist();
+    const socialMediaLinksData = await api.socialMediaLinks();
+
+
 
     return (
         <Fragment>
-            <VisitorInformationSection infoTouristData={infoTouristData} />
+            <VisitorInformationSection infoTouristData={infoTouristData} socialMediaLinksData={socialMediaLinksData} />
         </Fragment>
     );
 }

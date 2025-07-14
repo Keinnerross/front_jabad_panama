@@ -11,7 +11,7 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
 // import { getSortedShabbats, formatShabbatDate } from "@/app/data/shabbatData";
 
-export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData }) {
+export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData, shabbatTimes }) {
 
     const [selectedShabbat, setSelectedShabbat] = useState('');
     const [showPopup, setShowPopup] = useState(false);
@@ -59,13 +59,13 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
             title: "Shabbat begins",
             icon: "/assets/icons/shabbat-meals/candles.svg",
             href: "/restaurants",
-            hour: currentShabbat?.fridayNight?.[0]?.hora || "18:20",
+            hour: shabbatTimes?.candleLighting || "18:20",
         },
         {
             title: "Shabbat ends",
             icon: "/assets/icons/shabbat-meals/sun.svg",
             href: "/tourist-info",
-            hour: currentShabbat?.shabbatDay?.[currentShabbat.shabbatDay.length - 1]?.hora || "19:12",
+            hour: shabbatTimes?.havdalah || "19:12",
         },
     ];
     return (

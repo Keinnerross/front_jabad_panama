@@ -5,7 +5,7 @@ import { FaWhatsapp, FaCheck } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
-export const AboutHome = ({ aboutData }) => {
+export const AboutHome = ({ aboutData}) => {
 
 /*   console.log("RES", aboutData) */
   // Fallback data
@@ -27,8 +27,6 @@ export const AboutHome = ({ aboutData }) => {
   // Separamos info de about
   const homeAboutInfo = aboutData?.home_about;
   const pictures = homeAboutInfo?.pictures || [];
-
-
 
   // Procesamos datos con fallback
   const pageData = {
@@ -75,6 +73,7 @@ export const AboutHome = ({ aboutData }) => {
                 Join our WhatsApp group
               </a>
             </div>
+
 
             <div className="space-y-12">
               <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden ">

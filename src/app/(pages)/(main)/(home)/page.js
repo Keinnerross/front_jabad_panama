@@ -11,15 +11,15 @@ import { api } from "@/app/services/strapiApiFetch";
 
 
 export default async function Home() {
+
+
   const aboutData = await api.homeAbout();
+
   const restaurantsData = await api.restaurants();
   const hotelsData = await api.hotels();
   const siteConfig = await api.siteConfig();
   const packagesData = await api.packages();
   const activitiesData = await api.activities();
-
-
-
 
 
 
@@ -32,7 +32,9 @@ export default async function Home() {
           <CardsHeroSection />
         </div>
       </div>
+
       <AboutHome aboutData={aboutData} />
+
       <FoodHomeSlider restaurantsData={restaurantsData} />
       <PackagesHome packagesData={packagesData} href="/packages" />
       <PackagesVideo packagesData={packagesData} />

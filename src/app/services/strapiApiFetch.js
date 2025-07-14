@@ -19,7 +19,6 @@ const hotelsEndpoint = "/hotels?populate=*"
 const activitiesEndpoint = "/activities?populate=*"
 const infoTouristEndpoint = "/visitor-infos?populate=*"
 const packagesEndpoint = "/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"
-
 const shabbatsAndHolidaysEndpoint = "/shabbat-and-holidays?populate=*"
 const shabbatsRegisterPricesEndpoint = "/shabbat-pricings?populate=*"
 const shabbatBoxOptionsEndpoint = "/shabbat-boxes?populate[options][populate][variants]=*"
@@ -51,6 +50,7 @@ export async function strapiFetch(endpoint) {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        
         const json = await response.json()
         const data = json.data; // <--- directo
         /*    console.log('✅ Response:', data) */

@@ -34,7 +34,6 @@ export default async function Home() {
       </div>
 
       <AboutHome aboutData={aboutData} />
-
       <FoodHomeSlider restaurantsData={restaurantsData} />
       <PackagesHome packagesData={packagesData} href="/packages" />
       <PackagesVideo packagesData={packagesData} />

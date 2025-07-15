@@ -7,7 +7,7 @@ import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation"
 
 
 
-export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksData }) => {
+export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksData, infoTouristPageData }) => {
 
 
     // Datos de fallback
@@ -83,20 +83,17 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
 
     ]; */
 
-
     const sectionRefs = useRef([])
     const [activeIndex, setActiveIndex] = useState(0)
-
-
     /*
     Social Media Links Setting
     */
-
-
-
     const igUrl = socialMediaLinksData?.social_media?.link_instagram || "/#";
     const fbUrl = socialMediaLinksData?.social_media?.link_facebook || "/#";
 
+
+    const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+    const bgUrl = `${url}${infoTouristPageData?.picture?.url}`
 
 
 
@@ -137,36 +134,26 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                     <div className="flex justify-center items-center flex-col gap-6">
                         <div className="md:w-[60%] text-center flex flex-col items-center gap-6">
                             <h1 className="text-4xl font-bold text-darkBlue md:w-[40%]">
-                                Essential Info for Your Stay                        </h1>
+                                {infoTouristPageData?.title || "Title"}
+                            </h1>
                             <p className="text-gray-text text-sm  leading-relaxed ">
-                                Panama city impresses everyone with its charming and welcoming atmosphere, picturesque oceanfront location, and of course year-round warm weather. Panama is a great place for all aspects of Jewish life: Synagogues, Jewish day schools, kosher food choices, etc., in short – all the conveniences of a developed and thriving community. Whether you are coming for a short business trip, extended stay, traveling with children or as a group of adults, we would be happy to help make your visit a truly memorable one.
+                                {infoTouristPageData?.description || "description"}
                             </p>
+
+
                         </div>
                         <div className="w-full h-80 md:h-[450px] rounded-2xl  overflow-hidden relative">
                             {/* Replace with Next.js Image component */}
                             <Image
-                                src="/assets/pictures/tourist-info/Picture2.png"
+                                src={bgUrl || "/assets/global/asset001.png"}
                                 fill
                                 className="w-full h-full object-cover"
                                 alt="Panama City tourist information and skyline view"
                             />
-
                         </div>
-
-
-
                     </div>
-
-
-
-
-
-
-
                 </div>
-
                 <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
-
                 {/*  <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
                 </div>
@@ -174,10 +161,7 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                 <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
                     <div className="w-full h-full bg-red-300" />
                 </div> */}
-
             </section>
-
-
             <section className="w-full flex justify-center pb-20 px-6 md:px-0">
                 <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-12">
                     {/* Sidebar */}

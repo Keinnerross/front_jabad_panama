@@ -91,9 +91,8 @@ export const Hero = ({ siteConfig }) => {
                     <p>{sectionData.site_description}</p>
 
                 </div>
-
                 <Link
-                    href="/#aboutHero"
+                    href="/visitor-information"
                     className="mt-6 bg-primary hover:bg-primary transition-all duration-300 px-8 py-3 rounded-lg font-bold text-white opacity-0 translate-y-4 hover:scale-105 hover:shadow-lg transform"
                     style={{
                         animation: 'slideUpFade 1s ease-out 1.3s forwards'
@@ -102,7 +101,6 @@ export const Hero = ({ siteConfig }) => {
                     Visitor Information
                 </Link>
             </div>
-
             <style jsx>{`
                 @keyframes fadeIn {
                     from {

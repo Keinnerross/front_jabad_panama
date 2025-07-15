@@ -18,13 +18,13 @@ const singleRestaurantEndpoint = "/restaurants"
 const hotelsEndpoint = "/hotels?populate=*"
 const activitiesEndpoint = "/activities?populate=*"
 const infoTouristEndpoint = "/visitor-infos?populate=*"
+const infoTouristPageEndpoint = "/visitor-info-page?populate=*"
 const packagesEndpoint = "/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"
 const shabbatsAndHolidaysEndpoint = "/shabbat-and-holidays?populate=*"
 const shabbatsRegisterPricesEndpoint = "/shabbat-pricings?populate=*"
 const shabbatBoxOptionsEndpoint = "/shabbat-boxes?populate[options][populate][variants]=*"
 const shabbatBoxSingleEndpoint = "/shabbat-box-page?populate=*"
 const socialMediaLinksEndpoint = "/site-config/?fields[0]=id&populate[social_media]=*"
-
 
 export async function strapiFetch(endpoint) {
     try {
@@ -65,7 +65,6 @@ export async function strapiFetch(endpoint) {
     }
 }
 
-
 export async function strapiFetchById(endpoint, id, populate) {
     try {
         const headers = {};
@@ -104,11 +103,6 @@ export async function strapiFetchById(endpoint, id, populate) {
         };
     }
 }
-
-
-
-
-
 export const api = {
     siteConfig: () => strapiFetch(siteConfigEndpoint),
     aboutPage: () => strapiFetch(aboutEndpoint),
@@ -118,6 +112,7 @@ export const api = {
     hotels: () => strapiFetch(hotelsEndpoint),
     activities: () => strapiFetch(activitiesEndpoint),
     infoTourist: () => strapiFetch(infoTouristEndpoint),
+    infoTouristPage: () => strapiFetch(infoTouristPageEndpoint),
     packages: () => strapiFetch(packagesEndpoint),
     shabbatsAndHolidays: () => strapiFetch(shabbatsAndHolidaysEndpoint),
     shabbatsRegisterPrices: () => strapiFetch(shabbatsRegisterPricesEndpoint),
@@ -125,7 +120,3 @@ export const api = {
     shabbatBoxSingle: () => strapiFetch(shabbatBoxSingleEndpoint),
     socialMediaLinks: () => strapiFetch(socialMediaLinksEndpoint),
 }
-
-
-
-

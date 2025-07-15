@@ -1,36 +1,41 @@
-'use client'
 import { CardHero } from "../(cards)/cardHero"
+import { FoodIcon } from "@/app/components/ui/icons/FoodIcon"
+import { TouristInfoIcon } from "@/app/components/ui/icons/touristInfoIcon"
+import { ShabbatIcon } from "@/app/components/ui/icons/shabbatIcon"
+import { PackagesIcon } from "@/app/components/ui/icons/packagesIcon"
+import { AccommodationsIcon } from "@/app/components/ui/icons/AccommodationsIcon"
+import { ActivitiesIcon } from "@/app/components/ui/icons/activitiesIcon"
 
-export const CardsHeroSection = () => {
+export const CardsHeroSection = ({ colorTheme }) => {
     const dataCardsHero = [
         {
             title: "Kosher Food",
-            icon: "/assets/icons/home/food.svg",
+            icon: <FoodIcon colorTheme={colorTheme} size={40} />,
             href: "/restaurants",
         },
         {
             title: "Tourist Info",
-            icon: "/assets/icons/home/tourist-info.svg",
-            href: "/tourist-info",
+            icon: <TouristInfoIcon colorTheme={colorTheme} size={40} />,
+            href: "/visitor-information",
         },
         {
             title: "Shabbat/Holiday Meals",
-            icon: "/assets/icons/home/shabbat.svg",
+            icon: <ShabbatIcon colorTheme={colorTheme} size={40} />,
             href: "/shabbat-holidays",
         },
         {
             title: "All-Inclusive Packages",
-            icon: "/assets/icons/home/packages.svg",
+            icon: <PackagesIcon colorTheme={colorTheme} size={40} />,
             href: "/packages",
         },
         {
             title: "Accommodations",
-            icon: "/assets/icons/home/accommodations.svg",
+            icon: <AccommodationsIcon colorTheme={colorTheme} size={40} />,
             href: "/accommodations",
         },
         {
             title: "Activities",
-            icon: "/assets/icons/home/activities.svg",
+            icon: <ActivitiesIcon colorTheme={colorTheme} size={40} />,
             href: "/activities",
         },
     ];

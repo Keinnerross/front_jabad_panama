@@ -6,8 +6,8 @@ import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
 
-export const Footer = async ({ siteConfig }) => {
-
+export const Footer = async () => {
+  const siteConfig = await api.siteConfig();
   const activitiesData = await api.activities();
 
   const fallbackData = [

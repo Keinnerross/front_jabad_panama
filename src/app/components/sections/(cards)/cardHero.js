@@ -18,10 +18,16 @@ export const CardHero = ({ data }) => {
       <div className="flex justify-center items-center relative mb-4">
         <div className="w-14 h-14 bg-blueBackground rounded-full absolute top-1/2 -translate-y-1/2" />
         <div className={`overflow-hidden flex justify-center items-center`}>
-          <Image src={data.icon} alt={data.title}
-            width={sizeIcon}
-            height={sizeIcon}
-            className={`${data.title == "Tourist Info"  ? "ml-2" : ""} object-contain z-10 w-full h-full `} />
+          {typeof data.icon === 'string' ? (
+            <Image src={data.icon} alt={data.title}
+              width={sizeIcon}
+              height={sizeIcon}
+              className={`${data.title == "Tourist Info"  ? "ml-2" : ""} object-contain z-10 w-full h-full `} />
+          ) : (
+            <div className={`${data.title == "Tourist Info"  ? "ml-2" : ""} z-10 flex justify-center items-center`}>
+              {data.icon}
+            </div>
+          )}
         </div>
       </div>
       {/* Título */}

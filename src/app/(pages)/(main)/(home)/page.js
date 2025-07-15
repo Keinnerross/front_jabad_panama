@@ -29,17 +29,17 @@ export default async function Home() {
       <Hero siteConfig={siteConfig} />
       <div className="w-full bg-blueBackground flex justify-center ">
         <div className="w-full max-w-7xl px-4  mx:px-0 z-10 -translate-y-[50px] md:-translate-y-[70px] lg:-translate-y-[70px]">
-          <CardsHeroSection />
+          <CardsHeroSection colorTheme={siteConfig?.color_theme} />
         </div>
       </div>
 
-      <AboutHome aboutData={aboutData} />
-      <FoodHomeSlider restaurantsData={restaurantsData} />
-      <PackagesHome packagesData={packagesData} href="/packages" />
-      <PackagesVideo packagesData={packagesData} />
-      <HotelHomeSlider hotelsData={hotelsData} />
-      <AttractionsHome activitiesData={activitiesData} />
-      <MapSection siteConfig={siteConfig} />
+      <AboutHome aboutData={aboutData} colorTheme={siteConfig?.color_theme} />
+      <FoodHomeSlider restaurantsData={restaurantsData} colorTheme={siteConfig?.color_theme} />
+      <PackagesHome packagesData={packagesData} href="/packages" colorTheme={siteConfig?.color_theme} />
+      <PackagesVideo packagesData={packagesData} colorTheme={siteConfig?.color_theme} />
+      <HotelHomeSlider hotelsData={hotelsData} colorTheme={siteConfig?.color_theme} />
+      <AttractionsHome activitiesData={activitiesData} colorTheme={siteConfig?.color_theme} />
+      <MapSection siteConfig={siteConfig} colorTheme={siteConfig?.color_theme} />
     </div>
   );
 }

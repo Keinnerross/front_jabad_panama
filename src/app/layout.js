@@ -43,7 +43,7 @@ export default async function RootLayout({ children }) {
         <AppWrapper siteConfig={siteConfig}>
           <Header data={siteConfig} />
           {children}
-          <Footer siteConfig={siteConfig} />
+          <Footer />
           <NotificationContainer />
         </AppWrapper>
       </body>

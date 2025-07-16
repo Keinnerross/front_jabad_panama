@@ -1,10 +1,11 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
 import ReactMarkdown from 'react-markdown';
+import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 
 export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions = [], shabbatAndHolidays = [], shabbatBoxSingleData = {} }) => {
     // console.log('PopupShabbatBox - shabbatBoxOptions:', shabbatBoxOptions);
@@ -31,6 +32,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
     const [showDateError, setShowDateError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { addToCart: addToCartContext } = useCart();
+    const scrollContainerRef = useRef(null);
 
     // Bloquear scroll del body cuando el popup está abierto
     useEffect(() => {
@@ -129,6 +131,13 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
         }
     }, [shabbatBoxOptions, activeTab]);
 
+    // Auto-scroll to top when tab changes
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo(0, 0);
+        }
+    }, [activeTab]);
+
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
             ...prev,
@@ -174,7 +183,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                             unitPrice: variant.price,
                             totalPrice: quantity * variant.price,
                             shabbatName: selectedShabbat?.name,
-                            shabbatDate: selectedShabbat?.date,
+                            shabbatDate: formatShabbatDate(selectedShabbat),
                             productType: 'shabbatBox'
                         });
                     }
@@ -203,7 +212,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                             unitPrice: basePrice + guestPrice,
                             totalPrice: totalPrice,
                             shabbatName: selectedShabbat?.name,
-                            shabbatDate: selectedShabbat?.date,
+                            shabbatDate: formatShabbatDate(selectedShabbat),
                             productType: 'shabbatBox'
                         });
                     }
@@ -227,7 +236,6 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
         }
     };
 
-    if (!isOpen) return null;
 
     // Generate tabs dynamically from API data
     const tabs = shabbatBoxOptions.map(cat => cat.category);
@@ -235,12 +243,20 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
     return (
         <div
-            className="w-full h-full bg-black/50 flex justify-center items-center p-4 sm:p-6 lg:p-8 fixed top-0 backdrop-blur-xs z-50 overflow-y-hidden"
+            className={`w-full h-full flex justify-center items-center p-4 sm:p-6 lg:p-8 fixed top-0 z-50 overflow-y-hidden transition-all duration-300 ${
+                isOpen 
+                    ? 'bg-black/50 backdrop-blur-sm opacity-100' 
+                    : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
+            }`}
             onClick={() => handleModal(false)}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-5xl flex flex-col lg:flex-row rounded-xl overflow-hidden  bg-white "
+                className={`w-full max-w-5xl flex flex-col lg:flex-row rounded-xl overflow-hidden bg-white shadow-2xl transition-all duration-300 transform ${
+                    isOpen 
+                        ? 'scale-100 opacity-100 translate-y-0' 
+                        : 'scale-95 opacity-0 translate-y-4'
+                }`}
             >
                 {/* Image Section */}
                 <div className="w-full lg:w-[45%] h-full lg:h-auto relative overflow-hidden">
@@ -280,11 +296,10 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                     <option value="">Select a Shabbat or Holiday</option>
                                     {shabbatAndHolidays
                                         .filter(shabbat => new Date(shabbat.startDate) >= new Date())
+                                        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
                                         .map((shabbat, index) => (
                                             <option key={index} value={shabbatAndHolidays.indexOf(shabbat)}>
-                                                {shabbat.name} ({shabbat.startDate && shabbat.endDate
-                                                    ? `${new Date(shabbat.startDate).toLocaleDateString('en-GB')} - ${new Date(shabbat.endDate).toLocaleDateString('en-GB')}`
-                                                    : shabbat.date})
+                                                {shabbat.name} ({formatShabbatDate(shabbat)})
                                             </option>
                                         ))}
                                 </select>
@@ -313,7 +328,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                     </div>
 
                     {/* Scrollable Options */}
-                    <div className="flex-1 p-4 sm:p-6 md:p-8 pt-4 overflow-y-auto">
+                    <div ref={scrollContainerRef} className="flex-1 p-4 sm:p-6 md:p-8 pt-4 overflow-y-auto">
                         <div className="space-y-6">
                             {currentCategory?.options.map((option) => (
                                 <div key={option.id} className="border border-gray-200 rounded-lg p-4">

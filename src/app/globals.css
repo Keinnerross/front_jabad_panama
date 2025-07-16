@@ -6,7 +6,7 @@
   --blueBackground: #F4F7FB;
   --darkBlue: #111828;
   --gray-text: #586071;
-  --primary: #FC5761;
+  --primary: #0d6efd;
   --middleBlue: #0A1F48;
   --myBlack: #1E1E1E;
   --colorStars: #FBBA3D;
@@ -20,7 +20,7 @@
 
 /* 🎨 Theme-specific variable overrides */
 [data-theme="blue"] {
-  --primary: #FC5761;
+  --primary: #0d6efd;
   --secondary: #0A1F48;
   --accent: #F4F7FB;
   --dark: #111828;
@@ -40,11 +40,11 @@
   --dark: #111828;
 }
 
-[data-theme="purple"] {
-  --primary: #8B5CF6;
-  --secondary: #4C1D95;
+[data-theme="coral"] {
+  --primary: #FC5761;
+  --secondary: #1E1E1E;
   --accent: #F3F4F6;
-  --dark: #111828;
+  --dark: #1E1E1E;
 }
 
 [data-theme="orange"] {

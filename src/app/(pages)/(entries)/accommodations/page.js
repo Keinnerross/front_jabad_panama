@@ -2,6 +2,7 @@ import { CardEntry } from "@/app/components/sections/(cards)/cardEntry";
 import { AccommodationsSection } from "@/app/components/sections/(Entries)/(accommodations)/accommodationsSection";
 import { EntryLayout } from "@/app/components/sections/(Entries)/entryLayout";
 import { api } from "@/app/services/strapiApiFetch";
+import Image from "next/image";
 import { Fragment } from "react";
 
 export default async function Acomodations() {
@@ -16,7 +17,22 @@ export default async function Acomodations() {
             <section className="relative flex flex-col items-center w-full  pt-24 pb-20 ">
                 {/* Gradient bottom */}
                 <div className="absolute top-0 left-0 flex flex-col items-center w-full bg-blueBackground pb-20 h-[70vh] overflow-hidden">
+
+
                     <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground  z-10" />
+
+
+
+                </div>
+
+
+                {/* Decorative background elements */}
+
+                <div className="absolute left-0 top-0  w-40 h-72 ">
+                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                </div>
+                <div className="absolute right-0 bottom-0 w-60 h-72 ">
+                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
                 </div>
                 {/* Main content container */}
                 < div className="w-full max-w-7xl px-4 md:px-6 h-full flex items-center justify-center z-10" >

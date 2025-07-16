@@ -15,13 +15,8 @@ export const CardShabbatMeals = ({ data }) => {
       className="cursor-pointer flex flex-col justify-start pt-12 w-full md:w-48 h-48 p-4 bg-white rounded-xl border border-gray-200 transition"
     >
       {/* Icono o Imagen dinámica */}
-
       <div className="flex justify-center items-center relative">
-
-
         <div className="w-14 h-14 bg-blueBackground rounded-full absolute top-1/2 -translate-y-1/2" />
-
-
         <div className="flex justify-center items-center w-14 h-14 mb-4">
           <Image src={data.icon} alt={data.title}
             width={sizeIcon}

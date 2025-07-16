@@ -1,5 +1,6 @@
 'use client'
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
+import Image from "next/image";
 import React, { Fragment, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 
@@ -50,7 +51,7 @@ export default function Donation() {
             frequency: formData.frequency,
             customMonths: formData.frequency === 'other' ? parseInt(formData.customMonths) : null
         };
-        
+
         // TODO: Send donation data to API
         alert('Donation feature coming soon!');
     };
@@ -102,7 +103,7 @@ export default function Donation() {
                                 </h2>
 
                                 <p className="text-gray-text mb-8">
-                                    {currentStep === 1 
+                                    {currentStep === 1
                                         ? 'Help us light Shabbat candles, fund Torah classes and support our community.'
                                         : 'Choose how often you would like to contribute.'}
                                 </p>
@@ -135,7 +136,7 @@ export default function Donation() {
                                 {currentStep === 2 && (
                                     <div className="mb-6">
                                         <label className="block text-gray-text mb-2">Select duration</label>
-                                        <select 
+                                        <select
                                             className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
                                             value={formData.frequency}
                                             onChange={handleFrequencyChange}
@@ -147,7 +148,7 @@ export default function Donation() {
                                                 </option>
                                             ))}
                                         </select>
-                                        
+
                                         {/* Custom months input */}
                                         {formData.frequency === 'other' && (
                                             <div className="mt-4">
@@ -170,7 +171,7 @@ export default function Donation() {
                                 {/* Navigation Buttons */}
                                 <div className="space-y-3">
                                     {currentStep === 1 ? (
-                                        <button 
+                                        <button
                                             onClick={handleNext}
                                             disabled={!formData.amount || parseFloat(formData.amount) <= 0}
                                             className="cursor-pointer w-full py-4 border-1 border-darkBlue rounded-lg text-darkBlue font-medium hover:bg-darkBlue hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -179,14 +180,14 @@ export default function Donation() {
                                         </button>
                                     ) : (
                                         <>
-                                            <button 
+                                            <button
                                                 onClick={handleSubmit}
                                                 disabled={!formData.frequency || (formData.frequency === 'other' && !formData.customMonths)}
                                                 className="cursor-pointer w-full py-4 bg-darkBlue rounded-lg text-white font-medium hover:bg-darkBlue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 Complete Donation
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={handleBack}
                                                 className="cursor-pointer w-full py-4 border-1 border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-colors"
                                             >
@@ -203,11 +204,11 @@ export default function Donation() {
                 </div>
                 {/* Decorative Elements */}
 
-                <div className="absolute left-0 top-10 opacity-10">
-                    <div className="w-40 h-72 bg-red-300"></div>
+                <div className="absolute left-0 top-0  w-40 h-72 ">
+                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
                 </div>
-                <div className="absolute right-0 bottom-10 opacity-10">
-                    <div className="w-60 h-72 bg-red-300"></div>
+                <div className="absolute right-0 bottom-4 w-60 h-72 ">
+                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
                 </div>
 
                 {/* Gradient Bottom */}

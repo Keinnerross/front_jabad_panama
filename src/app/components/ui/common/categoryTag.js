@@ -1,6 +1,7 @@
 import React from "react";
 import { FaLeaf, FaUtensils, FaHome, FaMountain, FaFish, FaBed, FaMugHot, FaTree, FaTag } from "react-icons/fa";
 import { MdDeliveryDining } from "react-icons/md";
+;
 
 export const CategoryTag = ({ categoryTitle = "Category" }) => {
     const categoryIcons = {

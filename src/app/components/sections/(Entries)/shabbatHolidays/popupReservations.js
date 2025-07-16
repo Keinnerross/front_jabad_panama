@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
+import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 
 export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [] }) => {
     const router = useRouter();
@@ -74,7 +75,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                     unitPrice: parseFloat(priceOption.price),
                     totalPrice: quantities[key] * parseFloat(priceOption.price),
                     shabbatName: shabbatData?.name,
-                    shabbatDate: shabbatData?.date,
+                    shabbatDate: formatShabbatDate(shabbatData),
                     productType: 'mealReservation'
                 });
             }
@@ -100,12 +101,20 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     return (
 
         <div
-            className={`w-full h-full bg-black/50 flex justify-center items-center p-2 sm:p-4 md:p-6 lg:p-8 fixed top-0 backdrop-blur-xs overflow-y-auto ${!isOpen && "hidden"} z-50`}
+            className={`w-full h-full flex justify-center items-center p-2 sm:p-4 md:p-6 lg:p-8 fixed top-0 overflow-y-auto z-50 transition-all duration-300 ${
+                isOpen 
+                    ? 'bg-black/50 backdrop-blur-sm opacity-100' 
+                    : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
+            }`}
             onClick={() => handleModal(false)}
         >
             <div
                 onClick={(e) => e.stopPropagation(e)}
-                className="w-full max-w-5xl max-h-[90vh] sm:max-h-[90vh] md:max-h-[85vh] lg:max-h-[90vh] flex flex-col lg:flex-row rounded-xl overflow-hidden my-auto">
+                className={`w-full max-w-5xl max-h-[90vh] sm:max-h-[90vh] md:max-h-[85vh] lg:max-h-[90vh] flex flex-col lg:flex-row rounded-xl overflow-hidden my-auto shadow-2xl transition-all duration-300 transform ${
+                    isOpen 
+                        ? 'scale-100 opacity-100 translate-y-0' 
+                        : 'scale-95 opacity-0 translate-y-4'
+                }`}>
                 {/* Image Section */}
                 <div className="w-full lg:w-1/2 h-40 sm:h-48 md:h-56 lg:h-auto relative flex-shrink-0 hidden md:block">
                     {/* Replace with Next.js Image component */}
@@ -120,9 +129,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 Shabbat Meals
                             </h2>
                             <p className="text-gray-text text-sm sm:text-base md:text-lg mb-3 sm:mb-4 md:mb-6">
-                                Date: {shabbatData?.startDate && shabbatData?.endDate
-                                    ? `${new Date(shabbatData.startDate).toLocaleDateString('en-GB')} - ${new Date(shabbatData.endDate).toLocaleDateString('en-GB')}`
-                                    : shabbatData?.date}<br />
+                                Date: {formatShabbatDate(shabbatData)}<br />
                                 Shabbat: {shabbatData?.name}
                             </p>
                         </div>
@@ -130,7 +137,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             onClick={() => handleModal(false)}
                             className="text-gray-400 hover:text-gray-600 cursor-pointer p-1 flex-shrink-0"
                         >
-                            <FaTimes size={16} className="sm:w-5 sm:h-5" />
+                            <FaTimes size={16} className="sm:w-5 sm:h-5"  />
                         </button>
                     </div>
                     {/* Quantity Selectors */}
@@ -149,7 +156,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                         onClick={() => updateQuantity(key, -1)}
                                                         className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                     >
-                                                        <FaMinus className="text-gray-text text-xs sm:text-sm" />
+                                                        <FaMinus className="text-gray-text text-xs sm:text-sm"  />
                                                     </button>
                                                     <span className="w-8 sm:w-10 text-center text-gray-text text-sm sm:text-base md:text-lg">
                                                         {quantities[key] || 0}
@@ -158,7 +165,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                         onClick={() => updateQuantity(key, 1)}
                                                         className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                     >
-                                                        <FaPlus className="text-gray-text text-xs sm:text-sm" />
+                                                        <FaPlus className="text-gray-text text-xs sm:text-sm"  />
                                                     </button>
                                                     <span className="w-16 sm:w-20 text-right text-gray-text text-sm sm:text-base md:text-lg">
                                                         {parseFloat(priceOption.price).toFixed(2)} $

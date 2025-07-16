@@ -20,7 +20,6 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
           className="w-full h-full object-cover rounded-2xl"
         />
       </div>
-
       {/* Content Section */}
       <div className="w-full md:w-[60%] flex flex-col justify-center px-4 md:px-0">
         {/* Category + Tags */}
@@ -73,7 +72,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
               >
                 <path
                   d="M10.5 5.63397C11.1667 6.01888 11.1667 6.98113 10.5 7.36603L2.25 12.1292C1.58333 12.5141 0.749999 12.0329 0.749999 11.2631L0.75 1.73686C0.75 0.967059 1.58333 0.485934 2.25 0.870834L10.5 5.63397Z"
-                  fill="#FC5761"
+                  fill="var(--primary)"
                 />
               </svg>
 
@@ -97,7 +96,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
             >
               <path
                 d="M10.5 5.63397C11.1667 6.01888 11.1667 6.98113 10.5 7.36603L2.25 12.1292C1.58333 12.5141 0.749999 12.0329 0.749999 11.2631L0.75 1.73686C0.75 0.967059 1.58333 0.485934 2.25 0.870834L10.5 5.63397Z"
-                fill="#FC5761"
+                fill="var(--primary)"
               />
             </svg>
 

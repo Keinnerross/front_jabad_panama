@@ -1,3 +1,5 @@
+'use client'
+
 import { CardHero } from "../(cards)/cardHero"
 import { FoodIcon } from "@/app/components/ui/icons/FoodIcon"
 import { TouristInfoIcon } from "@/app/components/ui/icons/touristInfoIcon"
@@ -6,36 +8,36 @@ import { PackagesIcon } from "@/app/components/ui/icons/packagesIcon"
 import { AccommodationsIcon } from "@/app/components/ui/icons/AccommodationsIcon"
 import { ActivitiesIcon } from "@/app/components/ui/icons/activitiesIcon"
 
-export const CardsHeroSection = ({ colorTheme }) => {
+export const CardsHeroSection = () => {
     const dataCardsHero = [
         {
             title: "Kosher Food",
-            icon: <FoodIcon colorTheme={colorTheme} size={40} />,
+            icon: <FoodIcon size={40} />,
             href: "/restaurants",
         },
         {
             title: "Tourist Info",
-            icon: <TouristInfoIcon colorTheme={colorTheme} size={40} />,
+            icon: <TouristInfoIcon size={40} />,
             href: "/visitor-information",
         },
         {
             title: "Shabbat/Holiday Meals",
-            icon: <ShabbatIcon colorTheme={colorTheme} size={40} />,
+            icon: <ShabbatIcon size={40} />,
             href: "/shabbat-holidays",
         },
         {
             title: "All-Inclusive Packages",
-            icon: <PackagesIcon colorTheme={colorTheme} size={40} />,
+            icon: <PackagesIcon size={40} />,
             href: "/packages",
         },
         {
             title: "Accommodations",
-            icon: <AccommodationsIcon colorTheme={colorTheme} size={40} />,
+            icon: <AccommodationsIcon size={40} />,
             href: "/accommodations",
         },
         {
             title: "Activities",
-            icon: <ActivitiesIcon colorTheme={colorTheme} size={40} />,
+            icon: <ActivitiesIcon size={40} />,
             href: "/activities",
         },
     ];

@@ -6,7 +6,7 @@ import { useState } from "react";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
-    
+
     // Form state
     const [formData, setFormData] = useState({
         firstName: '',
@@ -18,10 +18,10 @@ export default function Checkout() {
         agreeTerms: false,
         agreeUpdates: false
     });
-    
+
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // Handle input changes
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -29,17 +29,17 @@ export default function Checkout() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-        
+
         // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
     };
-    
+
     // Validate form
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
         if (!formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
@@ -51,19 +51,19 @@ export default function Checkout() {
         }
         if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
         if (!formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-    
+
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) return;
-        
+
         setIsSubmitting(true);
-        
+
         try {
             // Prepare data for Stripe payment
             const paymentData = {
@@ -83,7 +83,7 @@ export default function Checkout() {
                     agreeUpdates: formData.agreeUpdates
                 }
             };
-            
+
             // Here you would integrate with Stripe
             // TODO: Implement Stripe payment integration
             // const response = await fetch('/api/create-payment-intent', {
@@ -91,23 +91,38 @@ export default function Checkout() {
             //     headers: { 'Content-Type': 'application/json' },
             //     body: JSON.stringify(paymentData)
             // });
-            
+
             // For now, just simulate payment
             setTimeout(() => {
                 setIsSubmitting(false);
                 alert('Payment structure ready for Stripe integration!');
             }, 2000);
-            
+
         } catch (error) {
             // TODO: Implement proper error logging service
             setIsSubmitting(false);
         }
     };
-    
+
     return (
         <div className="w-full min-h-screen flex justify-center bg-white relative">
 
-            <div className="w-full h-[250px] xs:h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] bg-blueBackground absolute top-0 left-0" />
+            <div className="w-full h-[250px] xs:h-[300px] sm:h-[400px] md:h-[700px] lg:h-[700px] bg-blueBackground absolute top-0 left-0" >
+
+
+                {/* Decorative background elements */}
+
+                <div className="absolute left-0 top-0  w-40 h-72 ">
+                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                </div>
+                <div className="absolute right-0 bottom-16 w-60 h-72 ">
+                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                </div>
+
+            </div>
+
+
+
             <div className="z-10 w-full">
 
                 <div className="text-center pt-6 xs:pt-8 sm:pt-12 md:pt-16 lg:pt-20 flex flex-col items-center gap-2 xs:gap-3 sm:gap-4 px-6 xs:px-6">
@@ -175,8 +190,8 @@ export default function Checkout() {
 
                     {/* Checkout Form Section */}
                     <div className="w-full lg:w-[60%] bg-white rounded-lg xs:rounded-xl border border-gray-200 p-3 xs:p-4 sm:p-6 md:p-8 order-1 lg:order-2">
-                        <form 
-                            onSubmit={handleSubmit} 
+                        <form
+                            onSubmit={handleSubmit}
                             className="space-y-4 xs:space-y-6 sm:space-y-8"
                             aria-label="Checkout form"
                             noValidate
@@ -334,14 +349,13 @@ export default function Checkout() {
 
                             {/* Payment Button */}
                             <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
-                                <button 
+                                <button
                                     type="submit"
                                     disabled={isSubmitting || cartItems.length === 0}
-                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${
-                                        isSubmitting || cartItems.length === 0 
-                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                            : 'bg-primary text-white hover:bg-opacity-90 cursor-pointer active:bg-opacity-80'
-                                    }`}
+                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${isSubmitting || cartItems.length === 0
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-primary text-white hover:bg-opacity-90 cursor-pointer active:bg-opacity-80'
+                                        }`}
                                 >
                                     {isSubmitting ? (
                                         <div className="flex items-center justify-center">

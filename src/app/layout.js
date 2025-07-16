@@ -3,8 +3,7 @@ import "./globals.css";
 import { Header } from "./components/layout/header";
 import { Footer } from "./components/layout/footer";
 import { NotificationContainer } from "./components/ui/notifications/NotificationContainer";
-import { NotificationDemo } from "./components/ui/notifications/NotificationDemo";
-import { AppWrapper } from "./components/providers/AppProviders";
+import { ClientProvidersWrapper } from "./components/providers/NotificationWrapper";
 import { api } from "./services/strapiApiFetch";
 
 const inter = Inter({
@@ -15,37 +14,32 @@ const inter = Inter({
 });
 
 
-const urlApi = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-
-
-
-//Llamada a la Api
-const siteConfig = await api.siteConfig();
 
 
 export const metadata = {
   title: {
-    default: siteConfig.site_title || "Site Title",
+    default: "Chabbat Boquete, Panamá",
   },
-  description: siteConfig.site_description || "Site description",
+  description: "Welcome to your Jewish home in the mountains",
   icons: {
-    icon: `${urlApi}${siteConfig?.logo?.url}` || "/assets/global/asset001.png",
-    shortcut: `${urlApi}${siteConfig?.logo?.url}` || "/assets/global/asset001.png",
-    apple: `${urlApi}${siteConfig?.logo?.url}` || "/assets/global/asset001.png"
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico"
   },
 };
 
-
 export default async function RootLayout({ children }) {
+  const siteConfig = await api.siteConfig();
+  
   return (
-    <html lang="en">
+    <html lang="en" data-theme={siteConfig?.color_theme || 'blue'}>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AppWrapper siteConfig={siteConfig}>
+        <ClientProvidersWrapper>
           <Header data={siteConfig} />
           {children}
           <Footer />
           <NotificationContainer />
-        </AppWrapper>
+        </ClientProvidersWrapper>
       </body>
     </html>
   );

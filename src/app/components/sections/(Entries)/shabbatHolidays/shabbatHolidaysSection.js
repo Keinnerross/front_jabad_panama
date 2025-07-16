@@ -9,7 +9,7 @@ import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { CardShabbatMeals } from "@/app/components/sections/(cards)/cardShabbatMeals";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
-// import { getSortedShabbats, formatShabbatDate } from "@/app/data/shabbatData";
+import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 
 export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData, shabbatTimes }) {
 
@@ -29,13 +29,6 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
 
     // console.log('shabbatsAndHolidaysData:', shabbatsAndHolidaysData);
 
-    // Helper function to format date like the old formatShabbatDate
-    const formatShabbatDate = (shabbat) => {
-        if (!shabbat.startDate || !shabbat.endDate) return shabbat.date;
-        const startDate = new Date(shabbat.startDate);
-        const endDate = new Date(shabbat.endDate);
-        return `${startDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}-${endDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-    };
 
 
 
@@ -249,6 +242,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
                                         <option value="">Select a Shabbat date</option>
                                         {sortedShabbats
                                             .filter(shabbat => new Date(shabbat.startDate) >= new Date())
+                                            .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
                                             .map((shabbat, index) => (
                                                 <option key={shabbat.id || index} value={sortedShabbats.indexOf(shabbat)} className="cursor-pointer">
                                                     {shabbat.name} ({formatShabbatDate(shabbat)})

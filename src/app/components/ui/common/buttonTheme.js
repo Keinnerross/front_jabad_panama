@@ -18,8 +18,8 @@ export const ButtonTheme = ({
   }`
 
   const variationClasses = {
-    1: "border-darkBlue text-gray-800 hover:bg-darkBlue hover:text-white",
-    2: "bg-darkBlue text-white hover:bg-transparent hover:text-darkBlue border-darkBlue",
+    1: "border-secondary text-gray-800 hover:bg-secondary hover:text-white",
+    2: "bg-secondary text-white hover:bg-transparent hover:text-secondary border-secondary",
     3: "bg-primary text-white hover:bg-opacity-90 border-transparent",
   }
 

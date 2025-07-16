@@ -8,6 +8,8 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
     const { cartItems, total, removeFromCart, clearCart } = useCart();
     const [showClearConfirmation, setShowClearConfirmation] = React.useState(false);
     const [isClient, setIsClient] = React.useState(false);
+    const [removingItemIndex, setRemovingItemIndex] = React.useState(null);
+    const [isClearingCart, setIsClearingCart] = React.useState(false);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -18,10 +20,16 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
         router.push('/checkout');
     };
     
-    const handleClearCart = () => {
+    const handleClearCart = async () => {
         if (showClearConfirmation) {
+            setIsClearingCart(true);
+            
+            // Simular un pequeño delay para mostrar el loader
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             clearCart();
             setShowClearConfirmation(false);
+            setIsClearingCart(false);
         } else {
             setShowClearConfirmation(true);
         }
@@ -30,22 +38,40 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
     const cancelClear = () => {
         setShowClearConfirmation(false);
     };
+    
+    const handleRemoveItem = async (index) => {
+        setRemovingItemIndex(index);
+        
+        // Simular un pequeño delay para mostrar el loader
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        removeFromCart(index);
+        setRemovingItemIndex(null);
+    };
 
     return (
         <div
-            className={`w-full h-full bg-black/50 flex justify-center items-center p-4 fixed top-0 left-0 z-50 backdrop-blur-sm ${!isOpen && "hidden"}`}
+            className={`w-full h-full flex justify-center items-center p-4 fixed top-0 left-0 z-50 transition-all duration-300 ${
+                isOpen 
+                    ? 'bg-black/50 backdrop-blur-sm opacity-100' 
+                    : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
+            }`}
             onClick={() => handleModal(false)}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-lg mx-auto bg-white rounded-xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+                className={`w-full max-w-lg mx-auto bg-white rounded-xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col transition-all duration-300 transform ${
+                    isOpen 
+                        ? 'scale-100 opacity-100 translate-y-0' 
+                        : 'scale-95 opacity-0 translate-y-4'
+                }`}
             >
                 {/* Header */}
                 <div className="bg-white border-b border-gray-100 p-4 sm:p-6 flex justify-between items-center flex-shrink-0">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-800">Your Cart</h2>
                     <button 
                         onClick={() => handleModal(false)}
-                        className="text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                        className="text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
                     >
                         <FaTimes size={18} className="sm:w-5 sm:h-5" />
                     </button>
@@ -61,7 +87,9 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                     ) : cartItems.length > 0 ? (
                         <div className="p-4 sm:p-6 space-y-3">
                             {cartItems.map((item, index) => (
-                                <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-100 rounded-lg">
+                                <div key={index} className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-100 rounded-lg transition-all duration-300 ${
+                                    removingItemIndex === index ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
+                                }`}>
                                     {/* Item Badge */}
                                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
                                         {item.quantity}
@@ -80,14 +108,31 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                     <div className="flex flex-col items-end gap-1 sm:gap-2 flex-shrink-0">
                                         <span className="font-bold text-gray-800 text-sm sm:text-base">${item.totalPrice.toFixed(2)} USD</span>
                                         <button
-                                            onClick={() => removeFromCart(index)}
-                                            className="text-gray-400 hover:text-primary transition text-xs sm:text-sm cursor-pointer"
+                                            onClick={() => handleRemoveItem(index)}
+                                            disabled={removingItemIndex === index}
+                                            className={`text-xs sm:text-sm cursor-pointer transition-colors duration-200 flex items-center gap-1 ${
+                                                removingItemIndex === index 
+                                                    ? 'text-gray-300 cursor-not-allowed' 
+                                                    : 'text-gray-400 hover:text-primary'
+                                            }`}
                                         >
-                                            Remove
+                                            {removingItemIndex === index ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-gray-300 border-t-primary"></div>
+                                                    <span>Removing...</span>
+                                                </>
+                                            ) : (
+                                                'Remove'
+                                            )}
                                         </button>
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    ) : isClearingCart ? (
+                        <div className="p-6 sm:p-8 text-center text-gray-500">
+                            <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-primary mx-auto mb-4"></div>
+                            <p className="text-sm sm:text-base">Clearing cart...</p>
                         </div>
                     ) : (
                         <div className="p-6 sm:p-8 text-center text-gray-500">
@@ -113,13 +158,30 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                 <div className="flex gap-2 flex-col sm:flex-row">
                                     <button
                                         onClick={handleClearCart}
-                                        className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary/80 transition cursor-pointer flex-1 sm:flex-none"
+                                        disabled={isClearingCart}
+                                        className={`px-4 py-2 text-white text-sm rounded transition-colors duration-200 flex-1 sm:flex-none flex items-center justify-center gap-2 ${
+                                            isClearingCart 
+                                                ? 'bg-primary/70 cursor-not-allowed' 
+                                                : 'bg-primary hover:bg-primary/80 cursor-pointer'
+                                        }`}
                                     >
-                                        Yes, empty
+                                        {isClearingCart ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                                <span>Clearing...</span>
+                                            </>
+                                        ) : (
+                                            'Yes, empty'
+                                        )}
                                     </button>
                                     <button
                                         onClick={cancelClear}
-                                        className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition cursor-pointer flex-1 sm:flex-none"
+                                        disabled={isClearingCart}
+                                        className={`px-4 py-2 text-gray-700 text-sm rounded transition-colors duration-200 flex-1 sm:flex-none ${
+                                            isClearingCart 
+                                                ? 'bg-gray-100 cursor-not-allowed opacity-50' 
+                                                : 'bg-gray-200 hover:bg-gray-300 cursor-pointer'
+                                        }`}
                                     >
                                         Cancel
                                     </button>
@@ -131,14 +193,14 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                         <div className="space-y-3">
                             <button
                                 onClick={goToCheckout}
-                                className="w-full bg-primary text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg hover:bg-primary/90 transition font-medium text-base sm:text-lg cursor-pointer"
+                                className="w-full bg-primary text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg hover:bg-primary/90 transition-colors duration-200 font-medium text-base sm:text-lg cursor-pointer"
                             >
                                 Continue to Checkout
                             </button>
                             {!showClearConfirmation && (
                                 <button
                                     onClick={handleClearCart}
-                                    className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition font-medium text-sm cursor-pointer"
+                                    className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium text-sm cursor-pointer"
                                 >
                                     Empty cart
                                 </button>

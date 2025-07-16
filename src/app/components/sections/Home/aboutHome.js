@@ -5,7 +5,7 @@ import { FaWhatsapp, FaCheck } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
-export const AboutHome = ({ aboutData}) => {
+export const AboutHome = ({ aboutData }) => {
 
 /*   console.log("RES", aboutData) */
   // Fallback data

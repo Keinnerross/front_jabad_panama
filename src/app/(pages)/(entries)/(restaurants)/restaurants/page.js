@@ -42,13 +42,13 @@ export default async function Restaurants() {
 
 
                 {/* Decorative background elements */}
-                {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
+              
+                <div className="absolute left-0 top-0  w-40 h-72 ">
+                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
                 </div>
-
-                <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div> */}
+                <div className="absolute right-0 bottom-4 w-60 h-72 ">
+                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                </div>
             </section>
 
 

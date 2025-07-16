@@ -9,7 +9,6 @@ export default async function Contact() {
 
 
     const siteConfig = await api.siteConfig();
-
     const igUrl = siteConfig?.social_media?.link_instagram || "/#";
     const fbUrl = siteConfig?.social_media?.link_facebook || "/#";
 
@@ -39,7 +38,6 @@ export default async function Contact() {
                                 <Image src="/assets/pictures/about/pic_about (8).jpg" fill alt="contact Chabbat Panama" className="w-full h-full object-cover" />
                             </div>
                         </div>
-
                         {/* Contact Form */}
                         <div className="lg:w-1/2">
                             <div className="bg-white rounded-xl border h-full border-gray-200  p-6 md:px-8 md:py-12">
@@ -56,7 +54,6 @@ export default async function Contact() {
                                                 className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
                                             />
                                         </div>
-
                                         {/* Email Field */}
                                         <div>
                                             <label className="block text-darkBlue font-bold mb-2">
@@ -68,7 +65,6 @@ export default async function Contact() {
                                                 className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
                                             />
                                         </div>
-
                                         {/* Phone Field */}
                                         <div>
                                             <label className="block text-darkBlue font-bold mb-2">
@@ -80,7 +76,6 @@ export default async function Contact() {
                                                 className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
                                             />
                                         </div>
-
                                         {/* City Field */}
                                         <div>
                                             <label className="block text-darkBlue font-bold mb-2">
@@ -144,13 +139,20 @@ export default async function Contact() {
                     </div>
                 </section>
 
-                {/* <div className="absolute left-0 top-0 opacity-10">
+                {/*   <div className="absolute left-0 top-0 opacity-10">
                     <div className="w-40 h-72 bg-red-300"></div>
                 </div>
                 <div className="absolute right-0 bottom-0 opacity-10">
                     <div className="w-60 h-72 bg-red-300"></div>
                 </div> */}
 
+
+                <div className="absolute left-0 top-0  w-40 h-72 ">
+                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                </div>
+                <div className="absolute right-0 bottom-4 w-60 h-72 ">
+                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                </div>
 
 
             </div>

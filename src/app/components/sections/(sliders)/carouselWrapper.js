@@ -33,14 +33,14 @@ export const CarouselWrapper = ({ children }) => {
         <button
           onClick={scrollPrev}
           className="absolute left-[-30px] top-1/2 -translate-y-1/2 z-10 w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-100 transition cursor-pointer">
-          <span className="text-xl"><FaArrowLeftLong size={18} /></span>
+          <span className="text-xl"><FaArrowLeftLong size={18}  /></span>
         </button>
 
         <button
           onClick={scrollNext}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-14 h-14 rounded-full bg-black text-white shadow-md flex items-center justify-center hover:bg-gray-800 transition cursor-pointer"
         >
-          <span className="text-xl"><FaArrowRightLong size={18} /></span>
+          <span className="text-xl"><FaArrowRightLong size={18}  /></span>
         </button>
       </div>
 
@@ -49,14 +49,14 @@ export const CarouselWrapper = ({ children }) => {
           <button
             onClick={scrollPrev}
             className=" w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-100 transition cursor-pointer">
-            <span className="text-xl"><FaArrowLeftLong size={18} /></span>
+            <span className="text-xl"><FaArrowLeftLong size={18}  /></span>
           </button>
 
           <button
             onClick={scrollNext}
             className=" w-14 h-14 rounded-full bg-black text-white shadow-md flex items-center justify-center hover:bg-gray-800 transition cursor-pointer"
           >
-            <span className="text-xl"><FaArrowRightLong size={18} /></span>
+            <span className="text-xl"><FaArrowRightLong size={18}  /></span>
           </button>
         </div>
       </div>

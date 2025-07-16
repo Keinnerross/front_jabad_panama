@@ -5,7 +5,7 @@ import { MdInfo, MdContactMail } from "react-icons/md";
 
 // Lazy load cart popup for better performance
 const CartPopup = lazy(() =>
-    import("../ui/cart/cartPopup").then(module => ({
+    import("../../ui/cart/cartPopup").then(module => ({
         default: module.CartPopup
     }))
 );

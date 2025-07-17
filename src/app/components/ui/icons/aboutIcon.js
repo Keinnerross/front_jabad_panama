@@ -1,11 +1,11 @@
-export const AboutIcon = () => {
+export const AboutIcon = ({ className = "w-full h-full object-contain" }) => {
   return (
     <svg 
-      width="53" 
-      height="49" 
+      className={className}
       viewBox="0 0 53 49" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
     >
       <mask id="mask0_128_624" maskUnits="userSpaceOnUse" x="0" y="0" width="53" height="49">
         <path d="M52.27 0.339844H0.27002V48.3398H52.27V0.339844Z" fill="white" />

@@ -12,6 +12,7 @@ import { FaCheck } from "react-icons/fa";
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { CandlesIcon } from "@/app/components/ui/icons/candlesIcon";
 import { SunIcon } from "@/app/components/ui/icons/sunIcon";
+import { AboutIcon } from "@/app/components/ui/icons/aboutIcon";
 
 export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData, shabbatTimes }) {
 
@@ -187,7 +188,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
                             <div className="w-20 h-20  bg-primary/10 rounded-full flex justify-center items-center" >
 
                                 <div className="rounded-full  w-16 h-16 relative">
-                                    <Image src="/assets/icons/about/about.svg" fill className="object-contain w-full h-full" alt="icon" />
+                                    <AboutIcon />
                                 </div>
                             </div>
 

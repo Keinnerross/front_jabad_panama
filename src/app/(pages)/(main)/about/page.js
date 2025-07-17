@@ -3,6 +3,7 @@ import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { strapiEndpoints, getQuery, fetchAll, api } from "@/app/services/strapiApiFetch.js";
+import { AboutIcon } from "@/app/components/ui/icons/aboutIcon";
 
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
@@ -134,12 +135,7 @@ export default async function About() {
                         <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
                             <div className="">
                                 <div className="w-12 h-12 overflow-hidden relative mb-4" >
-                                    <Image
-                                        src="/assets/icons/about/about.svg"
-                                        fill
-                                        className="object-contain w-full h-full"
-                                        alt="icon"
-                                    />
+                                    <AboutIcon />
                                 </div>
 
                                 <h3 className="text-2xl font-bold text-darkBlue mb-2">

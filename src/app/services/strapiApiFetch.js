@@ -18,13 +18,17 @@ const singleRestaurantEndpoint = "/restaurants"
 const hotelsEndpoint = "/hotels?populate=*"
 const activitiesEndpoint = "/activities?populate=*"
 const infoTouristEndpoint = "/visitor-infos?populate=*"
-const infoTouristPageEndpoint = "/visitor-info-page?populate=*"
 const packagesEndpoint = "/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"
 const shabbatsAndHolidaysEndpoint = "/shabbat-and-holidays?populate=*"
 const shabbatsRegisterPricesEndpoint = "/shabbat-pricings?populate=*"
 const shabbatBoxOptionsEndpoint = "/shabbat-boxes?populate[options][populate][variants]=*"
 const shabbatBoxSingleEndpoint = "/shabbat-box-page?populate=*"
 const socialMediaLinksEndpoint = "/site-config/?fields[0]=id&populate[social_media]=*"
+
+const copiesPagesEndpoint = "/content-page?populate[activities][populate]=*&populate[restaurants][populate]=*&populate[accommodations][populate]=*&populate[visitor_info][populate]=picture&populate[contact_page][populate]=picture&populate[donations][populate]=*"
+
+
+
 
 export async function strapiFetch(endpoint) {
     try {
@@ -50,7 +54,7 @@ export async function strapiFetch(endpoint) {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
+
         const json = await response.json()
         const data = json.data; // <--- directo
         /*    console.log('✅ Response:', data) */
@@ -64,7 +68,6 @@ export async function strapiFetch(endpoint) {
         };
     }
 }
-
 export async function strapiFetchById(endpoint, id, populate) {
     try {
         const headers = {};
@@ -112,11 +115,11 @@ export const api = {
     hotels: () => strapiFetch(hotelsEndpoint),
     activities: () => strapiFetch(activitiesEndpoint),
     infoTourist: () => strapiFetch(infoTouristEndpoint),
-    infoTouristPage: () => strapiFetch(infoTouristPageEndpoint),
     packages: () => strapiFetch(packagesEndpoint),
     shabbatsAndHolidays: () => strapiFetch(shabbatsAndHolidaysEndpoint),
     shabbatsRegisterPrices: () => strapiFetch(shabbatsRegisterPricesEndpoint),
     shabbatBoxOptions: () => strapiFetch(shabbatBoxOptionsEndpoint),
     shabbatBoxSingle: () => strapiFetch(shabbatBoxSingleEndpoint),
     socialMediaLinks: () => strapiFetch(socialMediaLinksEndpoint),
+    copiesPages: () => strapiFetch(copiesPagesEndpoint),
 }

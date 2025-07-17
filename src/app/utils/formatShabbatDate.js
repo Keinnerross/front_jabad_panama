@@ -1,4 +1,9 @@
 export const formatShabbatDate = (shabbat) => {
+    // Check if shabbat is null or undefined first
+    if (!shabbat) {
+        return '';
+    }
+    
     if (!shabbat.startDate || !shabbat.endDate) {
         return shabbat.date || '';
     }

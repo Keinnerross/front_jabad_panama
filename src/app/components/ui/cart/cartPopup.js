@@ -16,8 +16,11 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
     }, []);
 
     const goToCheckout = () => {
-        handleModal(false);
         router.push('/checkout');
+        // El modal se cerrará automáticamente cuando la página de checkout cargue
+        setTimeout(() => {
+            handleModal(false);
+        }, 100);
     };
     
     const handleClearCart = async () => {

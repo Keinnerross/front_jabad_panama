@@ -6,6 +6,7 @@ import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { CiGlobe } from "react-icons/ci";
 import { IoLocationOutline } from "react-icons/io5";
 import { LocationIcon } from "@/app/components/ui/icons/locationIcon";
+import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
 import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 
@@ -131,13 +132,8 @@ export default async function Single({ params }) {
                         <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
                             <div className="space-y-4">
 
-                                <div className="w-8 h-8 bg-gray-100 rounded-full relative">
-                                    <Image
-                                        src="/assets/icons/restaurants/fork.svg"
-                                        fill
-                                        className="object-cover"
-                                        alt="Restaurant icon"
-                                    />
+                                <div className="w-8 h-8 bg-blueBackground rounded-full relative flex items-center justify-center">
+                                    <ForkIcon className="text-primary" size={20} />
                                 </div>
                                 <h3 className="text-2xl font-bold text-darkBlue">
                                     {pageData.title}
@@ -147,12 +143,12 @@ export default async function Single({ params }) {
                                 </p>
                                 <div className="space-y-4 mb-4" >
                                     <div className="flex gap-2 items-center">
-                                        <IoLocationOutline size={20} />
+                                        <IoLocationOutline size={20} className="text-primary" />
                                         <p className="text-gray-text text-sm">{pageData.location}</p>
                                     </div>
                                     {pageData.website !== "/#" && (
                                         <div className="flex gap-2 items-center">
-                                            <CiGlobe size={20} />
+                                            <CiGlobe size={20} className="text-primary" />
                                             <a
                                                 href={pageData.website}
                                                 target="_blank"

@@ -11,7 +11,7 @@
   --myBlack: #1E1E1E;
   --colorStars: #FBBA3D;
   --font-sans: "Inter", sans-serif;
-  
+
   /* Dynamic theme variables - controlled by ThemeContext */
   --secondary: #0A1F48;
   --accent: #F4F7FB;
@@ -20,22 +20,22 @@
 
 /* 🎨 Theme-specific variable overrides */
 [data-theme="blue"] {
-  --primary: #0d6efd;
-  --secondary: #0A1F48;
+  --primary: #2563eb;
+  --secondary: #1E1E1E;
   --accent: #F4F7FB;
   --dark: #111828;
 }
 
 [data-theme="green"] {
-  --primary: #10B981;
-  --secondary: #064E3B;
+  --primary: #059669;
+  --secondary: #1E1E1E;
   --accent: #ECFDF5;
   --dark: #111828;
 }
 
 [data-theme="red"] {
-  --primary: #EF4444;
-  --secondary: #7F1D1D;
+  --primary: #dc2626;
+  --secondary: #1E1E1E;
   --accent: #FEF2F2;
   --dark: #111828;
 }
@@ -48,15 +48,15 @@
 }
 
 [data-theme="orange"] {
-  --primary: #F97316;
-  --secondary: #9A3412;
+  --primary: #ea580c;
+  --secondary: #1E1E1E;
   --accent: #FFF7ED;
   --dark: #111828;
 }
 
-[data-theme="pink"] {
-  --primary: #EC4899;
-  --secondary: #831843;
+[data-theme="gold"] {
+  --primary: #ca8a04;
+  --secondary: #1E1E1E;
   --accent: #FDF2F8;
   --dark: #111828;
 }
@@ -77,10 +77,8 @@
   --font-sans: var(--font-sans);
 }
 
-
 html {
   scroll-behavior: smooth !important;
-
 }
 
 body {
@@ -98,14 +96,13 @@ a {
   outline: none;
 }
 
-
 /* Agregar estas clases a tu archivo global de estilos (globals.css o styles.css) */
-
 @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -117,6 +114,7 @@ a {
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -141,13 +139,14 @@ a {
 
 /* Suavizar las transiciones en dispositivos móviles */
 @media (prefers-reduced-motion: reduce) {
+
   .animate-fade-in-up,
   .animate-fade-in-left {
     animation: none;
     opacity: 1;
     transform: none;
   }
-  
+
   .transform {
     transform: none !important;
   }
@@ -162,6 +161,7 @@ a {
     opacity: 0;
     transform: translateY(32px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -199,5 +199,3 @@ input[type=number] {
   white-space: nowrap;
   border-width: 0;
 }
-
-

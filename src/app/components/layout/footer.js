@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FiMail } from "react-icons/fi";
 import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
+import { NewsletterForm } from "../ui/newsletter/NewsletterForm";
 
 
 export const Footer = async () => {
@@ -140,43 +141,7 @@ export const Footer = async () => {
         </div>
 
         {/* Newsletter */}
-        <div className="bg-darkBlue rounded-xl p-16">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-start gap-4 max-w-md">
-              <div className="bg-primary p-3 rounded-lg">
-                <FiMail className="text-white text-xl" />
-              </div>
-              <div>
-                <h3 className="text-white font-bold text-xl mb-2">
-                  Stay Connected with
-                </h3>
-                <p className="text-blue-100">
-                  Get updates about Shabbat meals, upcoming holidays, and
-                  community events while you're visiting Panama.
-                </p>
-
-                <p className="text-blue-100 text-sm mt-2">
-                  Contact us:
-                </p>
-
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <div className="relative flex-grow">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full py-3 px-4 pr-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-                />
-                <FiMail className="absolute right-3 top-3.5 text-gray-400" />
-              </div>
-              <button className="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-lg transition-colors whitespace-nowrap">
-                Keep Me Posted
-              </button>
-            </div>
-          </div>
-        </div>
+        <NewsletterForm />
 
         {/* Derechos de autor */}
         <p className="mt-4 text-center text-gray-500">

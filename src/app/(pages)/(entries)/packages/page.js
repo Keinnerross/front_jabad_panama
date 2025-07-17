@@ -5,21 +5,12 @@ import { CardEntry } from "@/app/components/sections/(cards)/cardEntry";
 import { HeroActivities } from "@/app/components/sections/Activities/heroActivities";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 import { WhyPackagesSection } from "@/app/components/sections/Packages/whyPackagesSection";
-import { NewsletterSection } from "@/app/components/sections/Common/newsletterSection";
-import { ActivitiesSecundarySection } from "@/app/components/sections/Activities/activitiesSecundarySection";
 import { api } from "@/app/services/strapiApiFetch";
 import { PackagesVideo } from "@/app/components/sections/Home/packagesVideo";
 
 
 export default async function Packages() {
-
-
     const packagesData = await api.packages();
-
-
-    console.log("DesdePagina", packagesData)
-
-
     return (
         <Fragment>
             {/* HERO */}
@@ -29,20 +20,11 @@ export default async function Packages() {
                 />
                 {/* Decorative background elements */}
                 < div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
-                {/*   <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div>
-                <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div> */}
+               
             </section>
             <div className="transform md:-translate-y-[50px] ">
                 <WhyPackagesSection packagesData={packagesData} />
-
                 <PackagesVideo packagesData={packagesData} />
-
-                {/*    <NewsletterSection /> */}
-                {/*   <ActivitiesSecundarySection /> */}
             </div>
         </Fragment >
     );

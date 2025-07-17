@@ -92,15 +92,19 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const clearCart = () => {
+    const clearCart = (silent = false) => {
         try {
             localStorage.removeItem('shabbatCart');
             setCartItems([]);
             setTotal(0);
             setItemCount(0);
-            showSuccess('Cart cleared successfully');
+            if (!silent) {
+                showSuccess('Cart cleared successfully');
+            }
         } catch (error) {
-            showError('Failed to clear cart. Please try again.');
+            if (!silent) {
+                showError('Failed to clear cart. Please try again.');
+            }
         }
     };
 

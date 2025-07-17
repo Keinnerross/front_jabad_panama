@@ -1,15 +1,20 @@
 'use client'
+import { loadStripe } from '@stripe/stripe-js';
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
+import { api } from "@/app/services/strapiApiFetch";
 import Image from "next/image";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa";
 
 export default function Donation() {
     const [currentStep, setCurrentStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+    const [copiesData, setCopiesData] = useState(null);
     const [formData, setFormData] = useState({
         amount: '',
         frequency: '',
-        customMonths: ''
+        customMonths: '',
+        email: ''
     });
 
     const frequencyOptions = [
@@ -32,28 +37,141 @@ export default function Donation() {
         setFormData({ ...formData, customMonths: e.target.value });
     };
 
+    const handleEmailChange = (e) => {
+        setFormData({ ...formData, email: e.target.value });
+    };
+
     const handleNext = () => {
         if (currentStep === 1 && formData.amount) {
             setCurrentStep(2);
+        } else if (currentStep === 2 && formData.frequency && (formData.frequency !== 'other' || formData.customMonths)) {
+            setCurrentStep(3);
         }
     };
 
     const handleBack = () => {
         if (currentStep === 2) {
             setCurrentStep(1);
+        } else if (currentStep === 3) {
+            setCurrentStep(2);
         }
     };
 
-    const handleSubmit = () => {
-        // TODO: Integrate with payment processing service
-        const donationData = {
-            amount: parseFloat(formData.amount),
-            frequency: formData.frequency,
-            customMonths: formData.frequency === 'other' ? parseInt(formData.customMonths) : null
-        };
+    const handleSubmit = async () => {
+        // Validar datos
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
 
-        // TODO: Send donation data to API
-        alert('Donation feature coming soon!');
+        if (!formData.frequency) {
+            alert('Please select donation frequency');
+            return;
+        }
+
+        if (formData.frequency === 'other' && (!formData.customMonths || formData.customMonths <= 0)) {
+            alert('Enter a valid number of months');
+            return;
+        }
+
+        if (!formData.email || !formData.email.includes('@')) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
+        setIsLoading(true);
+        
+        try {
+            // 1. Determinar el tipo de pago (suscripción o único)
+            const isSubscription = ['monthly', '12-months', '24-months', 'other'].includes(formData.frequency);
+
+            // 2. Preparar datos para Stripe
+            const donationData = {
+                amount: parseFloat(formData.amount),
+                frequency: formData.frequency,
+                customMonths: formData.frequency === 'other' ? parseInt(formData.customMonths) : null,
+                customer: { email: formData.email },
+                metadata: {
+                    purpose: 'Donation',
+                    project: 'Chabad Boquete',
+                    donationType: isSubscription ? 'subscription' : 'one-time',
+                    description: getDonationDescription(formData.frequency, formData.customMonths)
+                }
+            };
+
+            // 3. Llamar al endpoint correcto
+            let endpoint, payload;
+            
+            if (isSubscription) {
+                endpoint = '/api/create-subscription';
+                payload = donationData;
+            } else {
+                // Para pagos únicos, usar el formato del endpoint checkout
+                endpoint = '/api/checkout';
+                payload = {
+                    line_items: [{
+                        price_data: {
+                            currency: 'usd',
+                            unit_amount: Math.round(donationData.amount * 100),
+                            product_data: {
+                                name: `Donación única - ${donationData.metadata.project}`,
+                            },
+                        },
+                        quantity: 1,
+                    }],
+                    customer: donationData.customer,
+                    metadata: donationData.metadata
+                };
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Error al procesar la donación');
+            }
+
+            const { id } = responseData;
+
+            // 4. Redirigir a Stripe Checkout
+            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+            await stripe.redirectToCheckout({ sessionId: id });
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error al procesar: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Función auxiliar para generar la descripción
+    useEffect(() => {
+        const fetchCopiesData = async () => {
+            try {
+                const copies = await api.copiesPages();
+                setCopiesData(copies);
+            } catch (err) {
+                console.error('Error fetching copies data:', err);
+            }
+        };
+        fetchCopiesData();
+    }, []);
+
+    const getDonationDescription = (frequency, customMonths) => {
+        const frequencyMap = {
+            'one-time': 'Donación única',
+            '12-months': 'Donación por 12 meses',
+            '24-months': 'Donación por 24 meses',
+            'monthly': 'Donación mensual recurrente',
+            'other': `Donación por ${customMonths} meses`
+        };
+        return frequencyMap[frequency] || 'Donación a Chabad Boquete';
     };
 
     return (
@@ -66,13 +184,11 @@ export default function Donation() {
                         {/* Left Content */}
                         <div className="lg:w-[57%]">
                             <h1 className="text-3xl md:text-5xl font-bold text-myBlack mb-6">
-                                Donation to Chabad House Panama City
+                                {copiesData?.donations?.title || "Donation to Chabad House Panama City"}
                             </h1>
 
                             <p className="text-gray-text text-base mb-8">
-                                Your gift keeps Chabad House Panama City's doors open to everyone—whether
-                                they're here for a Shabbat meal, a Torah class, or simply a friendly face.
-                                With your support we can:
+                                {copiesData?.donations?.description || "Your gift keeps Chabad House Panama City's doors open to everyone—whether they're here for a Shabbat meal, a Torah class, or simply a friendly face. With your support we can:"}
                             </p>
 
                             <div className="mb-8">
@@ -99,13 +215,15 @@ export default function Donation() {
                         <div className="lg:w-[43%]">
                             <div className="bg-white rounded-xl border border-gray-200 p-8">
                                 <h2 className="text-3xl font-bold text-darkBlue mb-4">
-                                    {currentStep === 1 ? 'Choose your donation' : 'Select frequency'}
+                                    {currentStep === 1 ? 'Choose your donation' : currentStep === 2 ? 'Select frequency' : 'Your information'}
                                 </h2>
 
                                 <p className="text-gray-text mb-8">
                                     {currentStep === 1
                                         ? 'Help us light Shabbat candles, fund Torah classes and support our community.'
-                                        : 'Choose how often you would like to contribute.'}
+                                        : currentStep === 2
+                                        ? 'Choose how often you would like to contribute.'
+                                        : 'Enter your email to receive donation confirmation.'}
                                 </p>
 
                                 <div className="text-3xl font-bold text-darkBlue mb-6">
@@ -167,6 +285,20 @@ export default function Donation() {
                                     </div>
                                 )}
 
+                                {/* Step 3: Email */}
+                                {currentStep === 3 && (
+                                    <div className="mb-6">
+                                        <label className="block text-gray-text mb-2">Email address</label>
+                                        <input
+                                            type="email"
+                                            placeholder="Enter your email address"
+                                            value={formData.email}
+                                            onChange={handleEmailChange}
+                                            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
+                                            required
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Navigation Buttons */}
                                 <div className="space-y-3">
@@ -178,14 +310,37 @@ export default function Donation() {
                                         >
                                             Next
                                         </button>
+                                    ) : currentStep === 2 ? (
+                                        <>
+                                            <button
+                                                onClick={handleNext}
+                                                disabled={!formData.frequency || (formData.frequency === 'other' && !formData.customMonths)}
+                                                className="cursor-pointer w-full py-4 border-1 border-darkBlue rounded-lg text-darkBlue font-medium hover:bg-darkBlue hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Next
+                                            </button>
+                                            <button
+                                                onClick={handleBack}
+                                                className="cursor-pointer w-full py-4 border-1 border-gray-300 rounded-lg text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+                                            >
+                                                Back
+                                            </button>
+                                        </>
                                     ) : (
                                         <>
                                             <button
                                                 onClick={handleSubmit}
-                                                disabled={!formData.frequency || (formData.frequency === 'other' && !formData.customMonths)}
-                                                className="cursor-pointer w-full py-4 bg-darkBlue rounded-lg text-white font-medium hover:bg-darkBlue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                disabled={!formData.email || !formData.email.includes('@') || isLoading}
+                                                className="cursor-pointer w-full py-4 bg-darkBlue rounded-lg text-white font-medium hover:bg-darkBlue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                             >
-                                                Complete Donation
+                                                {isLoading ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                                        Processing...
+                                                    </>
+                                                ) : (
+                                                    'Complete Donation'
+                                                )}
                                             </button>
                                             <button
                                                 onClick={handleBack}
@@ -204,10 +359,10 @@ export default function Donation() {
                 </div>
                 {/* Decorative Elements */}
 
-                <div className="absolute left-0 top-0  w-40 h-72 ">
+                <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
                     <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
                 </div>
-                <div className="absolute right-0 bottom-4 w-60 h-72 ">
+                <div className="hidden lg:block absolute right-0 bottom-4 w-60 h-72 ">
                     <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
                 </div>
 
@@ -220,7 +375,7 @@ export default function Donation() {
 
 
             {/* About Donations Section */}
-            <div className="w-full max-w-4xl mx-auto ounded-xl border bg-white rounded-2xl border-gray-200 p-6 md:p-12 -translate-y-10">
+            {/* <div className="w-full max-w-4xl mx-auto ounded-xl border bg-white rounded-2xl border-gray-200 p-6 md:p-12 -translate-y-10">
                 <div className="flex flex-col gap-8">
                     <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">
                         About Donations for Shabbat at Chabad Panama
@@ -258,7 +413,7 @@ export default function Donation() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </Fragment>
 
 

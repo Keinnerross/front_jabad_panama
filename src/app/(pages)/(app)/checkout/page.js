@@ -3,6 +3,7 @@ import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
 import { useState } from "react";
+import { loadStripe } from '@stripe/stripe-js';
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
@@ -40,6 +41,7 @@ export default function Checkout() {
     const validateForm = () => {
         const newErrors = {};
 
+        // Campos requeridos para notificaciones completas
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
         if (!formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
@@ -65,17 +67,30 @@ export default function Checkout() {
         setIsSubmitting(true);
 
         try {
-            // Prepare data for Stripe payment
+            // 1. Cargar Stripe.js
+            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+
+            // 2. Preparar datos para el pago
             const paymentData = {
                 customer: {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
+                    name: `${formData.firstName} ${formData.lastName}`,
                     email: formData.email,
                     phone: formData.phone,
-                    nationality: formData.nationality
+                    metadata: {
+                        nationality: formData.nationality
+                    }
                 },
-                items: cartItems,
-                total: total + parseFloat(formData.donation || 0),
+                line_items: cartItems.map(item => ({
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: item.meal,
+                            description: `${item.shabbatName} - ${item.productType}`
+                        },
+                        unit_amount: Math.round(item.totalPrice * 100 / item.quantity), // Precio unitario en centavos
+                    },
+                    quantity: item.quantity,
+                })),
                 donation: parseFloat(formData.donation || 0),
                 metadata: {
                     orderType: 'reservation',
@@ -84,22 +99,40 @@ export default function Checkout() {
                 }
             };
 
-            // Here you would integrate with Stripe
-            // TODO: Implement Stripe payment integration
-            // const response = await fetch('/api/create-payment-intent', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(paymentData)
-            // });
+            // 3. Si hay donación, agregarla como ítem adicional
+            if (paymentData.donation > 0) {
+                paymentData.line_items.push({
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: 'Donación',
+                            description: 'Contribución a Chabad Boquete'
+                        },
+                        unit_amount: Math.round(paymentData.donation * 100),
+                    },
+                    quantity: 1,
+                });
+            }
 
-            // For now, just simulate payment
-            setTimeout(() => {
-                setIsSubmitting(false);
-                alert('Payment structure ready for Stripe integration!');
-            }, 2000);
+            // 4. Crear sesión de pago con Stripe
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData)
+            });
+
+            const { id } = await response.json();
+
+            // 5. Redirigir a Stripe Checkout
+            const { error } = await stripe.redirectToCheckout({ sessionId: id });
+
+            if (error) {
+                throw error;
+            }
 
         } catch (error) {
-            // TODO: Implement proper error logging service
+            console.error('Payment Error:', error);
+            alert(`Payment failed: ${error.message}`);
             setIsSubmitting(false);
         }
     };
@@ -112,10 +145,10 @@ export default function Checkout() {
 
                 {/* Decorative background elements */}
 
-                <div className="absolute left-0 top-0  w-40 h-72 ">
+                <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
                     <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
                 </div>
-                <div className="absolute right-0 bottom-16 w-60 h-72 ">
+                <div className="hidden lg:block absolute right-0 bottom-16 w-60 h-72 ">
                     <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
                 </div>
 

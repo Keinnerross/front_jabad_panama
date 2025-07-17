@@ -9,6 +9,7 @@ export default async function Acomodations() {
 
 
     const hotelsData = await api.hotels();
+    const copiesData = await api.copiesPages();
 
 
     return (
@@ -28,10 +29,10 @@ export default async function Acomodations() {
 
                 {/* Decorative background elements */}
 
-                <div className="absolute left-0 top-0  w-40 h-72 ">
+                <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
                     <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
                 </div>
-                <div className="absolute right-0 bottom-0 w-60 h-72 ">
+                <div className="hidden lg:block absolute right-0 bottom-0 w-60 h-72 ">
                     <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
                 </div>
                 {/* Main content container */}
@@ -39,10 +40,10 @@ export default async function Acomodations() {
                     {/* Text content - using flex for centering */}
                     < div className="w-full flex flex-col items-center justify-center text-center py-12 md:py-0" >
                         <h1 className="md:w-[50%] text-4xl md:text-5xl lg:text-[46px] font-bold text-darkBlue mb-6 leading-tight">
-                            Find a Cozy Place to Stay Near Chabad
+                            {copiesData?.accommodations?.title || "Find a Cozy Place to Stay Near Chabad"}
                         </h1>
                         <p className="text-base  text-gray-text max-w-2xl mx-auto" >
-                            Relax in charming stays just around the corner from the Chabad House, offering comfort and convenience throughout your visit.
+                            {copiesData?.accommodations?.description || "Relax in charming stays just around the corner from the Chabad House, offering comfort and convenience throughout your visit."}
                         </ p>
                     </div >
                 </div >

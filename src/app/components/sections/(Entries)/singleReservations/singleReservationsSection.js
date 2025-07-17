@@ -6,6 +6,7 @@ import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
+import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
 // import { pricesRegistrationShabbat } from "@/app/data/shabbatData";
 
 // Lazy load the popup component for better performance
@@ -140,8 +141,8 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                         <div className="lg:w-[30%]">
                             <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
                                 <div className="space-y-6">
-                                    <div className="w-8 h-8 bg-gray-100 rounded-full relative mb-4">
-                                        <Image src="/assets/icons/restaurants/fork.svg" fill alt="shabbatbox" className="object-cover" />
+                                    <div className="w-8 h-8 bg-blueBackground rounded-full relative mb-4 flex items-center justify-center">
+                                        <ForkIcon className="text-primary" size={20} />
                                     </div>
                                     <div className="space-y-3">
                                         <h3 className="text-2xl font-bold text-darkBlue">

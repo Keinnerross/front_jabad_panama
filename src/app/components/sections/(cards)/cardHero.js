@@ -16,7 +16,7 @@ export const CardHero = ({ data }) => {
     >
 
       <div className="flex justify-center items-center relative mb-4">
-        <div className="w-14 h-14 bg-blueBackground rounded-full absolute top-1/2 -translate-y-1/2" />
+        <div className="w-14 h-14 bg-blueBackground rounded-full absolute top-1/2 -translate-y-1/2 " />
         <div className={`overflow-hidden flex justify-center items-center`}>
           {typeof data.icon === 'string' ? (
             <Image src={data.icon} alt={data.title}

@@ -10,6 +10,8 @@ import { CardShabbatMeals } from "@/app/components/sections/(cards)/cardShabbatM
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
+import { CandlesIcon } from "@/app/components/ui/icons/candlesIcon";
+import { SunIcon } from "@/app/components/ui/icons/sunIcon";
 
 export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData, shabbatTimes }) {
 
@@ -50,13 +52,13 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
     const dataCardsHero = [
         {
             title: "Shabbat begins",
-            icon: "/assets/icons/shabbat-meals/candles.svg",
+            icon: CandlesIcon,
             href: "/restaurants",
             hour: shabbatTimes?.candleLighting || "18:20",
         },
         {
             title: "Shabbat ends",
-            icon: "/assets/icons/shabbat-meals/sun.svg",
+            icon: SunIcon,
             href: "/tourist-info",
             hour: shabbatTimes?.havdalah || "19:12",
         },
@@ -182,7 +184,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
                         {/* Left Content Section */}
                         <div className="lg:w-1/2 flex flex-col gap-6 text-white">
                             {/* Logo/Icon */}
-                            <div className="w-20 h-20  bg-[#F4F7FB] rounded-full flex justify-center items-center" >
+                            <div className="w-20 h-20  bg-primary/10 rounded-full flex justify-center items-center" >
 
                                 <div className="rounded-full  w-16 h-16 relative">
                                     <Image src="/assets/icons/about/about.svg" fill className="object-contain w-full h-full" alt="icon" />
@@ -343,7 +345,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
                 show={showPopup}
                 onClose={() => setShowPopup(false)}
                 title="Shabbat Box!"
-                description="Our Shabbat Box brings you homemade kosher meals, delivered with care to your hotel, apartment, or home—so you can enjoy a warm and meaningful Shabbat in Panama."
+                description="Our Shabbat Box brings you homemade kosher meals, delivered with care to your hotel, apartment, or home—so you can enjoy a warm and meaningful Shabbat."
                 buttonText="Find out more"
                 buttonHref="/shabbat-holidays#shabbatBox"
                 backgroundImage="/assets/pictures/about/pic_about (1).jpg"

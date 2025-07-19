@@ -6,6 +6,7 @@ import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
 import ReactMarkdown from 'react-markdown';
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions = [], shabbatAndHolidays = [], shabbatBoxSingleData = {} }) => {
     // console.log('PopupShabbatBox - shabbatBoxOptions:', shabbatBoxOptions);
@@ -19,7 +20,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
         if (shabbatBoxSingleData?.picture?.url) {
             return `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${shabbatBoxSingleData.picture.url}`;
         }
-        return "/assets/pictures/shabbat-meals/shabbatbox-single.png";
+        return getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png");
     };
     
     const popupImageUrl = getPopupImageUrl();
@@ -238,8 +239,8 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
 
     // Generate tabs dynamically from API data
-    const tabs = shabbatBoxOptions.map(cat => cat.category);
-    const currentCategory = shabbatBoxOptions.find(cat => cat.category === activeTab);
+    const tabs = (Array.isArray(shabbatBoxOptions) ? shabbatBoxOptions : []).map(cat => cat.category);
+    const currentCategory = (Array.isArray(shabbatBoxOptions) ? shabbatBoxOptions : []).find(cat => cat.category === activeTab);
 
     return (
         <div
@@ -294,7 +295,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                     }}
                                 >
                                     <option value="">Select a Shabbat or Holiday</option>
-                                    {shabbatAndHolidays
+                                    {(Array.isArray(shabbatAndHolidays) ? shabbatAndHolidays : [])
                                         .filter(shabbat => new Date(shabbat.startDate) >= new Date())
                                         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
                                         .map((shabbat, index) => (

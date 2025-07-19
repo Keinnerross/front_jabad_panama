@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FaWhatsapp, FaCheck } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export const AboutHome = ({ aboutData }) => {
 
@@ -17,9 +18,9 @@ export const AboutHome = ({ aboutData }) => {
     whatsappGroupLink: "#",
     itemList: [{ text: "Item list" }],
     imageUrls: [
-      "/assets/global/asset001.png",
-      "/assets/global/asset001.png",
-      "/assets/global/asset001.png"
+      getAssetPath("/assets/global/asset001.png"),
+      getAssetPath("/assets/global/asset001.png"),
+      getAssetPath("/assets/global/asset001.png")
     ]
   };
 
@@ -115,7 +116,7 @@ export const AboutHome = ({ aboutData }) => {
             </p>
 
             <div className="space-y-4">
-              {pageData.itemList.map((item, index) => (
+              {(pageData.itemList || []).map((item, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className="bg-primary rounded-full w-6 h-6 min-w-6 min-h-6 flex justify-center items-center flex-shrink-0">
                     <FaCheck className="text-white text-sm flex-shrink-0" />

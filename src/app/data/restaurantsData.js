@@ -1,3 +1,5 @@
+import { getAssetPath } from "@/app/utils/assetPath";
+
 export const foodData = [
   {
     id: 1,
@@ -5,9 +7,9 @@ export const foodData = [
     description: "Artisan kosher bakery in Boquete since 2008, known for its sourdough, bagels, babka and premium coffee.",
     fullDescription: "Welcome to Morton's Bakehouse, a beloved artisan kosher bakery that has been serving the Boquete community since 2008. We specialize in traditional Jewish baked goods including our famous sourdough bread, fresh bagels, and rich babka.",
     imageUrls: [
-      "/assets/pictures/restaurantes/thumb1.jpg",
-      "/assets/pictures/restaurantes/thumb1.jpg",
-      "/assets/pictures/restaurantes/thumb1.jpg",
+      getAssetPath("/assets/pictures/restaurantes/thumb1.jpg"),
+      getAssetPath("/assets/pictures/restaurantes/thumb1.jpg"),
+      getAssetPath("/assets/pictures/restaurantes/thumb1.jpg"),
     ],
     tags: ["Kosher", "Bakery", "Artisan"],
     category: "Bakery",
@@ -23,7 +25,7 @@ export const foodData = [
     description: "From Shabbat meals for groups any size to destination weddings (meat).",
     fullDescription: "Catering by Chabad offers exceptional kosher catering services for all your special occasions. From intimate Shabbat dinners for small groups to elaborate destination weddings, we provide authentic Jewish cuisine prepared according to the highest kosher standards. Our experienced team understands the importance of tradition and celebration, ensuring that every meal we serve honors both the dietary laws and the joy of the occasion. Whether you're planning a bar mitzvah, wedding, or corporate event, trust Catering by Chabad to make your celebration memorable and meaningful.",
     imageUrls: [
-      "/assets/pictures/restaurantes/thumb2.jpg",
+      getAssetPath("/assets/pictures/restaurantes/thumb2.jpg"),
 
     ],
     tags: ["Kosher", "Catering", "Events"],

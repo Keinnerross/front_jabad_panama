@@ -27,7 +27,7 @@ export const CardEntry = ({ item, isHotel = false, isRestaurant = false }) => {
           <CategoryTag categoryTitle={data.category} />
 
           <div className="flex flex-wrap gap-2">
-            {data.tags?.map((tag, index) => (
+            {(data.tags || []).map((tag, index) => (
               <span
                 key={index}
                 className="text-primary text-sm underline hover:text-darkBlue transition-colors cursor-pointer"

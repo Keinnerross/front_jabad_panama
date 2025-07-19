@@ -7,6 +7,7 @@ import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
 import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
+import { getAssetPath } from "@/app/utils/assetPath";
 // import { pricesRegistrationShabbat } from "@/app/data/shabbatData";
 
 // Lazy load the popup component for better performance
@@ -91,7 +92,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                         </div>
 
                         <div className="w-full h-80 md:h-[500px] rounded-xl overflow-hidden relative">
-                            <Image fill src="/assets/pictures/shabbat-meals/meals-single.jpg" alt="picture-shabbat-meal" className="w-full h-full object-cover" />
+                            <Image fill src={getAssetPath("/assets/pictures/shabbat-meals/meals-single.jpg")} alt="picture-shabbat-meal" className="w-full h-full object-cover" />
                         </div>
                     </section>
 
@@ -111,7 +112,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                     Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                                 </h3>
                                                 <ul>
-                                                    {selectedShabbatData.fridayNight?.map((event, index) => (
+                                                    {selectedShabbatData.fridayNight && Array.isArray(selectedShabbatData.fridayNight) && selectedShabbatData.fridayNight.map((event, index) => (
                                                         <li key={index}>
                                                             <strong className="text-myBlack">{event.hora}</strong> {event.activity}
                                                         </li>
@@ -124,7 +125,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                     Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                                 </h3>
                                                 <ul>
-                                                    {selectedShabbatData.shabbatDay?.map((event, index) => (
+                                                    {selectedShabbatData.shabbatDay && Array.isArray(selectedShabbatData.shabbatDay) && selectedShabbatData.shabbatDay.map((event, index) => (
                                                         <li key={index}>
                                                             <strong className="text-myBlack">{event.hora}</strong> {event.activity}
                                                         </li>

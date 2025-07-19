@@ -16,20 +16,43 @@ const inter = Inter({
 
 
 
-export const metadata = {
-  title: {
-    default: "Chabbat Boquete, Panamá",
-  },
-  description: "Welcome to your Jewish home in the mountains",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico"
-  },
-};
+export async function generateMetadata() {
+  let siteConfig = {};
+  
+  try {
+    console.log('🔍 Metadata: Fetching site config for SEO...');
+    siteConfig = await api.siteConfig();
+    console.log('✅ Metadata: Site config fetched for SEO:', { 
+      title: siteConfig?.site_title, 
+      description: siteConfig?.site_description 
+    });
+  } catch (error) {
+    console.error('❌ Metadata: Error fetching site config for SEO:', error);
+  }
+  
+  return {
+    title: {
+      default: siteConfig?.site_title || "Chabbat Boquete, Panamá",
+    },
+    description: siteConfig?.site_description || "Welcome to your Jewish home in the mountains",
+    icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico"
+    },
+  };
+}
 
 export default async function RootLayout({ children }) {
-  const siteConfig = await api.siteConfig();
+  let siteConfig = {};
+  
+  try {
+    console.log('🔍 Layout: Attempting to fetch site config...');
+    siteConfig = await api.siteConfig();
+    console.log('✅ Layout: Site config fetched successfully:', siteConfig);
+  } catch (error) {
+    console.error('❌ Layout: Error fetching site config:', error);
+  }
   
   return (
     <html lang="en" data-theme={siteConfig?.color_theme || 'blue'}>
@@ -37,7 +60,7 @@ export default async function RootLayout({ children }) {
         <ClientProvidersWrapper>
           <Header data={siteConfig} />
           {children}
-          <Footer />
+          <Footer activitiesData={[]} />
           <NotificationContainer />
         </ClientProvidersWrapper>
       </body>

@@ -2,6 +2,7 @@ import React, { Fragment } from "react";
 import Image from "next/image";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
 import { api } from "@/app/services/strapiApiFetch";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export default async function Restaurants() {
 
@@ -45,10 +46,10 @@ export default async function Restaurants() {
                 {/* Decorative background elements */}
               
                 <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
-                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-4 w-60 h-72 ">
-                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
                 </div>
             </section>
 

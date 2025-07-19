@@ -4,6 +4,7 @@ import Image from "next/image"
 import { TouristInfoEntry } from "@/app/components/sections/(Entries)/touristInfoEntry"
 import { FaInstagram, FaFacebookF } from "react-icons/fa"
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation"
+import { getAssetPath } from "@/app/utils/assetPath"
 
 
 
@@ -16,27 +17,27 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
             title: "Title",
             shortDescription: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             longDescription: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-            imageUrls: ["/assets/global/asset001.png"],
+            imageUrls: [getAssetPath("/assets/global/asset001.png")],
             order: 0
         },
         {
             title: "Title",
             descriptionShort: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             descriptionLong: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-            imageUrls: ["/assets/global/asset001.png"],
+            imageUrls: [getAssetPath("/assets/global/asset001.png")],
             order: 0
         }
     ];
 
 
     // Datos Api Construidos
-    const processedData = infoTouristData?.map(entry => ({
+    const processedData = (infoTouristData && Array.isArray(infoTouristData)) ? infoTouristData.map(entry => ({
         title: entry.title,
         shortDescription: entry.shortDescription,
         longDescription: entry.longDescription,
         order: entry.order,
         imageUrls: entry.pictureUrl || [],
-    })) || [];
+    })) : [];
 
 
 
@@ -78,7 +79,7 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
               <li>Contact the office in case of last-minute changes</li>
             </ul>
           `,
-            pictureUrl: "/assets/pictures/about/pic_about (4).jpg",
+            pictureUrl: getAssetPath("/assets/pictures/about/pic_about (4).jpg"),
         },
 
     ]; */
@@ -145,7 +146,7 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                         <div className="w-full h-80 md:h-[450px] rounded-2xl  overflow-hidden relative">
                             {/* Replace with Next.js Image component */}
                             <Image
-                                src={bgUrl || "/assets/global/asset001.png"}
+                                src={bgUrl || getAssetPath("/assets/global/asset001.png")}
                                 fill
                                 className="w-full h-full object-cover"
                                 alt="Panama City tourist information and skyline view"

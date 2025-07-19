@@ -6,6 +6,7 @@ import { FaCheckCircle } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { PackagesVideo } from "./packagesVideo";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 
 export const PackagesHome = ({ href, packagesData }) => {
@@ -24,13 +25,13 @@ export const PackagesHome = ({ href, packagesData }) => {
     description_2: "Lorem imspum",
     videoUrl: "",
     show_gobeyond_logo: true,
-    imagesUrl: ["/assets/global/asset001.png", "/assets/global/asset001.png"]
+    imagesUrl: [getAssetPath("/assets/global/asset001.png"), getAssetPath("/assets/global/asset001.png")]
   };
 
 
   // Separamos info de about
   const packagesInfo = packagesData?.hero_packages;
-  const pictures = packagesData?.hero_packages.pictures || [];
+  const pictures = packagesData?.hero_packages?.pictures || [];
 
 
 
@@ -78,7 +79,7 @@ export const PackagesHome = ({ href, packagesData }) => {
               <p className="font-semibold mb-6 text-lg">Check out our plans below: </p>
               {/* Badges */}
               <div className={`flex flex-wrap gap-4 items-center mb-8 `}>
-                {data?.packages.map((item, i) => (
+                {(data?.packages || []).map((item, i) => (
                   <div className="flex gap-2 items-center" key={i}>
                     <FaCheckCircle fill="var(--primary)" size={20} />
                     <p className="text-myBlack font-medium">{item}</p>
@@ -129,12 +130,12 @@ export const PackagesHome = ({ href, packagesData }) => {
 
               {/* Imagen inferior derecha */}
               <div className="absolute bottom-[10%] right-0 w-[60%] aspect-square rounded-xl overflow-hidden  z-0" >
-                <Image src={pageData.pictures[0]} fill className="w-full h-full object-cover" alt="Beautiful river landscape in Boquete, Panama" />
+                <Image src={pageData.pictures?.[0] || getAssetPath("/assets/global/asset001.png")} fill className="w-full h-full object-cover" alt="Beautiful river landscape in Boquete, Panama" />
               </div>
 
               {/* Imagen superior izquierda */}
               <div className="absolute top-0 left-0 w-[65%] aspect-square rounded-xl overflow-hidden  z-10">
-                <Image src={pageData.pictures[1]} fill className="w-full h-full object-cover" alt="Scenic mountain views of Boquete, Panama" />
+                <Image src={pageData.pictures?.[1] || getAssetPath("/assets/global/asset001.png")} fill className="w-full h-full object-cover" alt="Scenic mountain views of Boquete, Panama" />
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { FaFacebookF, FaInstagram } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
 import { useState } from "react";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export const ContactSection = ({ siteConfig, copiesData }) => {
     const [formData, setFormData] = useState({
@@ -95,7 +96,7 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
     const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
     const bgUrl = copiesData?.contact_page?.picture?.url 
         ? `${url}${copiesData.contact_page.picture.url}` 
-        : "/assets/pictures/about/pic_about (8).jpg";
+        : getAssetPath("/assets/pictures/about/pic_about (8).jpg");
 
     return (
         <div className="w-full bg-blueBackground relative overflow-hidden">
@@ -249,10 +250,10 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
                 </section>
 
                 <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
-                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-4 w-60 h-72 ">
-                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
                 </div>
             </div>
         </div>

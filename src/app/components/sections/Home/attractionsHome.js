@@ -4,6 +4,7 @@ import { FaMapMarkerAlt, FaBookOpen, FaRoute } from "react-icons/fa";
 import { CategoryTag } from "../../ui/common/categoryTag";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
+import { getAssetPath } from "@/app/utils/assetPath";
 /* import { activitiesData } from "@/app/data/activities"; */
 
 
@@ -12,13 +13,13 @@ export const AttractionsHome = ({ activitiesData }) => {
 
     const fallbackData = [
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
 
     ];
@@ -45,17 +46,17 @@ export const AttractionsHome = ({ activitiesData }) => {
         return allImages;
     }
     const arrayAllImagesUrl = arrayAllImages(activitiesData);
-    const imageUrls = imagesArrayValidation(arrayAllImagesUrl, fallbackData);
+    const imageUrls = imagesArrayValidation(arrayAllImagesUrl, { imageUrls: [] });
     const displayedActivities = imageUrls.slice(-3);
 
 
 
 
-    const categoriesActivities = activitiesData?.map((activity) => ({
+    const categoriesActivities = (activitiesData && Array.isArray(activitiesData)) ? activitiesData.map((activity) => ({
         title: activity.title || "lorep Ipsum",
         description: activity.description || "lorep Ipsum",
         category: activity.category || "Category"
-    }))
+    })) : []
 
 
 
@@ -71,7 +72,7 @@ export const AttractionsHome = ({ activitiesData }) => {
             </h2>
             {/* Activities Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {displayedActivities.map((activity, i) => (
+                {(displayedActivities || []).map((activity, i) => (
                     <div key={i} className="flex flex-col">
                         {/* Image placeholder - will be replaced with Next.js Image component */}
                         <div className="relative w-full h-60 rounded-xl mb-6">

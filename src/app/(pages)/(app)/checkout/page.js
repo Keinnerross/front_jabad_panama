@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
 import { useState } from "react";
 import { loadStripe } from '@stripe/stripe-js';
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
@@ -80,7 +81,7 @@ export default function Checkout() {
                         nationality: formData.nationality
                     }
                 },
-                line_items: cartItems.map(item => ({
+                line_items: (cartItems || []).map(item => ({
                     price_data: {
                         currency: 'usd',
                         product_data: {
@@ -146,10 +147,10 @@ export default function Checkout() {
                 {/* Decorative background elements */}
 
                 <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
-                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-16 w-60 h-72 ">
-                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
                 </div>
 
             </div>
@@ -178,8 +179,8 @@ export default function Checkout() {
                                 {/* Order Details */}
                                 <div className="flex flex-col justify-between">
                                     <div className="space-y-3 xs:space-y-4 sm:space-y-6">
-                                        {cartItems.length > 0 ? (
-                                            cartItems.map((item, index) => (
+                                        {(cartItems || []).length > 0 ? (
+                                            (cartItems || []).map((item, index) => (
                                                 <div key={index} className="flex justify-between items-start p-2 xs:p-3 bg-gray-50 rounded-lg">
                                                     <div className="flex flex-col flex-1 min-w-0 pr-2">
                                                         <span className="text-gray-text font-medium truncate text-xs xs:text-sm sm:text-base">{item.meal}</span>
@@ -384,8 +385,8 @@ export default function Checkout() {
                             <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting || cartItems.length === 0}
-                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${isSubmitting || cartItems.length === 0
+                                    disabled={isSubmitting || (cartItems || []).length === 0}
+                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${isSubmitting || (cartItems || []).length === 0
                                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         : 'bg-primary text-white hover:bg-opacity-90 cursor-pointer active:bg-opacity-80'
                                         }`}

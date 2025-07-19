@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# production config with secrets
+ecosystem.config.js
+
+# nginx config
+nginx-boquete-website.conf

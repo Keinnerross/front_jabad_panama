@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [] }) => {
     const router = useRouter();
@@ -118,7 +119,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                 {/* Image Section */}
                 <div className="w-full lg:w-1/2 h-40 sm:h-48 md:h-56 lg:h-auto relative flex-shrink-0 hidden md:block">
                     {/* Replace with Next.js Image component */}
-                    <Image src="/assets/pictures/shabbat-meals/shabbatbox-single.png" alt="reservation for shabbat" fill className="w-full h-full object-cover" />
+                    <Image src={getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png")} alt="reservation for shabbat" fill className="w-full h-full object-cover" />
                 </div>
 
                 {/* Form Section */}

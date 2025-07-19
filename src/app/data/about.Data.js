@@ -1,3 +1,5 @@
+import { getAssetPath } from "@/app/utils/assetPath";
+
 export const aboutData =
 {
     title: "About Chabad Boquete",
@@ -11,14 +13,14 @@ We host Shabbat meals, Torah classes, holiday events, and offer personal guidanc
 This center exists because of people like you — travelers, locals, seekers, and friends — coming together in shared identity and purpose. Whether you're lighting candles with us on a Friday night or stopping in for a coffee and a chat, know that you’re not just welcome here — you belong here.
 `,
     imageUrls: [
-        "/assets/pictures/about/pic_about (1).jpg",
-        "/assets/pictures/about/pic_about (2).jpg",
-        "/assets/pictures/about/pic_about (4).jpg",
-        "/assets/pictures/about/pic_about (5).jpg",
-        "/assets/pictures/about/pic_about (6).jpg",
-        "/assets/pictures/about/pic_about (7).jpg",
-        "/assets/pictures/about/pic_about (8).jpg",
-        "/assets/pictures/about/pic_about (9).jpg",
-        "/assets/pictures/about/pic_about (10).jpg",
+        getAssetPath("/assets/pictures/about/pic_about (1).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (2).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (4).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (5).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (6).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (7).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (8).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (9).jpg"),
+        getAssetPath("/assets/pictures/about/pic_about (10).jpg"),
     ]
 }

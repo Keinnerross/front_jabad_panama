@@ -5,6 +5,7 @@ import { api } from "@/app/services/strapiApiFetch";
 import Image from "next/image";
 import React, { Fragment, useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export default function Donation() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -360,10 +361,10 @@ export default function Donation() {
                 {/* Decorative Elements */}
 
                 <div className="hidden lg:block absolute left-0 top-0  w-40 h-72 ">
-                    <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-4 w-60 h-72 ">
-                    <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
                 </div>
 
                 {/* Gradient Bottom */}

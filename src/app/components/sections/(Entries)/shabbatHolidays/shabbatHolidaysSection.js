@@ -13,6 +13,7 @@ import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { CandlesIcon } from "@/app/components/ui/icons/candlesIcon";
 import { SunIcon } from "@/app/components/ui/icons/sunIcon";
 import { AboutIcon } from "@/app/components/ui/icons/aboutIcon";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndHolidaysData, shabbatTimes }) {
 
@@ -28,7 +29,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
     }, []);
 
     // Get sorted Shabbats from API data
-    const sortedShabbats = shabbatsAndHolidaysData || [];
+    const sortedShabbats = Array.isArray(shabbatsAndHolidaysData) ? shabbatsAndHolidaysData : [];
 
     // console.log('shabbatsAndHolidaysData:', shabbatsAndHolidaysData);
 
@@ -41,11 +42,11 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
 
 
     // Get current or next Shabbat data for display
-    const currentShabbat = sortedShabbats.find(shabbat => {
+    const currentShabbat = (Array.isArray(sortedShabbats) ? sortedShabbats : []).find(shabbat => {
         const today = new Date();
         const shabbatStart = new Date(shabbat.startDate);
         return shabbatStart >= today;
-    }) || sortedShabbats[0];
+    }) || (Array.isArray(sortedShabbats) ? sortedShabbats[0] : null);
 
     // console.log('currentShabbat:', currentShabbat);
     // console.log('sortedShabbats length:', sortedShabbats.length);
@@ -169,7 +170,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
                 </div>
 
                 <div className="md:absolute md:-bottom-[80px] flex flex-col md:flex-row gap-10 z-20 md:left-1/2 md:-translate-x-1/2 mt-10 md:mt-0">
-                    {dataCardsHero?.map((dataCard, i) => (
+                    {(dataCardsHero || []).map((dataCard, i) => (
                         <div key={i}>
                             <CardShabbatMeals data={dataCard} />
                         </div>
@@ -311,7 +312,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
 
                         {/* Image Section */}
                         <div className="lg:col-span-1 h-64 md:h-96 lg:h-[536px] overflow-hidden relative">
-                            <Image src="/assets/pictures/shabbat-meals/shabbatbox-single.png" alt="shabbat box" fill className="w-full h-full object-cover" />
+                            <Image src={getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png")} alt="shabbat box" fill className="w-full h-full object-cover" />
                         </div>
 
                         {/* Content Section */}
@@ -349,7 +350,7 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, shabbatsAndH
                 description="Our Shabbat Box brings you homemade kosher meals, delivered with care to your hotel, apartment, or home—so you can enjoy a warm and meaningful Shabbat."
                 buttonText="Find out more"
                 buttonHref="/shabbat-holidays#shabbatBox"
-                backgroundImage="/assets/pictures/about/pic_about (1).jpg"
+                backgroundImage={getAssetPath("/assets/pictures/about/pic_about (1).jpg")}
 
             />
 

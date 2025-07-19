@@ -4,10 +4,10 @@ import { Fragment, Suspense } from "react";
 
 export default async function SingleShabbatBox() {
     // Llamadas a la API
-    const shabbatBoxOptionsData = await api.shabbatBoxOptions();
-    const shabbatsAndHolidaysData = await api.shabbatsAndHolidays();
-    const restaurantsData = await api.restaurants();
-    const shabbatBoxSingleData = await api.shabbatBoxSingle();
+    const shabbatBoxOptionsData = await api.shabbatBoxOptions() || [];
+    const shabbatsAndHolidaysData = await api.shabbatsAndHolidays() || [];
+    const restaurantsData = await api.restaurants() || [];
+    const shabbatBoxSingleData = await api.shabbatBoxSingle() || {};
 
     return (
         <Fragment>

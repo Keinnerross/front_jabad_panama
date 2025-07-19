@@ -6,6 +6,7 @@ import { CarouselWrapper } from "./carouselWrapper"
 import { CardHotelsSlider } from "../(cards)/cardHotelsSlider"
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation"
 import { CategoryTag } from "../../ui/common/categoryTag"
+import { getAssetPath } from "@/app/utils/assetPath"
 
 /* import { hotelsData } from "@/app/data/hoteles" */
 
@@ -19,14 +20,14 @@ export const HotelHomeSlider = ({ hotelsData }) => {
             id: 1,
             title: "Lorem Restaurant",
             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            imageUrls: ["/assets/pictures/home/about-home-1.jpg"],
+            imageUrls: [getAssetPath("/assets/pictures/home/about-home-1.jpg")],
             category: "category"
         },
         {
             id: 2,
             title: "Ipsum Cafe",
             description: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            imageUrls: ["/assets/global/asset001.png"],
+            imageUrls: [getAssetPath("/assets/global/asset001.png")],
             category: "category",
             address: "address",
             website: "website",
@@ -36,16 +37,16 @@ export const HotelHomeSlider = ({ hotelsData }) => {
 
 
     // Datos Api Construidos
-    const processedData = hotelsData?.map(hotel => ({
+    const processedData = (hotelsData && Array.isArray(hotelsData)) ? hotelsData.map(hotel => ({
         id: hotel.documentId || "#",
         title: hotel.title,
         description: hotel.description,
         address: hotel.address,
         website: hotel.website,
 
-        imageUrls: imagesArrayValidation(hotel.imageUrls, fallbackData) || [],
+        imageUrls: imagesArrayValidation(hotel.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
         category: hotel.category
-    })) || [];
+    })) : [];
 
 
     console.log(processedData)
@@ -77,7 +78,7 @@ export const HotelHomeSlider = ({ hotelsData }) => {
                         {/* Carousel */}
 
                         <CarouselWrapper>
-                            {dataToUse?.map((hotel, i) => (
+                            {(dataToUse || []).map((hotel, i) => (
                                 <div key={i} className="">
                                     <CardHotelsSlider hotel={hotel} />
                                 </div>

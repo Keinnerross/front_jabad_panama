@@ -52,7 +52,7 @@ export const Hero = ({ siteConfig }) => {
                     priority={true}
                     onError={(e) => {
                         console.warn('Hero image failed to load, using fallback');
-                        e.target.src = '/assets/pictures/home/hero.jpg';
+                        e.target.src = '/boquete_website/assets/pictures/home/hero.jpg';
                     }}
                 />
 

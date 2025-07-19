@@ -11,7 +11,7 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
   const contentRef = useRef(null);
   const isNextTriggered = useRef(false);
 
-  const filters = ["All", ...new Set(data.map(item => item[filterKey]))];
+  const filters = ["All", ...new Set((data || []).map(item => item[filterKey]))];
 
   const iconMap = {
     Adventure: FaMountain,
@@ -30,8 +30,8 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
   };
 
   const filteredData = currentFilter === "All"
-    ? data
-    : data.filter(item => item[filterKey] === currentFilter);
+    ? (data || [])
+    : (data || []).filter(item => item[filterKey] === currentFilter);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(

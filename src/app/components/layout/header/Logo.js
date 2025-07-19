@@ -2,13 +2,14 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getAssetPath } from '@/app/utils/assetPath';
 
 export const Logo = ({ logo }) => {
 
 
     const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
     const logoUrl = `${url}${logo?.url}`
-    const logoSrc = logoUrl || '/assets/site/logo.png';
+    const logoSrc = logoUrl || getAssetPath('/assets/site/logo.png');
 
     return (
         <Link href="/" className="w-32 md:w-40 lg:w-48 h-auto transform scale-[1.5] hover:scale-[1.55] transition-transform duration-300">
@@ -22,7 +23,7 @@ export const Logo = ({ logo }) => {
                         priority={true}
                         onError={(e) => {
                             console.warn('Logo failed to load, using fallback');
-                            e.target.src = '/assets/site/logo.png';
+                            e.target.src = getAssetPath('/assets/site/logo.png');
                         }}
                     />
                 </div>

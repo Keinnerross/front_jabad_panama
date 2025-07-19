@@ -1,25 +1,60 @@
 
-import React from "react";
+'use client'
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { FiMail } from "react-icons/fi";
 import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { NewsletterForm } from "../ui/newsletter/NewsletterForm";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 
-export const Footer = async () => {
-  const siteConfig = await api.siteConfig();
-  const activitiesData = await api.activities();
+export const Footer = () => {
+  const [siteConfig, setSiteConfig] = useState(null);
+  const [activitiesData, setActivitiesData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('🔍 Footer: Starting API calls...');
+        
+        const [siteConfigData, activitiesDataFetch] = await Promise.all([
+          api.siteConfig(),
+          api.activities()
+        ]);
+        
+        console.log('🔍 Footer Results:', {
+          siteConfig: {
+            type: typeof siteConfigData,
+            data: siteConfigData
+          },
+          activities: {
+            type: typeof activitiesDataFetch,
+            length: Array.isArray(activitiesDataFetch) ? activitiesDataFetch.length : 'not array',
+            data: activitiesDataFetch
+          }
+        });
+        
+        setSiteConfig(siteConfigData);
+        setActivitiesData(activitiesDataFetch || []);
+      } catch (error) {
+        console.error('Error fetching footer data:', error);
+        setSiteConfig({});
+        setActivitiesData([]);
+      }
+    };
+    fetchData();
+  }, []);
 
   const fallbackData = [
     {
-      imageUrls: ["/assets/global/asset001.png"]
+      imageUrls: [getAssetPath("/assets/global/asset001.png")]
     },
     {
-      imageUrls: ["/assets/global/asset001.png"]
+      imageUrls: [getAssetPath("/assets/global/asset001.png")]
     },
     {
-      imageUrls: ["/assets/global/asset001.png"]
+      imageUrls: [getAssetPath("/assets/global/asset001.png")]
     },
 
   ];
@@ -46,13 +81,13 @@ export const Footer = async () => {
     return allImages;
   }
   const arrayAllImagesUrl = arrayAllImages(activitiesData);
-  const imageUrls = imagesArrayValidation(arrayAllImagesUrl, fallbackData);
+  const imageUrls = imagesArrayValidation(arrayAllImagesUrl, { imageUrls: [] });
 
-  const categoriesActivities = activitiesData?.map((activity) => ({
+  const categoriesActivities = (activitiesData && Array.isArray(activitiesData)) ? activitiesData.map((activity) => ({
     title: activity.title || "lorep Ipsum",
-  }))
-  const displayedActivitiesPictures = imageUrls.slice(-3);
-  const displayedInfoActivities = categoriesActivities.slice(-3)
+  })) : []
+  const displayedActivitiesPictures = (imageUrls || []).slice(-3);
+  const displayedInfoActivities = (categoriesActivities || []).slice(-3)
 
 
 
@@ -86,7 +121,7 @@ export const Footer = async () => {
     },
     {
       title: "Attractions",
-      links: displayedInfoActivities.map((activity, i) => ({
+      links: (displayedInfoActivities || []).map((activity, i) => ({
         name: activity.title,
         path: "/packages",
         image: displayedActivitiesPictures[i]
@@ -115,13 +150,13 @@ export const Footer = async () => {
         {/* Grid principal */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8 mb-12">
           {/* Columnas de menú */}
-          {menuSections.map((section, index) => (
+          {(menuSections || []).map((section, index) => (
             <div key={index} className="mb-6">
               <h3 className="text-darkBlue font-bold text-lg mb-4">
                 {section.title}
               </h3>
               <ul className="space-y-3">
-                {section.links.map((link, linkIndex) => (
+                {(section.links || []).map((link, linkIndex) => (
                   <li key={linkIndex}>
                     {section.title === "Attractions" ? (
                       <a href={link.path} className="flex items-center gap-3 group">
@@ -145,7 +180,7 @@ export const Footer = async () => {
 
         {/* Derechos de autor */}
         <p className="mt-4 text-center text-gray-500">
-          © {new Date().getFullYear()} {siteConfig.site_title || "Site Title"}. All rights reserved.
+          © {new Date().getFullYear()} {siteConfig?.site_title || "Site Title"}. All rights reserved.
         </p>
       </div>
     </footer>

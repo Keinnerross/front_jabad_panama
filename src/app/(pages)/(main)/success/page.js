@@ -1,12 +1,13 @@
 'use client'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaCheck } from 'react-icons/fa';
 import { useCart } from '../../../context/CartContext';
+import { getAssetPath } from '@/app/utils/assetPath';
 
-export default function SuccessPage() {
+function SuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { clearCart } = useCart();
@@ -44,10 +45,10 @@ export default function SuccessPage() {
         <div className="min-h-[70vh] bg-blueBackground relative">
             {/* Decorative Elements */}
             <div className="hidden lg:block absolute left-0 top-0 w-40 h-72">
-                <Image src="/assets/global/circles/a.png" alt="circle-image" fill className="object-contain" />
+                <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
             </div>
             <div className="hidden lg:block absolute right-0 bottom-4 w-60 h-72">
-                <Image src="/assets/global/circles/b.png" alt="circle-image" fill className="object-contain" />
+                <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
             </div>
 
             <div className="relative z-10 flex items-center justify-center min-h-[70vh] px-4 py-12">
@@ -85,5 +86,22 @@ export default function SuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[70vh] bg-blueBackground flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <FaCheck className="text-green-600 text-3xl" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-darkBlue">Loading...</h1>
+                </div>
+            </div>
+        }>
+            <SuccessContent />
+        </Suspense>
     );
 }

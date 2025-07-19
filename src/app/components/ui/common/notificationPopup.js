@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { ButtonTheme } from './buttonTheme';
 import { IoClose } from 'react-icons/io5';
 import { CategoryTag } from './categoryTag';
+import { getAssetPath } from '@/app/utils/assetPath';
 
 export const NotificationPopup = ({
   show,
@@ -12,7 +13,7 @@ export const NotificationPopup = ({
   description = "Get the latest updates and special offers",
   buttonText = "Learn More",
   buttonHref = "#",
-  backgroundImage = "/assets/pictures/raf2.jpg",
+  backgroundImage = getAssetPath("/assets/pictures/raf2.jpg"),
   autoClose = false,
   autoCloseDelay = 5000
 }) => {

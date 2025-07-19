@@ -4,6 +4,7 @@ import { ButtonTheme } from "../../ui/common/buttonTheme"
 import { CardFoodSlider } from "../(cards)/cardFoodSlider"
 import { CarouselWrapper } from "./carouselWrapper"
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation"
+import { getAssetPath } from "@/app/utils/assetPath"
 
 
 
@@ -19,25 +20,25 @@ export const FoodHomeSlider = ({ restaurantsData }) => {
             id: 1,
             title: "Lorem Restaurant",
             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            imageUrls: ["/assets/pictures/home/about-home-1.jpg"]
+            imageUrls: [getAssetPath("/assets/pictures/home/about-home-1.jpg")]
         },
         {
             id: 2,
             title: "Ipsum Cafe",
             description: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         }
     ];
 
 
     // Datos Api Construidos
 
-    const processedData = restaurantsData?.map(restaurant => ({
+    const processedData = (restaurantsData && Array.isArray(restaurantsData)) ? restaurantsData.map(restaurant => ({
         id: restaurant.documentId || "#",
         title: restaurant.name || restaurant.title,
         description: restaurant.description,
-        imageUrls: imagesArrayValidation(restaurant.imageUrls, fallbackData) || [],
-    })) || [];
+        imageUrls: imagesArrayValidation(restaurant.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
+    })) : [];
 
 
 
@@ -66,7 +67,7 @@ export const FoodHomeSlider = ({ restaurantsData }) => {
                 <div className="w-full max-w-7xl relative min-h-[500px]">
                     {/* Carousel */}
                     <CarouselWrapper>
-                        {dataToUse?.map((restaurant, i) =>
+                        {(dataToUse || []).map((restaurant, i) =>
 
                         (
                             <Link href={`/single-restaurant/${restaurant.id}`} key={i} className="">

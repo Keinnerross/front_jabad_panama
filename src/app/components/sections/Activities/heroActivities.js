@@ -6,6 +6,7 @@ import { FaCompass } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import { activitiesData } from "@/app/data/activities";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export const HeroActivities = ({ activitiesData, copiesData }) => {
     const sectionRef = useRef(null);
@@ -17,25 +18,25 @@ export const HeroActivities = ({ activitiesData, copiesData }) => {
 
     const fallbackData = [
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
         {
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         },
     ];
 
@@ -65,7 +66,7 @@ export const HeroActivities = ({ activitiesData, copiesData }) => {
     const arrayAllImagesUrl = arrayAllImages(activitiesData);
 
 
-    const imageUrls = imagesArrayValidation(arrayAllImagesUrl, fallbackData);
+    const imageUrls = imagesArrayValidation(arrayAllImagesUrl, { imageUrls: [] });
 
 
     console.log(imageUrls);
@@ -82,7 +83,7 @@ export const HeroActivities = ({ activitiesData, copiesData }) => {
 
 
     // Seleccionar las primeras 7 actividades para mostrar en el hero
-    const selectedActivities = imageUrls.slice(-7);
+    const selectedActivities = (imageUrls || []).slice(-7);
 
     // Configuración del layout: cuántas imágenes por columna
     const columnLayout = [

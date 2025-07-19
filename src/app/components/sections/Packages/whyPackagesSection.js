@@ -2,6 +2,7 @@ import { FaArrowRight, } from "react-icons/fa";
 import { ButtonTheme } from "../../ui/common/buttonTheme";
 import Image from "next/image";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 
 export const WhyPackagesSection = ({ packagesData }) => {
@@ -17,7 +18,7 @@ export const WhyPackagesSection = ({ packagesData }) => {
             id: 1,
             title: "Pay Oncxde",
             description: "Pay safely in the US and leave your wallet at home, we'll prepay every aspect of your trip.",
-            image: "/assets/global/asset001.png",
+            image: getAssetPath("/assets/global/asset001.png"),
             icon: <FaArrowRight />,
 
         },
@@ -25,7 +26,7 @@ export const WhyPackagesSection = ({ packagesData }) => {
             id: 2,
             title: "All-inclusive packages",
             description: "Including all your Kosher meals, hotels, transfers and activities. Activities are custom tailored to the ages in your group.",
-            image: "/assets/global/asset001.png",
+            image: getAssetPath("/assets/global/asset001.png"),
 
             icon: <FaArrowRight />
         },
@@ -33,14 +34,14 @@ export const WhyPackagesSection = ({ packagesData }) => {
             id: 3,
             title: "3 price tiers",
             description: "Gold: $3500\nPlatinum: $4500\nUltra Luxury: Custom\nVarying in part, by hotel options.",
-            image: "/assets/global/asset001.png",
+            image: getAssetPath("/assets/global/asset001.png"),
             icon: <FaArrowRight />
         },
         {
             id: 4,
             title: "Optional",
             description: "Spend a day in Panama City, see the Canal, visit the old city, enjoy lunch and race back to the airport on your way to Boquete.",
-            image: "/assets/global/asset001.png",
+            image: getAssetPath("/assets/global/asset001.png"),
             icon: <FaArrowRight />
         }
     ];

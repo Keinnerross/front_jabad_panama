@@ -8,6 +8,7 @@ import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaur
 import ReactMarkdown from 'react-markdown';
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 // Lazy load the popup component for better performance
 const PopupShabbatBox = lazy(() => 
@@ -28,7 +29,7 @@ export default function SingleShabbatBoxSection({ shabbatBoxOptionsData, shabbat
     const sidebarData = pageData?.sidebar;
     
     // Handle cover image
-    const coverImageUrl = pageData?.picture?.url ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${pageData.picture.url}` : "/assets/pictures/shabbat-meals/shabbatbox-single.png";
+    const coverImageUrl = pageData?.picture?.url ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${pageData.picture.url}` : getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png");
     
     // Fallback data
     const fallbackData = {

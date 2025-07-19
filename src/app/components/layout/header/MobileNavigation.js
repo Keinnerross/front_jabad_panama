@@ -78,7 +78,7 @@ export const MobileNavigation = ({
                 {/* Carrito en móvil */}
                 <button
                     onClick={() => { setIsCartOpen(true); closeMobileMenu(); }}
-                    className="w-full flex items-center justify-center text-red-500 hover:text-red-600 px-4 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition-all duration-300"
+                    className="w-full flex items-center justify-center text-primary hover:text-primary/80 px-4 py-2 rounded-lg border border-primary/20 hover:bg-primary/10 transition-all duration-300"
                 >
                     <FiShoppingCart className="mr-2 w-5 h-5" />
                     <span className="font-semibold">Cart ({itemCount})</span>

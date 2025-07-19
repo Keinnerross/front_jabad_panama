@@ -2,6 +2,7 @@
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { CardEntry } from "../../(cards)/cardEntry";
 import { EntryLayout } from "../entryLayout";
+import { getAssetPath } from "@/app/utils/assetPath";
 
 export const RestaurantsSection = ({ restaurantsData }) => {
 
@@ -19,7 +20,7 @@ export const RestaurantsSection = ({ restaurantsData }) => {
             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
             category: "Kosher",
 
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
 
 
         },
@@ -28,20 +29,20 @@ export const RestaurantsSection = ({ restaurantsData }) => {
             title: "Ipsum Cafe",
             description: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
             category: "Kosher",
-            imageUrls: ["/assets/global/asset001.png"]
+            imageUrls: [getAssetPath("/assets/global/asset001.png")]
         }
     ];
 
 
     // Datos Api Construidos
 
-    const processedData = restaurantsData?.map(restaurant => ({
+    const processedData = (restaurantsData && Array.isArray(restaurantsData)) ? restaurantsData.map(restaurant => ({
         id: restaurant.documentId || "#",
         title: restaurant.name || restaurant.title,
         description: restaurant.description,
         category: restaurant.category,
-        imageUrls: imagesArrayValidation(restaurant.imageUrls, fallbackData) || [],
-    })) || [];
+        imageUrls: imagesArrayValidation(restaurant.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
+    })) : [];
 
 
 

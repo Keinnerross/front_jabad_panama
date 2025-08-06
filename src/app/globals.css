@@ -18,20 +18,42 @@
   --dark: #111828;
 }
 
-/* 🎨 Theme-specific variable overrides */
+
+
+
+/* Colores Frios */
 [data-theme="blue"] {
-  --primary: #2563eb;
+  --primary: #3B82F6;
   --secondary: #1E1E1E;
-  --accent: #F4F7FB;
+  --blueBackground: #FAFAF7; 
+  --dark: #111828;
+}
+
+[data-theme="teal"] {
+  --primary: #008286;
+  --secondary: #1E1E1E;
+  --blueBackground: #FAFAF7; 
   --dark: #111828;
 }
 
 [data-theme="green"] {
-  --primary: #059669;
-  --secondary: #1E1E1E;
+  --primary: #1EA572;
+  --secondary: #2A1F09;
+  --myBlack: #2A1F09;
+  --blueBackground: #fcf9f4; 
   --accent: #ECFDF5;
   --dark: #111828;
 }
+
+[data-theme="turquoise"] {
+  --primary: #06AED5;
+  --secondary: #1E1E1E;
+  --blueBackground: #f8f7f5;  
+  --accent: #ECFDF5;
+  --dark: #111828;
+}
+
+/* Colores Cálidos */
 
 [data-theme="red"] {
   --primary: #dc2626;
@@ -55,7 +77,8 @@
 }
 
 [data-theme="gold"] {
-  --primary: #ca8a04;
+  /* --primary: #FFB703; */
+  --primary: #ffb700;
   --secondary: #1E1E1E;
   --accent: #FDF2F8;
   --dark: #111828;
@@ -198,4 +221,12 @@ input[type=number] {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+
+
+/* Global */
+
+img {
+  border-radius: 14px;
 }

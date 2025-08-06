@@ -41,7 +41,7 @@ export const MapSection = ({ siteConfig }) => {
           <div>
             <p>{sectionData.city}</p>
             <p>{sectionData.address}</p>
-            <p>Ph: {sectionData.phone}</p>
+            <p>{sectionData.phone}</p>
           </div>
           <div>
             <ButtonTheme title="Navigate" href={sectionData.navigateUrl} variation={3} />

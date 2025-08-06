@@ -3,17 +3,13 @@ import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { getShabbatTimes } from "@/app/services/shabbatTimesApi";
 import { Fragment } from "react";
-import { cookies } from 'next/headers';
-
 
 export default async function ShabbatHolidays() {
-    const cookieStore = cookies(); // Force dynamic rendering
-
-
-
-
 
     //Llamada a la API
+
+    const ShabbatHolidaysPage = await api.shabbatsAndHolidaysPage() || {};
+    const popUpsData = await api.popUps() || [];
     const aboutPageData = await api.aboutPage() || {};
     const shabbatsAndHolidaysData = await api.shabbatsAndHolidays() || [];
     const shabbatTimes = await getShabbatTimes() || {};
@@ -22,18 +18,15 @@ export default async function ShabbatHolidays() {
         imageUrls: imagesArrayValidation(pictures, { imageUrls: [] }) || []
     };
 
-
-
     return (
         <Fragment>
-            <ShabbatHolidaysSection 
-                aboutPicturesData={aboutPicturesData} 
+            <ShabbatHolidaysSection
+                aboutPicturesData={aboutPicturesData}
                 shabbatsAndHolidaysData={shabbatsAndHolidaysData}
                 shabbatTimes={shabbatTimes}
+                ShabbatHolidaysPage={ShabbatHolidaysPage}
+                popUpsData={popUpsData}
             />
         </Fragment>
-
     )
-
-
 } 

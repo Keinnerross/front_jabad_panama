@@ -27,7 +27,7 @@ export const CardShabbatMeals = ({ data }) => {
       </div>
       {/* Título */}
       <h3 className="text-center text-darkBlue font-semibold text-sm md:text-base leading-4 mb-2">
-        {data?.title}xd
+        {data?.title}
       </h3>
       <p className="text-center text-myBlack  font-medium text-sm  leading-4"> {data?.hour} </p>
     </div>

@@ -8,7 +8,7 @@ import { getAssetPath } from "@/app/utils/assetPath";
 /* import { activitiesData } from "@/app/data/activities"; */
 
 
-export const AttractionsHome = ({ activitiesData }) => {
+export const AttractionsHome = ({ activitiesData, siteConfig }) => {
     // Obtener solo las primeras 3 actividades
 
     const fallbackData = [
@@ -68,7 +68,7 @@ export const AttractionsHome = ({ activitiesData }) => {
         <section className="max-w-[1304px] mx-auto px-4 pb-12 pt-6">
             {/* Title */}
             <h2 className="text-center text-myBlack font-bold text-3xl md:text-4xl mb-12">
-                Activities in Boquete, Panama
+                Activities in {siteConfig?.city || "City Name"}
             </h2>
             {/* Activities Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">

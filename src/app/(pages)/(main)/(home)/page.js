@@ -9,30 +9,21 @@ import { Hero } from "@/app/components/sections/Home/hero";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 import { PackagesVideo } from "@/app/components/sections/Home/packagesVideo";
 import { api } from "@/app/services/strapiApiFetch";
+import { CustomVideoSection } from "@/app/components/sections/Home/customVideoHome";
 
 export default async function Home() {
-  
+
   // Llamadas a la API como server component
-  const [aboutData, restaurantsData, hotelsData, siteConfig, packagesData, activitiesData] = await Promise.all([
+  const [aboutData, restaurantsData, hotelsData, siteConfig, packagesData, activitiesData, customVideoData] = await Promise.all([
     api.homeAbout(),
     api.restaurants(),
     api.hotels(),
     api.siteConfig(),
     api.packages(),
-    api.activities()
+    api.activities(),
+    api.customVideo(),
+
   ]);
-
-  console.log('🔍 Home Server Component Results:', {
-    aboutData: { type: typeof aboutData, data: aboutData },
-    restaurantsData: { type: typeof restaurantsData, length: Array.isArray(restaurantsData) ? restaurantsData.length : 'not array' },
-    hotelsData: { type: typeof hotelsData, length: Array.isArray(hotelsData) ? hotelsData.length : 'not array' },
-    siteConfig: { type: typeof siteConfig, data: siteConfig },
-    packagesData: { type: typeof packagesData, data: packagesData },
-    activitiesData: { type: typeof activitiesData, length: Array.isArray(activitiesData) ? activitiesData.length : 'not array' }
-  });
-
-
-
 
   return (
     <div className="overflow-x-hidden">
@@ -44,11 +35,12 @@ export default async function Home() {
       </div>
 
       <AboutHome aboutData={aboutData || {}} />
-      <FoodHomeSlider restaurantsData={restaurantsData || []} />
-      <PackagesHome packagesData={packagesData || {}} href="/packages" />
-      <PackagesVideo packagesData={packagesData || {}} />
+      <FoodHomeSlider restaurantsData={restaurantsData || []} siteConfig={siteConfig || {}} />
+      {/*   <PackagesHome packagesData={packagesData || {}} href="/packages" />
+      <PackagesVideo packagesData={packagesData || {}} /> */}
+      <CustomVideoSection customVideoData={customVideoData.home_video || {}} />
       <HotelHomeSlider hotelsData={hotelsData || []} />
-      <AttractionsHome activitiesData={activitiesData || []} />
+      <AttractionsHome activitiesData={activitiesData || []} siteConfig={siteConfig || {}} />
       <MapSection siteConfig={siteConfig || {}} />
     </div>
   );

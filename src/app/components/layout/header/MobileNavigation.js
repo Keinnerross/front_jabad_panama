@@ -64,7 +64,7 @@ export const MobileNavigation = ({
                                                 className="flex items-center py-2 text-sm text-gray-700 hover:text-primary font-medium rounded-md hover:bg-gray-50 px-2 transition-all duration-200 transform hover:translate-x-1"
                                                 onClick={closeMobileMenu} // Cerrar menú al hacer clic en sub-item
                                             >
-                                                <IconComponent className="mr-3 text-sm" />
+                                                <IconComponent className={`mr-3 ${IconComponent.name === 'GoTriangleRight' ? 'text-xl' : 'text-sm'}`} />
                                                 <span>{sub.name}</span>
                                             </Link>
                                         );
@@ -84,14 +84,14 @@ export const MobileNavigation = ({
                     <span className="font-semibold">Cart ({itemCount})</span>
                 </button>
 
-                <a
+                <Link
                     href={pathDonate}
                     className="w-full flex items-center justify-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg mt-4 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     onClick={closeMobileMenu} // Cerrar menú al ir a donación
                 >
                     <FaHeart className="mr-2 animate-pulse" />
                     <span className="font-bold">Donate</span>
-                </a>
+                </Link>
             </div>
         </div>
     );

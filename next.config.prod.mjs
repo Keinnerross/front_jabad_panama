@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/boquete_website',
-  assetPrefix: '/boquete_website/',
+  basePath: '/panamacity_website',
+  assetPrefix: '/panamacity_website/',
   trailingSlash: true,
   // output: 'standalone', // Disabled for debugging SSR issues
   
@@ -45,7 +45,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/boquete_website/_next/:path*',
+        source: '/panamacity_website/_next/:path*',
         destination: '/_next/:path*',
       },
     ];

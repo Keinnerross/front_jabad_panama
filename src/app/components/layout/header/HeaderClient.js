@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, lazy, Suspense } from "react";
 import { FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift } from "react-icons/fa";
+import { GoTriangleRight } from "react-icons/go";
 import { MdInfo, MdContactMail } from "react-icons/md";
 
 // Lazy load cart popup for better performance
@@ -18,7 +19,10 @@ import { CartButton } from "./CartButton";
 import { DonateButton } from "./DonateButton";
 import { MobileMenuButton } from "./MobileMenuButton";
 
-export const HeaderClient = ({ data, colorTheme }) => {
+export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
+
+
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [hoveredDropdown, setHoveredDropdown] = useState(null);
@@ -26,29 +30,115 @@ export const HeaderClient = ({ data, colorTheme }) => {
 
     const pathDonate = "/donation";
 
+    
+
+    // Función para procesar las páginas personalizadas (Custom Pages)
+    const processCustomPages = (customPagesData) => {
+        if (!customPagesData) return { mainNav: [], chabadHouse: [], visitingPanama: [] };
+        
+        const mainNav = [];
+        const chabadHouse = [];
+        const visitingPanama = [];
+
+        customPagesData.forEach(page => {
+            const customPage = {
+                name: page.title,
+                path: `/single-page/${page.documentId}`,
+                icon: GoTriangleRight,
+                hasDropdown: false
+            };
+
+            switch (page.position) {
+                case "Main navigation":
+                    mainNav.push(customPage);
+                    break;
+                case "Chabad house":
+                    chabadHouse.push(customPage);
+                    break;
+                case "Visiting section":
+                    visitingPanama.push(customPage);
+                    break;
+            }
+        });
+
+        // Ordenar alfabéticamente todas las secciones
+        mainNav.sort((a, b) => a.name.localeCompare(b.name));
+        chabadHouse.sort((a, b) => a.name.localeCompare(b.name));
+        visitingPanama.sort((a, b) => a.name.localeCompare(b.name));
+
+        return { mainNav, chabadHouse, visitingPanama };
+    };
+
+    const customPages = processCustomPages(customPagesData);
+
+    // Lógica inteligente: 1 página = directa, 2+ = todas a "More"
+    const mainNavPages = customPages.mainNav;
+    const showDirectly = mainNavPages.length === 1;
+    const visibleMainNavPages = showDirectly ? mainNavPages : [];
+    const morePages = showDirectly ? [] : mainNavPages;
+
+    // Crear elementos del menú en el orden correcto
     const menuItems = [
+        // 1. Chabad House
         {
-            name: "Chabat House",
+            name: "Chabad House",
             hasDropdown: true,
             subItems: [
                 { name: "Visitor Information", path: "/visitor-information", icon: FaHome },
-                { name: "Shabbat & Holidays Meals", path: "/shabbat-holidays", icon: FaUtensils }
+                { name: "Shabbat & Holidays Meals", path: "/shabbat-holidays", icon: FaUtensils },
+                ...customPages.chabadHouse
             ],
             path: "/about"
         },
+        // 2. Visiting Panama
         {
             name: "Visiting Panama",
             hasDropdown: true,
             subItems: [
-                { name: "Packages", path: "/packages", icon: FaGift },
                 { name: "Activities", path: "/activities", icon: FaMapMarkedAlt },
                 { name: "Restaurants", path: "/restaurants", icon: FaUtensils },
                 { name: "Accommodations", path: "/accommodations", icon: FaBed },
+                { name: "Packages", path: "/packages", icon: FaGift },
+
+                ...customPages.visitingPanama
             ]
         },
+        // 3. Páginas dinámicas (máximo 2)
+        ...visibleMainNavPages,
+        // 4. Dropdown "More" (si hay 2+ páginas)
+        ...(morePages.length > 0 ? [{
+            name: "More",
+            hasDropdown: true,
+            subItems: morePages.map(page => ({
+                name: page.name,
+                path: page.path,
+                icon: page.icon
+            }))
+        }] : []),
+        // 5. About us y Contact al final
         { name: "About us", hasDropdown: false, path: "/about", icon: MdInfo },
         { name: "Contact", hasDropdown: false, path: "/contact", icon: MdContactMail }
     ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const toggleMobileDropdown = (index) => {
         setActiveDropdown(activeDropdown === index ? null : index);

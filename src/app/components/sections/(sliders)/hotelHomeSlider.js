@@ -66,7 +66,7 @@ export const HotelHomeSlider = ({ hotelsData }) => {
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full md:flex justify-between items-center mb-10 px-4 md:px-0 space-y-4 md:space-y-0">
-                    <p className="text-4xl font-semibold">Recommended places to stay in</p>
+                    <p className="text-4xl font-bold">Recommended places to stay in</p>
                     <ButtonTheme title="Browse all places" href="/accommodations" />
                 </div>
             </div>
@@ -79,7 +79,7 @@ export const HotelHomeSlider = ({ hotelsData }) => {
 
                         <CarouselWrapper>
                             {(dataToUse || []).map((hotel, i) => (
-                                <div key={i} className="">
+                                <div key={i} className="w-[93vw] md:w-auto flex-shrink-0 pr-4 md:pr-0">
                                     <CardHotelsSlider hotel={hotel} />
                                 </div>
                             ))}

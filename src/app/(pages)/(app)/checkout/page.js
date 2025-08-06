@@ -17,12 +17,25 @@ export default function Checkout() {
         phone: '',
         email: '',
         donation: '',
+        coverFees: false,
         agreeTerms: false,
         agreeUpdates: false
     });
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Calculate transaction fee (5%)
+    const calculateTransactionFee = (subtotal) => {
+        return subtotal * 0.05;
+    };
+
+    // Calculate total with fees and donations
+    const calculateGrandTotal = () => {
+        const subtotal = total + parseFloat(formData.donation || 0);
+        const transactionFee = formData.coverFees ? calculateTransactionFee(subtotal) : 0;
+        return subtotal + transactionFee;
+    };
 
     // Handle input changes
     const handleInputChange = (e) => {
@@ -110,6 +123,23 @@ export default function Checkout() {
                             description: 'Contribución a Chabad Boquete'
                         },
                         unit_amount: Math.round(paymentData.donation * 100),
+                    },
+                    quantity: 1,
+                });
+            }
+
+            // 4. Si el usuario eligió cubrir los fees, agregarlos como ítem adicional
+            if (formData.coverFees) {
+                const subtotal = total + parseFloat(formData.donation || 0);
+                const transactionFee = calculateTransactionFee(subtotal);
+                paymentData.line_items.push({
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: 'Transaction Fee',
+                            description: 'Processing fee to help cover payment costs (5%)'
+                        },
+                        unit_amount: Math.round(transactionFee * 100),
                     },
                     quantity: 1,
                 });
@@ -212,9 +242,35 @@ export default function Checkout() {
                                     {/* Divider and Total */}
                                     <div>
                                         <div className="border-t border-gray-200 my-3 xs:my-4"></div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">Total:</span>
-                                            <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">${total.toFixed(2)}</span>
+                                        
+                                        {/* Subtotal */}
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-gray-600 text-sm xs:text-base">Subtotal:</span>
+                                            <span className="text-gray-600 text-sm xs:text-base">${total.toFixed(2)}</span>
+                                        </div>
+
+                                        {/* Donation if present */}
+                                        {parseFloat(formData.donation || 0) > 0 && (
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600 text-sm xs:text-base">Donation:</span>
+                                                <span className="text-gray-600 text-sm xs:text-base">${parseFloat(formData.donation).toFixed(2)}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Transaction Fee if selected */}
+                                        {formData.coverFees && (
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600 text-sm xs:text-base">Transaction Fee (5%):</span>
+                                                <span className="text-gray-600 text-sm xs:text-base">${calculateTransactionFee(total + parseFloat(formData.donation || 0)).toFixed(2)}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Final Total */}
+                                        <div className="border-t border-gray-200 pt-2 mt-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">Total:</span>
+                                                <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">${calculateGrandTotal().toFixed(2)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -335,6 +391,32 @@ export default function Checkout() {
                                             step="0.01"
                                             className="w-full bg-white border border-gray-200 rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                         />
+
+                                        {/* Transaction Fee Checkbox */}
+                                        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                            <div className="flex items-start gap-3">
+                                                <input
+                                                    type="checkbox"
+                                                    name="coverFees"
+                                                    checked={formData.coverFees}
+                                                    onChange={handleInputChange}
+                                                    className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                                />
+                                                <div className="flex-1">
+                                                    <p className="text-gray-text text-xs xs:text-sm font-medium">
+                                                        Help us avoid credit card fees? 
+                                                        {(total + parseFloat(formData.donation || 0)) > 0 && (
+                                                            <span className="text-primary font-semibold">
+                                                                {" "}(+${calculateTransactionFee(total + parseFloat(formData.donation || 0)).toFixed(2)})
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                    <p className="text-gray-500 text-xs mt-1">
+                                                        Add 5% to cover processing fees so 100% of your payment goes to Chabad
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </fieldset>
@@ -397,7 +479,7 @@ export default function Checkout() {
                                             <span className="text-sm xs:text-base">Processing...</span>
                                         </div>
                                     ) : (
-                                        `Pay now - $${(total + parseFloat(formData.donation || 0)).toFixed(2)}`
+                                        `Pay now - $${calculateGrandTotal().toFixed(2)}`
                                     )}
                                 </button>
                                 <p className="text-gray-text text-xs text-center leading-relaxed px-2">

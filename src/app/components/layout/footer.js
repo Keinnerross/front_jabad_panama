@@ -1,6 +1,7 @@
 
 'use client'
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { FiMail } from "react-icons/fi";
 import { api } from "@/app/services/strapiApiFetch";
@@ -159,14 +160,14 @@ export const Footer = () => {
                 {(section.links || []).map((link, linkIndex) => (
                   <li key={linkIndex}>
                     {section.title === "Attractions" ? (
-                      <a href={link.path} className="flex items-center gap-3 group">
+                      <Link href={link.path} className="flex items-center gap-3 group">
                         <div className="w-10 h-10 relative rounded-md overflow-hidden flex-shrink-0">
                           <Image src={link.image} alt={link.name} fill className="object-cover" />
                         </div>
                         <span className="text-gray-text group-hover:text-primary transition-colors text-base">{link.name}</span>
-                      </a>
+                      </Link>
                     ) : (
-                      <a href={link.path} className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</a>
+                      <Link href={link.path} className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</Link>
                     )}
                   </li>
                 ))}

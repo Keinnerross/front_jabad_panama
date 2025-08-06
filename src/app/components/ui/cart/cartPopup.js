@@ -1,8 +1,14 @@
 'use client'
-import React from "react";
+import React, { Fragment } from "react";
 import { FaTimes, FaTrash, FaShoppingCart } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
 import { useCart } from "@/app/context/CartContext";
+
+import { GoTrash } from "react-icons/go";
+
+
+
+
 export const CartPopup = ({ isOpen = false, handleModal }) => {
     const router = useRouter();
     const { cartItems, total, removeFromCart, clearCart } = useCart();
@@ -22,14 +28,14 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
             handleModal(false);
         }, 100);
     };
-    
+
     const handleClearCart = async () => {
         if (showClearConfirmation) {
             setIsClearingCart(true);
-            
+
             // Simular un pequeño delay para mostrar el loader
             await new Promise(resolve => setTimeout(resolve, 800));
-            
+
             clearCart();
             setShowClearConfirmation(false);
             setIsClearingCart(false);
@@ -37,42 +43,40 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
             setShowClearConfirmation(true);
         }
     };
-    
+
     const cancelClear = () => {
         setShowClearConfirmation(false);
     };
-    
+
     const handleRemoveItem = async (index) => {
         setRemovingItemIndex(index);
-        
+
         // Simular un pequeño delay para mostrar el loader
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         removeFromCart(index);
         setRemovingItemIndex(null);
     };
 
     return (
         <div
-            className={`w-full h-full flex justify-center items-center p-4 fixed top-0 left-0 z-50 transition-all duration-300 ${
-                isOpen 
-                    ? 'bg-black/50 backdrop-blur-sm opacity-100' 
+            className={`w-full h-full flex justify-center items-center p-4 fixed top-0 left-0 z-50 transition-all duration-300 ${isOpen
+                    ? 'bg-black/50 backdrop-blur-sm opacity-100'
                     : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
-            }`}
+                }`}
             onClick={() => handleModal(false)}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`w-full max-w-lg mx-auto bg-white rounded-xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col transition-all duration-300 transform ${
-                    isOpen 
-                        ? 'scale-100 opacity-100 translate-y-0' 
+                className={`w-full max-w-lg mx-auto bg-white rounded-xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col transition-all duration-300 transform ${isOpen
+                        ? 'scale-100 opacity-100 translate-y-0'
                         : 'scale-95 opacity-0 translate-y-4'
-                }`}
+                    }`}
             >
                 {/* Header */}
                 <div className="bg-white border-b border-gray-100 p-4 sm:p-6 flex justify-between items-center flex-shrink-0">
                     <h2 className="text-lg sm:text-xl font-bold text-gray-800">Your Cart</h2>
-                    <button 
+                    <button
                         onClick={() => handleModal(false)}
                         className="text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
                     >
@@ -90,14 +94,13 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                     ) : cartItems.length > 0 ? (
                         <div className="p-4 sm:p-6 space-y-3">
                             {cartItems.map((item, index) => (
-                                <div key={index} className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-100 rounded-lg transition-all duration-300 ${
-                                    removingItemIndex === index ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
-                                }`}>
+                                <div key={index} className={`flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-100 rounded-lg transition-all duration-300 ${removingItemIndex === index ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
+                                    }`}>
                                     {/* Item Badge */}
                                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
                                         {item.quantity}
                                     </div>
-                                    
+
                                     {/* Item Details */}
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-semibold text-gray-800 truncate text-sm sm:text-base">{item.meal}</h3>
@@ -106,18 +109,17 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                             Duration: {item.shabbatName}
                                         </p>
                                     </div>
-                                    
+
                                     {/* Price and Remove */}
                                     <div className="flex flex-col items-end gap-1 sm:gap-2 flex-shrink-0">
                                         <span className="font-bold text-gray-800 text-sm sm:text-base">${item.totalPrice.toFixed(2)} USD</span>
                                         <button
                                             onClick={() => handleRemoveItem(index)}
                                             disabled={removingItemIndex === index}
-                                            className={`text-xs sm:text-sm cursor-pointer transition-colors duration-200 flex items-center gap-1 ${
-                                                removingItemIndex === index 
-                                                    ? 'text-gray-300 cursor-not-allowed' 
+                                            className={`text-xs sm:text-sm cursor-pointer transition-colors duration-200 flex items-center gap-1 ${removingItemIndex === index
+                                                    ? 'text-gray-300 cursor-not-allowed'
                                                     : 'text-gray-400 hover:text-primary'
-                                            }`}
+                                                }`}
                                         >
                                             {removingItemIndex === index ? (
                                                 <>
@@ -125,7 +127,7 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                                     <span>Removing...</span>
                                                 </>
                                             ) : (
-                                                'Remove'
+                                                <Fragment><GoTrash />Remove</Fragment>
                                             )}
                                         </button>
                                     </div>
@@ -162,11 +164,10 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                     <button
                                         onClick={handleClearCart}
                                         disabled={isClearingCart}
-                                        className={`px-4 py-2 text-white text-sm rounded transition-colors duration-200 flex-1 sm:flex-none flex items-center justify-center gap-2 ${
-                                            isClearingCart 
-                                                ? 'bg-primary/70 cursor-not-allowed' 
+                                        className={`px-4 py-2 text-white text-sm rounded transition-colors duration-200 flex-1 sm:flex-none flex items-center justify-center gap-2 ${isClearingCart
+                                                ? 'bg-primary/70 cursor-not-allowed'
                                                 : 'bg-primary hover:bg-primary/80 cursor-pointer'
-                                        }`}
+                                            }`}
                                     >
                                         {isClearingCart ? (
                                             <>
@@ -180,11 +181,10 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                     <button
                                         onClick={cancelClear}
                                         disabled={isClearingCart}
-                                        className={`px-4 py-2 text-gray-700 text-sm rounded transition-colors duration-200 flex-1 sm:flex-none ${
-                                            isClearingCart 
-                                                ? 'bg-gray-100 cursor-not-allowed opacity-50' 
+                                        className={`px-4 py-2 text-gray-700 text-sm rounded transition-colors duration-200 flex-1 sm:flex-none ${isClearingCart
+                                                ? 'bg-gray-100 cursor-not-allowed opacity-50'
                                                 : 'bg-gray-200 hover:bg-gray-300 cursor-pointer'
-                                        }`}
+                                            }`}
                                     >
                                         Cancel
                                     </button>

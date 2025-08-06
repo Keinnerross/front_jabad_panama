@@ -10,6 +10,7 @@ export const NotificationPopup = ({
   show,
   onClose,
   title = "Don't miss out!",
+  tag = "Delivery",
   description = "Get the latest updates and special offers",
   buttonText = "Learn More",
   buttonHref = "#",
@@ -64,7 +65,7 @@ export const NotificationPopup = ({
         </button>
 
         <div className="absolute top-3 left-3 z-10">
-          <CategoryTag categoryTitle='Delivery' />
+          <CategoryTag categoryTitle={tag} />
         </div>
 
         {/* Background image */}

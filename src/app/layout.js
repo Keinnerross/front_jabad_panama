@@ -18,34 +18,35 @@ const inter = Inter({
 
 export async function generateMetadata() {
   let siteConfig = {};
-  
+
   try {
     console.log('🔍 Metadata: Fetching site config for SEO...');
     siteConfig = await api.siteConfig();
-    console.log('✅ Metadata: Site config fetched for SEO:', { 
-      title: siteConfig?.site_title, 
-      description: siteConfig?.site_description 
+    console.log('✅ Metadata: Site config fetched for SEO:', {
+      title: siteConfig?.site_title,
+      description: siteConfig?.site_description
     });
   } catch (error) {
     console.error('❌ Metadata: Error fetching site config for SEO:', error);
   }
-  
+
+
   return {
     title: {
       default: siteConfig?.site_title || "Chabbat Boquete, Panamá",
     },
     description: siteConfig?.site_description || "Welcome to your Jewish home in the mountains",
     icons: {
-      icon: "/favicon.ico",
-      shortcut: "/favicon.ico",
-      apple: "/favicon.ico"
+      icon: `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${siteConfig?.logo?.url || "/favicon.ico"}`,
+      shortcut: `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${siteConfig?.logo?.url || "/favicon.ico"}`,
+      apple: `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${siteConfig?.logo?.url || "/favicon.ico"}`,
     },
   };
 }
 
 export default async function RootLayout({ children }) {
   let siteConfig = {};
-  
+
   try {
     console.log('🔍 Layout: Attempting to fetch site config...');
     siteConfig = await api.siteConfig();
@@ -53,12 +54,16 @@ export default async function RootLayout({ children }) {
   } catch (error) {
     console.error('❌ Layout: Error fetching site config:', error);
   }
-  
+
+
+
+  const customPagesData = await api.customPages() || [];
+
   return (
     <html lang="en" data-theme={siteConfig?.color_theme || 'blue'}>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ClientProvidersWrapper>
-          <Header data={siteConfig} />
+          <Header data={siteConfig} customPagesData={customPagesData} />
           {children}
           <Footer activitiesData={[]} />
           <NotificationContainer />

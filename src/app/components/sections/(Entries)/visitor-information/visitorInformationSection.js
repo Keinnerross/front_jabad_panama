@@ -134,7 +134,7 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                 <div className="w-full max-w-7xl px-6 md:px-0">
                     <div className="flex justify-center items-center flex-col gap-6">
                         <div className="md:w-[60%] text-center flex flex-col items-center gap-6">
-                            <h1 className="text-4xl font-bold text-darkBlue md:w-[40%]">
+                            <h1 className="text-4xl md:text-5xl font-bold text-darkBlue md:w-[60%]">
                                 {infoTouristPageData?.title || "Title"}
                             </h1>
                             <p className="text-gray-text text-sm  leading-relaxed ">
@@ -154,14 +154,16 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                         </div>
                     </div>
                 </div>
-                <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
-                {/*  <div className="absolute top-0 left-0 w-40 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div>
 
-                <div className="absolute top-1/3 right-0 w-60 h-72 opacity-[0.08]">
-                    <div className="w-full h-full bg-red-300" />
-                </div> */}
+                {/* gradient  */}
+                <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
+                {/* Circle Images */}
+                <div className="hidden lg:block absolute left-0 top-4  w-40 h-72 ">
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
+                </div>
+                <div className="hidden lg:block absolute right-0 bottom-20 w-60 h-72 ">
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
+                </div>
             </section>
             <section className="w-full flex justify-center pb-20 px-6 md:px-0">
                 <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-12">

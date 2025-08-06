@@ -11,7 +11,7 @@ import { getAssetPath } from "@/app/utils/assetPath"
 
 
 
-export const FoodHomeSlider = ({ restaurantsData }) => {
+export const FoodHomeSlider = ({ restaurantsData, siteConfig }) => {
 
 
     // Datos de fallback
@@ -52,7 +52,9 @@ export const FoodHomeSlider = ({ restaurantsData }) => {
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">
-                    <p className="mb-8 md:mb-0 text-3xl md:text-3xl font-bold">Kosher Restaurants in Boquete</p>
+                    <p className="mb-8 md:mb-0 text-3xl md:text-3xl font-bold">
+                        Kosher Restaurants in {siteConfig?.city || "City Name"}
+                    </p>
 
                     <div className="inline md:hidden">
                         <ButtonTheme title="Explore restaurants" href="/restaurants" isFull />

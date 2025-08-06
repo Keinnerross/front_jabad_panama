@@ -59,9 +59,6 @@ export default async function Single({ params }) {
 
 
 
-    /*     console.log("SINGLE", pageData) */
-
-
     return (
         <div className="w-full flex justify-center pt-10 pb-20 md:py-20 border-t border-gray-200">
             <div className="w-full max-w-7xl px-6 md:px-0">

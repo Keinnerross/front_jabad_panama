@@ -8,7 +8,7 @@ import { getAssetPath } from "@/app/utils/assetPath";
 
 export const AboutHome = ({ aboutData }) => {
 
-/*   console.log("RES", aboutData) */
+  /*   console.log("RES", aboutData) */
   // Fallback data
   const fallbackData = {
     primaryDescription: "Primary Description",
@@ -37,16 +37,20 @@ export const AboutHome = ({ aboutData }) => {
     description2: homeAboutInfo?.description_2 || fallbackData.description2,
     whatsappGroupLink: homeAboutInfo?.whatsapp_group_link || fallbackData.whatsappGroupLink,
     itemList: homeAboutInfo?.item_list || fallbackData.itemList,
-    imageUrls: imagesArrayValidation(pictures, fallbackData)
+    imageUrls: imagesArrayValidation(pictures, fallbackData),
+    buttonText: homeAboutInfo?.button_text || "Text Button",
+    buttonLink: homeAboutInfo?.button_link || "/shabbat-holidays"
+
+
   };
 
 
   const links = {
-    cta: "/about",
+    cta: pageData.buttonLink,
     wsapGroup: pageData.whatsappGroupLink
   };
 
-  
+
 
   return (
     <div id="aboutHero" className="w-full bg-blueBackground md:pt-12 pb-24">
@@ -99,7 +103,7 @@ export const AboutHome = ({ aboutData }) => {
 
           <div className="relative order-2">
             <div className="hidden md:flex justify-end items-center h-36 ">
-              <ButtonTheme title="Join our Shabbat Table!" variation={3} href={links.cta} />
+              <ButtonTheme title={pageData.buttonText} variation={3} href={links.cta} />
             </div>
 
             <div className="hidden md:inline-block relative w-full h-64 md:h-80 lg:h-[700px] rounded-2xl overflow-hidden mb-14 ">

@@ -14,7 +14,7 @@ export const CardHotelsSlider = ({ hotel }) => {
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
     >
-      <div className="md:flex mr-8 h-full w-full md:w-[750px] md:h-[330px] rounded-xl overflow-hidden bg-white shadow-[inset_0_0_0_1px_theme(colors.gray.100)]">
+      <div className="md:flex mr-4 md:mr-8 h-full w-[87vw] md:w-[750px] md:h-[330px] rounded-xl overflow-hidden bg-white shadow-[inset_0_0_0_1px_theme(colors.gray.100)]">
         {/* Image Section */}
         <div className="relative w-full md:w-[40%] min-h-[200px] h-[200px] md:h-full overflow-hidden">
           <Image

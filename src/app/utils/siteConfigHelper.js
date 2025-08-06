@@ -1,32 +1,65 @@
+// Helper para obtener variables de entorno según el contexto (servidor/cliente)
+function getEnvVars() {
+  // En server components, usar conexión interna. En client, usar externa
+  const isServer = typeof window === 'undefined';
+  const baseUrl = isServer 
+    ? (process.env.STRAPI_INTERNAL_URL || 'http://localhost:1437')  // Configurable para server components
+    : (process.env.NEXT_PUBLIC_STRAPI_API_URL || 'https://212.85.22.57/chabbat'); // Externa para client
+  
+  return {
+    STRAPI_BASE_URL: baseUrl,
+    STRAPI_TOKEN: process.env.STRAPI_API_TOKEN || process.env.NEXT_PUBLIC_STRAPI_API_TOKEN
+  };
+}
+
 // Helper para obtener siteConfig en API routes
 export async function getSiteConfig() {
   try {
-    const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL;
-    const strapiToken = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN;
+    const { STRAPI_BASE_URL, STRAPI_TOKEN } = getEnvVars();
+    const isServer = typeof window === 'undefined';
     
-    if (!strapiUrl || !strapiToken) {
-      console.error('Missing Strapi configuration');
+    console.log('🔍 getSiteConfig() - Environment info:', {
+      isServer,
+      STRAPI_BASE_URL,
+      STRAPI_TOKEN: STRAPI_TOKEN ? 'EXISTS' : 'MISSING'
+    });
+    
+    if (!STRAPI_BASE_URL || !STRAPI_TOKEN) {
+      console.error('❌ Missing Strapi configuration:', { STRAPI_BASE_URL, STRAPI_TOKEN: !!STRAPI_TOKEN });
       return null;
     }
 
-    const response = await fetch(`${strapiUrl}/api/site-config?populate=*`, {
+    const url = `${STRAPI_BASE_URL}/api/site-config?populate=*`;
+    console.log('🚀 Fetching siteConfig from:', url);
+
+    const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${strapiToken}`,
+        'Authorization': `Bearer ${STRAPI_TOKEN}`,
         'Content-Type': 'application/json',
       },
       cache: 'no-store', // Always fetch fresh data for notifications
     });
 
     if (!response.ok) {
-      console.error('Failed to fetch siteConfig:', response.statusText);
+      console.error('❌ Failed to fetch siteConfig:', {
+        status: response.status,
+        statusText: response.statusText,
+        url
+      });
       return null;
     }
 
     const data = await response.json();
-    // Manejar diferentes estructuras de respuesta de Strapi
-    return data.data || data.attributes || data;
+    const siteConfig = data.data || data.attributes || data;
+    
+    console.log('✅ siteConfig fetched successfully:', {
+      notification_email: siteConfig?.notification_email || 'NOT_FOUND',
+      site_title: siteConfig?.site_title || 'NOT_FOUND'
+    });
+    
+    return siteConfig;
   } catch (error) {
-    console.error('Error fetching siteConfig:', error);
+    console.error('❌ Error fetching siteConfig:', error);
     return null;
   }
 }
@@ -34,16 +67,27 @@ export async function getSiteConfig() {
 // Helper específico para obtener notification_email
 export async function getNotificationEmail() {
   try {
+    console.log('📧 Getting notification email...');
     const siteConfig = await getSiteConfig();
     
-    if (!siteConfig?.notification_email) {
-      console.warn('No notification_email found in siteConfig');
+    if (!siteConfig) {
+      console.warn('⚠️ siteConfig is null, using fallback email');
+      console.log('📧 Fallback email:', process.env.EMAIL_USER);
+      return process.env.EMAIL_USER; // Fallback al email configurado
+    }
+    
+    if (!siteConfig.notification_email) {
+      console.warn('⚠️ notification_email not found in siteConfig:', siteConfig);
+      console.log('📧 Available fields:', Object.keys(siteConfig));
+      console.log('📧 Fallback email:', process.env.EMAIL_USER);
       return process.env.EMAIL_USER; // Fallback al email configurado
     }
 
+    console.log('✅ notification_email found:', siteConfig.notification_email);
     return siteConfig.notification_email;
   } catch (error) {
-    console.error('Error getting notification email:', error);
+    console.error('❌ Error getting notification email:', error);
+    console.log('📧 Fallback email:', process.env.EMAIL_USER);
     return process.env.EMAIL_USER; // Fallback al email configurado
   }
 }

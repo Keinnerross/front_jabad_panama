@@ -60,7 +60,7 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
         setMessage('');
 
         try {
-            const response = await fetch('/api/contact/submit', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/contact/submit`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

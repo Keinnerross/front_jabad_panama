@@ -15,8 +15,10 @@ export default function Donation() {
         amount: '',
         frequency: '',
         customMonths: '',
-        email: ''
+        email: '',
+        coverFees: false
     });
+    const [selectedPresetAmount, setSelectedPresetAmount] = useState(null);
 
     const frequencyOptions = [
         { value: 'one-time', label: 'One time' },
@@ -26,8 +28,33 @@ export default function Donation() {
         { value: 'other', label: 'Other' }
     ];
 
+    const presetAmounts = [54, 180, 360, 540, 770];
+
+    // Calculate transaction fee (5%)
+    const calculateTransactionFee = (amount) => {
+        return amount * 0.05;
+    };
+
+    // Calculate total with fees
+    const calculateGrandTotal = () => {
+        const baseAmount = parseFloat(formData.amount || 0);
+        const transactionFee = formData.coverFees ? calculateTransactionFee(baseAmount) : 0;
+        return baseAmount + transactionFee;
+    };
+
     const handleAmountChange = (e) => {
         setFormData({ ...formData, amount: e.target.value });
+        // Don't reset selectedPresetAmount if it's 'custom' - keep the input visible
+    };
+
+    const handlePresetAmountSelect = (amount) => {
+        setFormData({ ...formData, amount: amount.toString() });
+        setSelectedPresetAmount(amount);
+    };
+
+    const handleCustomAmountSelect = () => {
+        setFormData({ ...formData, amount: '' });
+        setSelectedPresetAmount('custom');
     };
 
     const handleFrequencyChange = (e) => {
@@ -87,8 +114,14 @@ export default function Donation() {
             const isSubscription = ['monthly', '12-months', '24-months', 'other'].includes(formData.frequency);
 
             // 2. Preparar datos para Stripe
+            const baseAmount = parseFloat(formData.amount);
+            const finalAmount = formData.coverFees ? calculateGrandTotal() : baseAmount;
+            
             const donationData = {
-                amount: parseFloat(formData.amount),
+                amount: finalAmount,
+                baseAmount: baseAmount,
+                transactionFee: formData.coverFees ? calculateTransactionFee(baseAmount) : 0,
+                coverFees: formData.coverFees,
                 frequency: formData.frequency,
                 customMonths: formData.frequency === 'other' ? parseInt(formData.customMonths) : null,
                 customer: { email: formData.email },
@@ -96,7 +129,10 @@ export default function Donation() {
                     purpose: 'Donation',
                     project: 'Chabad Boquete',
                     donationType: isSubscription ? 'subscription' : 'one-time',
-                    description: getDonationDescription(formData.frequency, formData.customMonths)
+                    description: getDonationDescription(formData.frequency, formData.customMonths),
+                    coverFees: formData.coverFees.toString(),
+                    baseAmount: baseAmount.toString(),
+                    transactionFee: formData.coverFees ? calculateTransactionFee(baseAmount).toString() : '0'
                 }
             };
 
@@ -109,17 +145,34 @@ export default function Donation() {
             } else {
                 // Para pagos únicos, usar el formato del endpoint checkout
                 endpoint = '/api/checkout';
-                payload = {
-                    line_items: [{
+                const line_items = [{
+                    price_data: {
+                        currency: 'usd',
+                        unit_amount: Math.round(donationData.baseAmount * 100),
+                        product_data: {
+                            name: `Donación única - ${donationData.metadata.project}`,
+                        },
+                    },
+                    quantity: 1,
+                }];
+
+                // Si hay transaction fee, agregarlo como item separado
+                if (donationData.coverFees && donationData.transactionFee > 0) {
+                    line_items.push({
                         price_data: {
                             currency: 'usd',
-                            unit_amount: Math.round(donationData.amount * 100),
+                            unit_amount: Math.round(donationData.transactionFee * 100),
                             product_data: {
-                                name: `Donación única - ${donationData.metadata.project}`,
+                                name: 'Transaction Fee',
+                                description: 'Processing fee to help cover payment costs (5%)'
                             },
                         },
                         quantity: 1,
-                    }],
+                    });
+                }
+
+                payload = {
+                    line_items,
                     customer: donationData.customer,
                     metadata: donationData.metadata
                 };
@@ -228,26 +281,70 @@ export default function Donation() {
                                 </p>
 
                                 <div className="text-3xl font-bold text-darkBlue mb-6">
-                                    {formData.amount ? `$${formData.amount} USD` : '$0.00 USD'}
+                                    {formData.amount ? (
+                                        formData.coverFees ? (
+                                            <div>
+                                                <div>${calculateGrandTotal().toFixed(2)} USD</div>
+                                                <div className="text-sm text-gray-500 font-normal">
+                                                    (${formData.amount} + ${calculateTransactionFee(parseFloat(formData.amount)).toFixed(2)} fee)
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            `$${formData.amount} USD`
+                                        )
+                                    ) : '$0.00 USD'}
                                 </div>
 
 
                                 {/* Step 1: Donation Amount */}
                                 {currentStep === 1 && (
                                     <div className="mb-6">
-                                        <label className="block text-gray-text mb-2">Amount (USD)</label>
-                                        <div className="relative">
-                                            <input
-                                                type="number"
-                                                placeholder="00.00"
-                                                value={formData.amount}
-                                                onChange={handleAmountChange}
-                                                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
-                                                min="1"
-                                                step="0.01"
-                                            />
-                                            <span className="absolute right-4 top-4 text-gray-text">$</span>
+                                        <label className="block text-gray-text mb-4">Select amount (USD)</label>
+                                        
+                                        {/* Preset Amount Buttons */}
+                                        <div className="grid grid-cols-2 gap-3 mb-4">
+                                            {presetAmounts.map((amount) => (
+                                                <button
+                                                    key={amount}
+                                                    type="button"
+                                                    onClick={() => handlePresetAmountSelect(amount)}
+                                                    className={`p-3 border rounded-lg font-medium transition-colors cursor-pointer ${
+                                                        selectedPresetAmount === amount
+                                                            ? 'border-primary bg-primary text-white'
+                                                            : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+                                                    }`}
+                                                >
+                                                    ${amount}
+                                                </button>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={handleCustomAmountSelect}
+                                                className={`p-3 border rounded-lg font-medium transition-colors cursor-pointer ${
+                                                    selectedPresetAmount === 'custom'
+                                                        ? 'border-primary bg-primary text-white'
+                                                        : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+                                                }`}
+                                            >
+                                                Other
+                                            </button>
                                         </div>
+
+                                        {/* Custom Amount Input - Only show when "Other" is selected */}
+                                        {selectedPresetAmount === 'custom' && (
+                                            <div className="relative">
+                                                <input
+                                                    type="number"
+                                                    placeholder="00.00"
+                                                    value={formData.amount}
+                                                    onChange={handleAmountChange}
+                                                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
+                                                    min="1"
+                                                    step="0.01"
+                                                />
+                                                <span className="absolute right-4 top-4 text-gray-text">$</span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -288,16 +385,44 @@ export default function Donation() {
 
                                 {/* Step 3: Email */}
                                 {currentStep === 3 && (
-                                    <div className="mb-6">
-                                        <label className="block text-gray-text mb-2">Email address</label>
-                                        <input
-                                            type="email"
-                                            placeholder="Enter your email address"
-                                            value={formData.email}
-                                            onChange={handleEmailChange}
-                                            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
-                                            required
-                                        />
+                                    <div className="mb-6 space-y-6">
+                                        <div>
+                                            <label className="block text-gray-text mb-2">Email address</label>
+                                            <input
+                                                type="email"
+                                                placeholder="Enter your email address"
+                                                value={formData.email}
+                                                onChange={handleEmailChange}
+                                                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-darkBlue"
+                                                required
+                                            />
+                                        </div>
+
+                                        {/* Transaction Fee Checkbox */}
+                                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                            <div className="flex items-start gap-3">
+                                                <input
+                                                    type="checkbox"
+                                                    name="coverFees"
+                                                    checked={formData.coverFees}
+                                                    onChange={(e) => setFormData({ ...formData, coverFees: e.target.checked })}
+                                                    className="w-5 h-5 mt-0.5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                                />
+                                                <div className="flex-1">
+                                                    <p className="text-gray-text text-sm font-medium">
+                                                        Help us avoid credit card fees? 
+                                                        {formData.amount && (
+                                                            <span className="text-primary font-semibold">
+                                                                {" "}(+${calculateTransactionFee(parseFloat(formData.amount)).toFixed(2)})
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                    <p className="text-gray-500 text-xs mt-1">
+                                                        Add 5% to cover processing fees so 100% of your donation goes to Chabad
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 

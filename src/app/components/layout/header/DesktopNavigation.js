@@ -2,13 +2,13 @@ import React from 'react';
 import Link from 'next/link';
 import { FiChevronDown } from 'react-icons/fi';
 
-export const DesktopNavigation = ({ 
-    menuItems, 
-    hoveredDropdown, 
-    setHoveredDropdown 
+export const DesktopNavigation = ({
+    menuItems,
+    hoveredDropdown,
+    setHoveredDropdown
 }) => {
     return (
-        <nav className="hidden lg:flex items-center space-x-8">
+        <nav className="hidden lg:flex items-center space-x-6">
             {menuItems.map((item, index) => (
                 <div
                     key={index}
@@ -53,7 +53,7 @@ export const DesktopNavigation = ({
                                             href={sub.path}
                                             className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
                                         >
-                                            <IconComponent className="mr-3 text-sm" />
+                                            <IconComponent className={`${IconComponent.name === 'GoTriangleRight' ? 'mr-1 text-xl -translate-x-1' : 'mr-3   text-base'}`} />
                                             <span>{sub.name}</span>
                                         </Link>
                                     );

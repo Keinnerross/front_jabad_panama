@@ -6,6 +6,7 @@ import Image from "next/image";
 import React, { Fragment, useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa";
 import { getAssetPath } from "@/app/utils/assetPath";
+import { getApiUrl } from "@/app/utils/urlHelper";
 
 export default function Donation() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -140,11 +141,11 @@ export default function Donation() {
             let endpoint, payload;
             
             if (isSubscription) {
-                endpoint = '/api/create-subscription';
+                endpoint = getApiUrl('/api/create-subscription');
                 payload = donationData;
             } else {
                 // Para pagos únicos, usar el formato del endpoint checkout
-                endpoint = '/api/checkout';
+                endpoint = getApiUrl('/api/checkout');
                 const line_items = [{
                     price_data: {
                         currency: 'usd',
@@ -184,10 +185,29 @@ export default function Donation() {
                 body: JSON.stringify(payload)
             });
 
-            const responseData = await response.json();
-
+            // Verificar si la respuesta es exitosa
             if (!response.ok) {
-                throw new Error(responseData.error || 'Error al procesar la donación');
+                let errorMessage = 'Network error occurred';
+                try {
+                    // Intentar obtener el mensaje de error del JSON
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (parseError) {
+                    // Si no es JSON válido, usar el status de la respuesta
+                    errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
+            }
+
+            let responseData;
+            try {
+                responseData = await response.json();
+            } catch (parseError) {
+                throw new Error('Invalid response format from server');
+            }
+
+            if (!responseData.id) {
+                throw new Error('No session ID received from payment processor');
             }
 
             const { id } = responseData;

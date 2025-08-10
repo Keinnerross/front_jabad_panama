@@ -368,7 +368,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                                 return (
                                                     <div key={variantIndex} className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 rounded gap-3">
                                                         <div className="flex-1">
-                                                            <span className="font-medium text-sm sm:text-base">{variant.size}</span>
+                                                            <span className="font-medium text-sm sm:text-base">{variant.title}</span>
                                                             <span className="text-gray-600 text-xs sm:text-sm ml-2">({variant.serves})</span>
                                                         </div>
                                                         <div className="flex items-center justify-between sm:gap-3">

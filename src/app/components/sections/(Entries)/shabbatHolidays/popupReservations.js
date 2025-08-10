@@ -14,6 +14,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("");
     const [selectedDate, setSelectedDate] = useState(null);
+    const [showDateError, setShowDateError] = useState(false);
     const { addToCart: addToCartContext } = useCart();
 
     // Bloquear scroll del body cuando el popup está abierto
@@ -63,6 +64,17 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         }
     }, [shabbatData, activeTab, isCustomEvent]);
 
+    // Auto-select date when there's only one available (for 'once' repeat mode)
+    useEffect(() => {
+        if (isCustomEvent && isOpen) {
+            const availableDates = getAvailableDates();
+            // If there's only one date available and no date is selected yet, auto-select it
+            if (availableDates.length === 1 && !selectedDate) {
+                setSelectedDate(availableDates[0]);
+            }
+        }
+    }, [isCustomEvent, isOpen, shabbatData]);
+
     // Generate available dates based on repeat_control
     const getAvailableDates = () => {
         if (!isCustomEvent || !shabbatData?.repeat_control) return [];
@@ -75,9 +87,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             case 'once':
                 if (date) {
                     const eventDate = new Date(date + 'T00:00:00');
-                    if (eventDate >= today) {
-                        dates.push(eventDate);
-                    }
+                    // Para eventos 'once', siempre incluir la fecha aunque sea pasada
+                    dates.push(eventDate);
                 }
                 break;
                 
@@ -162,6 +173,13 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     };
 
     const addToCart = async () => {
+        // Validar fecha para eventos custom
+        if (isCustomEvent && !selectedDate) {
+            setShowDateError(true);
+            return;
+        }
+        
+        setShowDateError(false);
         setIsLoading(true);
         
         const cartItems = [];
@@ -182,7 +200,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 unitPrice: parseFloat(variant.price),
                                 totalPrice: quantities[key] * parseFloat(variant.price),
                                 shabbatName: shabbatData?.name,
-                                shabbatDate: selectedDate ? selectedDate.toLocaleDateString() : shabbatData?.name,
+                                shabbatDate: selectedDate ? `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}` : shabbatData?.name,
                                 productType: 'mealReservation'
                             });
                         }
@@ -198,7 +216,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             unitPrice: parseFloat(meal.basePrice),
                             totalPrice: quantities[key] * parseFloat(meal.basePrice),
                             shabbatName: shabbatData?.name,
-                            shabbatDate: selectedDate ? selectedDate.toLocaleDateString() : shabbatData?.name,
+                            shabbatDate: selectedDate ? `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}` : shabbatData?.name,
                             productType: 'mealReservation'
                         });
                     }
@@ -290,26 +308,109 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         </div>
                         
                         {/* Date Selector for Custom Events */}
-                        {isCustomEvent && (
-                            <div className="mb-4">
-                                <select
-                                    className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 cursor-pointer text-sm"
-                                    value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
-                                    onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : null)}
-                                >
-                                    <option value="">Choose a date</option>
-                                    {getAvailableDates().map((date, index) => (
-                                        <option key={index} value={date.toISOString().split('T')[0]}>
-                                            {date.toLocaleDateString('en-US', { 
-                                                weekday: 'short', 
-                                                month: 'short', 
-                                                day: 'numeric' 
-                                            })}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                        {isCustomEvent && (() => {
+                            const availableDates = getAvailableDates();
+                            
+                            if (availableDates.length === 0) {
+                                // No dates available
+                                return (
+                                    <div className="mb-4">
+                                        <div className="p-3 border border-red-300 rounded-lg bg-red-50">
+                                            <p className="text-red-600 text-sm">No dates available for this event</p>
+                                        </div>
+                                    </div>
+                                );
+                            } else if (availableDates.length === 1) {
+                                // Single date - show as fixed text
+                                const eventDate = new Date(availableDates[0]);
+                                const today = new Date();
+                                
+                                // Determine if the event is in the past
+                                let isPastDate = false;
+                                let statusText = '';
+                                
+                                if (shabbatData?.repeat_control) {
+                                    const { repeat_mode, all_day, hour_start, hour_end } = shabbatData.repeat_control;
+                                    
+                                    // Compare dates without time
+                                    const eventDateOnly = new Date(eventDate);
+                                    eventDateOnly.setHours(0, 0, 0, 0);
+                                    const todayDateOnly = new Date(today);
+                                    todayDateOnly.setHours(0, 0, 0, 0);
+                                    
+                                    if (eventDateOnly < todayDateOnly) {
+                                        // Date has passed
+                                        isPastDate = true;
+                                        statusText = '(Past date)';
+                                    } else if (eventDateOnly.getTime() === todayDateOnly.getTime()) {
+                                        // It's today - check time if not all day
+                                        if (!all_day && hour_end) {
+                                            const [hours, minutes] = hour_end.split(':').map(n => parseInt(n));
+                                            const endTime = new Date(today);
+                                            endTime.setHours(hours, minutes, 0, 0);
+                                            
+                                            if (today > endTime) {
+                                                isPastDate = true;
+                                                statusText = '(Event ended)';
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                return (
+                                    <div className="mb-4">
+                                        <div className={`p-3 border rounded-lg ${
+                                            isPastDate ? 'border-amber-300 bg-amber-50' : 'border-gray-300 bg-gray-50'
+                                        }`}>
+                                            <div>
+                                                <p className={`text-sm font-medium ${
+                                                    isPastDate ? 'text-amber-700' : 'text-gray-700'
+                                                }`}>
+                                                    Event Date: {selectedDate?.toLocaleDateString('en-US', { 
+                                                        weekday: 'long', 
+                                                        month: 'long', 
+                                                        day: 'numeric',
+                                                        year: 'numeric'
+                                                    })}
+                                                    {isPastDate && <span className="ml-2 text-xs">{statusText}</span>}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            } else {
+                                // Multiple dates - show selector
+                                return (
+                                    <div className="mb-4">
+                                        <select
+                                            className={`w-full p-3 border rounded-lg text-gray-700 cursor-pointer text-sm ${
+                                                showDateError && !selectedDate ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                            }`}
+                                            value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+                                            onChange={(e) => {
+                                                setSelectedDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : null);
+                                                setShowDateError(false);
+                                            }}
+                                            required
+                                        >
+                                            <option value="">Choose a date *</option>
+                                            {availableDates.map((date, index) => (
+                                                <option key={index} value={date.toISOString().split('T')[0]}>
+                                                    {date.toLocaleDateString('en-US', { 
+                                                        weekday: 'short', 
+                                                        month: 'short', 
+                                                        day: 'numeric' 
+                                                    })}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {showDateError && !selectedDate && (
+                                            <p className="text-red-500 text-sm mt-1">Please select a date to continue</p>
+                                        )}
+                                    </div>
+                                );
+                            }
+                        })()}
                         
                         {/* Tabs for Custom Events */}
                         {isCustomEvent && shabbatData?.category_menu?.length > 0 && (

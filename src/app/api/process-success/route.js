@@ -1,65 +1,78 @@
 import Stripe from 'stripe';
-import { headers } from 'next/headers';
 
 // Fix para certificados self-signed en desarrollo
 if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
-import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../../utils/siteConfigHelper.js';
-import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../../services/emailService.js';
-import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../../utils/siteConfigHelper.js';
+
+import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../utils/siteConfigHelper.js';
+import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../services/emailService.js';
+import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../utils/siteConfigHelper.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+// In-memory store to track processed sessions (in production, use Redis or database)
+const processedSessions = new Set();
 
 export async function POST(request) {
-  const body = await request.text();
-  const signature = headers().get('stripe-signature');
-
-  let event;
-
   try {
-    event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return Response.json({ error: 'Webhook signature verification failed' }, { status: 400 });
-  }
-
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(event.data.object);
-        break;
-      
-      case 'invoice.payment_succeeded':
-        await handleInvoicePaymentSucceeded(event.data.object);
-        break;
-      
-      case 'customer.subscription.created':
-        await handleSubscriptionCreated(event.data.object);
-        break;
-      
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object);
-        break;
-      
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object);
-        break;
-      
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
+    // Check if we should process payments here (only in development/non-webhook mode)
+    const useWebhookProcessing = process.env.USE_WEBHOOK_PROCESSING === 'true';
+    
+    if (useWebhookProcessing) {
+      console.log('❌ Process-success API disabled - webhook processing is enabled');
+      return Response.json({ 
+        error: 'Payment processing is handled by webhook in this environment' 
+      }, { status: 400 });
     }
 
-    return Response.json({ received: true });
-  } catch (err) {
-    console.error('Error processing webhook:', err);
-    return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
+    console.log('🔄 Process-success API enabled for development mode');
+    
+    const { sessionId } = await request.json();
+    
+    if (!sessionId) {
+      return Response.json({ error: 'Session ID is required' }, { status: 400 });
+    }
+
+    // Check if already processed
+    if (processedSessions.has(sessionId)) {
+      console.log('ℹ️ Session already processed:', sessionId);
+      return Response.json({ success: true, message: 'Session already processed', alreadyProcessed: true });
+    }
+
+    console.log('🔄 Processing success for session:', sessionId);
+
+    // Mark as processed immediately
+    processedSessions.add(sessionId);
+
+    // Retrieve session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    if (!session) {
+      // Remove from processed set if session not found
+      processedSessions.delete(sessionId);
+      return Response.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    try {
+      // Process the session the same way as webhook
+      await handleCheckoutSessionCompleted(session);
+      return Response.json({ success: true, message: 'Payment processed successfully' });
+    } catch (processingError) {
+      // Remove from processed set if processing failed
+      processedSessions.delete(sessionId);
+      throw processingError;
+    }
+    
+  } catch (error) {
+    console.error('Error processing success:', error);
+    return Response.json({ error: 'Processing failed', details: error.message }, { status: 500 });
   }
 }
 
+// Copy the same logic from webhook
 async function handleCheckoutSessionCompleted(session) {
-  console.log('Checkout session completed:', session.id);
+  console.log('Processing checkout session:', session.id);
   
   try {
     // Obtener email de notificación
@@ -107,37 +120,26 @@ async function handleCheckoutSessionCompleted(session) {
         };
 
         // Enviar notificación al admin
-        sendDonationNotification(notificationEmail, donationData)
-          .then((result) => {
-            if (result.success) {
-              logNotification('DONATION', notificationEmail, donationData);
-            }
-          })
-          .catch((error) => {
-            handleNotificationError(error, 'webhook donation notification');
-          });
+        const adminResult = await sendDonationNotification(notificationEmail, donationData);
+        if (adminResult.success) {
+          logNotification('DONATION', notificationEmail, donationData);
+        } else {
+          handleNotificationError(adminResult.error, 'admin donation notification');
+        }
 
         // Enviar confirmación al usuario
-        sendUserDonationConfirmation(customerInfo.email, donationData)
-          .then((result) => {
-            if (result.success) {
-              logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
-            }
-          })
-          .catch((error) => {
-            handleNotificationError(error, 'webhook user donation confirmation');
-          });
+        const userResult = await sendUserDonationConfirmation(customerInfo.email, donationData);
+        if (userResult.success) {
+          logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
+        } else {
+          handleNotificationError(userResult.error, 'user donation confirmation');
+        }
 
         // Guardar donación de suscripción en Strapi después de emails exitosos
-        saveDonationToStrapi(session, metadata, 'subscription')
-          .then((result) => {
-            if (result) {
-              console.log('✅ Subscription donation successfully saved to Strapi:', result.data?.documentId);
-            }
-          })
-          .catch((error) => {
-            console.error('❌ Failed to save subscription donation to Strapi:', error);
-          });
+        const strapiResult = await saveDonationToStrapi(session, metadata, 'subscription');
+        if (strapiResult) {
+          console.log('✅ Subscription donation successfully saved to Strapi:', strapiResult.data?.documentId);
+        }
       }
 
     } else if (session.mode === 'payment') {
@@ -171,37 +173,26 @@ async function handleCheckoutSessionCompleted(session) {
           };
 
           // Notificación al admin
-          sendDonationNotification(notificationEmail, donationData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('DONATION', notificationEmail, donationData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook donation notification');
-            });
+          const adminResult = await sendDonationNotification(notificationEmail, donationData);
+          if (adminResult.success) {
+            logNotification('DONATION', notificationEmail, donationData);
+          } else {
+            handleNotificationError(adminResult.error, 'admin donation notification');
+          }
 
           // Confirmación al usuario
-          sendUserDonationConfirmation(customerInfo.email, donationData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook user donation confirmation');
-            });
+          const userResult = await sendUserDonationConfirmation(customerInfo.email, donationData);
+          if (userResult.success) {
+            logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
+          } else {
+            handleNotificationError(userResult.error, 'user donation confirmation');
+          }
 
           // Guardar donación en Strapi después de emails exitosos
-          saveDonationToStrapi(session, metadata, 'one-time')
-            .then((result) => {
-              if (result) {
-                console.log('✅ Donation successfully saved to Strapi:', result.data?.documentId);
-              }
-            })
-            .catch((error) => {
-              console.error('❌ Failed to save donation to Strapi:', error);
-            });
+          const strapiResult = await saveDonationToStrapi(session, metadata, 'one-time');
+          if (strapiResult) {
+            console.log('✅ Donation successfully saved to Strapi:', strapiResult.data?.documentId);
+          }
 
         } else {
           // Enviar emails de pedido regular
@@ -244,170 +235,33 @@ async function handleCheckoutSessionCompleted(session) {
           };
 
           // Notificación al admin
-          sendOrderNotification(notificationEmail, orderData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('ORDER', notificationEmail, orderData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook order notification');
-            });
+          const adminResult = await sendOrderNotification(notificationEmail, orderData);
+          if (adminResult.success) {
+            logNotification('ORDER', notificationEmail, orderData);
+          } else {
+            handleNotificationError(adminResult.error, 'admin order notification');
+          }
 
           // Confirmación al usuario
-          sendUserOrderConfirmation(customerInfo.email, orderData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('USER_ORDER_CONFIRMATION', customerInfo.email, orderData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook user order confirmation');
-            });
+          const userResult = await sendUserOrderConfirmation(customerInfo.email, orderData);
+          if (userResult.success) {
+            logNotification('USER_ORDER_CONFIRMATION', customerInfo.email, orderData);
+          } else {
+            handleNotificationError(userResult.error, 'user order confirmation');
+          }
 
           // Guardar orden en Strapi después de emails exitosos
-          saveOrderToStrapi(session, metadata, enrichedItems)
-            .then((result) => {
-              if (result) {
-                console.log('✅ Order successfully saved to Strapi:', result.data?.documentId);
-              }
-            })
-            .catch((error) => {
-              console.error('❌ Failed to save order to Strapi:', error);
-            });
+          const strapiResult = await saveOrderToStrapi(session, metadata, enrichedItems);
+          if (strapiResult) {
+            console.log('✅ Order successfully saved to Strapi:', strapiResult.data?.documentId);
+          }
         }
       }
     }
   } catch (error) {
     console.error('Error in handleCheckoutSessionCompleted:', error);
     handleNotificationError(error, 'checkout session completed handler');
-  }
-}
-
-async function handleInvoicePaymentSucceeded(invoice) {
-  console.log('Invoice payment succeeded:', invoice.id);
-  
-  // Solo procesar si es una suscripción
-  if (!invoice.subscription) return;
-  
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
-  const metadata = subscription.metadata || {};
-  
-  // Solo procesar suscripciones limitadas
-  if (metadata.subscriptionType !== 'limited' || !metadata.maxPayments) {
-    return;
-  }
-  
-  const maxPayments = parseInt(metadata.maxPayments);
-  const currentPayments = parseInt(metadata.paymentsCount || '0') + 1;
-  
-  console.log(`Pago ${currentPayments} de ${maxPayments} para suscripción ${subscription.id}`);
-  
-  // Actualizar contador de pagos
-  await stripe.subscriptions.update(subscription.id, {
-    metadata: {
-      ...metadata,
-      paymentsCount: currentPayments.toString(),
-      lastPaymentDate: new Date().toISOString()
-    }
-  });
-  
-  // Si se alcanzó el máximo de pagos, cancelar la suscripción
-  if (currentPayments >= maxPayments) {
-    console.log(`Cancelando suscripción ${subscription.id} - se alcanzó el máximo de pagos`);
-    
-    await stripe.subscriptions.cancel(subscription.id, {
-      prorate: false // No prorratear el último pago
-    });
-    
-    // Opcional: Enviar notificación al usuario
-    await sendSubscriptionCompletedNotification(subscription, metadata);
-  }
-}
-
-async function handleSubscriptionCreated(subscription) {
-  console.log('Subscription created:', subscription.id);
-  
-  // Log para debugging
-  const metadata = subscription.metadata || {};
-  console.log('Subscription metadata:', metadata);
-}
-
-async function handleSubscriptionUpdated(subscription) {
-  console.log('Subscription updated:', subscription.id);
-  
-  // Log para debugging
-  const metadata = subscription.metadata || {};
-  if (metadata.subscriptionType === 'limited') {
-    console.log(`Suscripción limitada actualizada - Pagos: ${metadata.paymentsCount}/${metadata.maxPayments}`);
-  }
-}
-
-async function handleSubscriptionDeleted(subscription) {
-  console.log('Subscription deleted:', subscription.id);
-  
-  const metadata = subscription.metadata || {};
-  
-  // Log específico para suscripciones completadas vs canceladas
-  if (metadata.subscriptionType === 'limited') {
-    const paymentsCount = parseInt(metadata.paymentsCount || '0');
-    const maxPayments = parseInt(metadata.maxPayments || '0');
-    
-    if (paymentsCount >= maxPayments) {
-      console.log(`Suscripción ${subscription.id} completada exitosamente - ${paymentsCount} pagos realizados`);
-    } else {
-      console.log(`Suscripción ${subscription.id} cancelada prematuramente - ${paymentsCount}/${maxPayments} pagos realizados`);
-    }
-  }
-}
-
-async function sendSubscriptionCompletedNotification(subscription, metadata) {
-  try {
-    if (validateEmailConfig()) {
-      const notificationEmail = await getNotificationEmail();
-      
-      if (notificationEmail) {
-        // Obtener información del cliente de Stripe
-        let customerInfo = { email: 'unknown@email.com' };
-        
-        if (subscription.customer) {
-          try {
-            const customer = await stripe.customers.retrieve(subscription.customer);
-            customerInfo = {
-              email: customer.email || 'unknown@email.com',
-              firstName: customer.name?.split(' ')[0] || '',
-              lastName: customer.name?.split(' ').slice(1).join(' ') || ''
-            };
-          } catch (err) {
-            console.error('Error retrieving customer:', err);
-          }
-        }
-
-        const donationData = {
-          customer: customerInfo,
-          amount: parseFloat(metadata.originalAmount || '0'),
-          frequency: metadata.frequency || 'monthly',
-          donationType: 'subscription_completed',
-          metadata: {
-            ...metadata,
-            subscriptionId: subscription.id,
-            totalPayments: metadata.paymentsCount,
-            completionReason: 'Subscription completed successfully'
-          }
-        };
-
-        // Enviar notificación de suscripción completada
-        const result = await sendDonationNotification(notificationEmail, donationData);
-        
-        if (result.success) {
-          logNotification('SUBSCRIPTION_COMPLETED', notificationEmail, donationData);
-        } else {
-          handleNotificationError(result.error, 'subscription completed notification');
-        }
-      }
-    }
-  } catch (error) {
-    handleNotificationError(error, 'subscription completed notification setup');
+    throw error; // Re-throw to be handled by the main function
   }
 }
 
@@ -582,32 +436,6 @@ function formatDateForStrapi(dateString) {
   return dateString; // Devolver el texto original sin conversión
 }
 
-// Helper para extraer nombre del evento de la descripción
-function extractEventNameFromDescription(description) {
-  if (!description) return null;
-  
-  // Buscar patrones como "Parashat [nombre]" o nombres específicos
-  const parashahMatch = description.match(/Parashat\s+(\w+)/i);
-  if (parashahMatch) {
-    return `Parashat ${parashahMatch[1]}`;
-  }
-  
-  // Para Shabbat Box, extraer el nombre del evento
-  if (description.includes('shabbatBox')) {
-    return description.split(' - ')[0] || 'Shabbat';
-  }
-  
-  return null;
-}
-
-// Helper para extraer nombre de parashá de la descripción  
-function extractParashahFromDescription(description) {
-  if (!description) return null;
-  
-  const parashahMatch = description.match(/Parashat\s+(\w+)/i);
-  return parashahMatch ? `Parashat ${parashahMatch[1]}` : null;
-}
-
 // Helper para formatear descripción de orden
 function formatOrderDescription(parsedItems, totalAmount) {
   const lines = [];
@@ -636,4 +464,30 @@ function formatOrderDescription(parsedItems, totalAmount) {
   lines.push(`Total: $${totalAmount.toFixed(2)}`);
 
   return lines.join('\n');
+}
+
+// Helper para extraer nombre del evento de la descripción
+function extractEventNameFromDescription(description) {
+  if (!description) return null;
+  
+  // Buscar patrones como "Parashat [nombre]" o nombres específicos
+  const parashahMatch = description.match(/Parashat\s+(\w+)/i);
+  if (parashahMatch) {
+    return `Parashat ${parashahMatch[1]}`;
+  }
+  
+  // Para Shabbat Box, extraer el nombre del evento
+  if (description.includes('shabbatBox')) {
+    return description.split(' - ')[0] || 'Shabbat';
+  }
+  
+  return null;
+}
+
+// Helper para extraer nombre de parashá de la descripción  
+function extractParashahFromDescription(description) {
+  if (!description) return null;
+  
+  const parashahMatch = description.match(/Parashat\s+(\w+)/i);
+  return parashahMatch ? `Parashat ${parashahMatch[1]}` : null;
 }

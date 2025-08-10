@@ -18,8 +18,45 @@ const PopupReservations = lazy(() =>
     }))
 );
 
+// Loading skeleton component
+const SingleReservationsSkeleton = () => (
+    <div className="w-full flex justify-center mt-10 pb-6 md:pb-20">
+        <div className="w-full max-w-7xl px-4 md:px-0">
+            {/* Title skeleton */}
+            <div className="mb-8">
+                <div className="h-10 bg-gray-200 rounded-lg w-3/4 mb-4 animate-pulse"></div>
+                <div className="h-12 bg-gray-200 rounded-lg w-40 animate-pulse"></div>
+            </div>
+
+            {/* Category tags skeleton */}
+            <div className="flex gap-4 mb-8">
+                <div className="h-8 bg-gray-200 rounded-full w-32 animate-pulse"></div>
+                <div className="h-8 bg-gray-200 rounded-full w-32 animate-pulse"></div>
+            </div>
+
+            {/* Main image skeleton */}
+            <div className="w-full h-80 md:h-[500px] bg-gray-200 rounded-xl mb-12 animate-pulse"></div>
+
+            {/* Content skeleton */}
+            <div className="flex flex-col lg:flex-row md:gap-12">
+                <div className="lg:w-[70%] space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3 mb-6 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-4/6 animate-pulse"></div>
+                    <div className="h-32 bg-gray-200 rounded-lg mt-4 animate-pulse"></div>
+                    <div className="h-32 bg-gray-200 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="lg:w-[30%]">
+                    <div className="h-64 bg-gray-200 rounded-xl animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
 export default function SingleReservationsSection({ shabbatsAndHolidaysData, restaurantsData, shabbatsRegisterPricesData }) {
-    
+
     // Use API data instead of static data
     const pricesRegistrationShabbat = shabbatsRegisterPricesData || [];
     const searchParams = useSearchParams();
@@ -27,6 +64,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
     const [selectedShabbatData, setSelectedShabbatData] = useState(null);
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [isCustomEvent, setIsCustomEvent] = useState(false);
+    const [isDataReady, setIsDataReady] = useState(false);
 
     // Get sorted Shabbats from API data  
     const sortedShabbats = shabbatsAndHolidaysData || [];
@@ -38,15 +76,25 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
 
     useEffect(() => {
         const shabbatId = searchParams.get('shabbat');
-        if (shabbatId !== null && sortedShabbats.length > 0) {
-            // Find event by ID (not index)
-            const selectedEvent = sortedShabbats.find(event => event.id.toString() === shabbatId);
-            if (selectedEvent) {
-                setSelectedShabbatData(selectedEvent);
-                setIsCustomEvent(selectedEvent.type_of_event === 'custom');
-            }
+
+        // Exit early if no ID or no data
+        if (!shabbatId || sortedShabbats.length === 0) {
+            setIsDataReady(true); // Mark as ready even if no data
+            return;
         }
-    }, [searchParams, sortedShabbats]);
+
+        // Find event by ID (not index)
+        const selectedEvent = sortedShabbats.find(event => event.id.toString() === shabbatId);
+
+        // Only update if event found and different from current
+        if (selectedEvent && selectedEvent.id !== selectedShabbatData?.id) {
+            setSelectedShabbatData(selectedEvent);
+            setIsCustomEvent(selectedEvent.type_of_event === 'custom');
+        }
+
+        // Mark data as ready
+        setIsDataReady(true);
+    }, [searchParams.get('shabbat'), sortedShabbats.length]); // More specific dependencies
 
     const handleMealSelection = (meal) => {
         setSelectedMeal(meal);
@@ -68,16 +116,13 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
         }
     };
 
-
-
-
-
-
-
-
+    // Show skeleton while loading
+    if (!isDataReady || !selectedShabbatData) {
+        return <SingleReservationsSkeleton />;
+    }
     return (
         <Fragment>
-            <div className="w-full flex justify-center mt-10 pb-6 md:pb-20">
+            <div className="w-full flex justify-center pt-10 pb-6 md:pb-20 border-t border-gray-200">
                 <div className="w-full max-w-7xl px-4 md:px-0">
                     {/* Hero Section */}
                     <section className="mb-16">
@@ -89,16 +134,13 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                     </h1>
                                 </div>
                             </div>
-
                             <div className="hidden md:block">
                                 <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} />
                             </div>
-
                             <div className="flex w-full md:hidden">
                                 <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
                             </div>
                         </div>
-
                         <div className="flex justify-center md:justify-start items-center gap-4 mb-8">
                             {isCustomEvent ? (
                                 selectedShabbatData?.category_menu?.slice(0, 3).map((category, index) => (
@@ -113,19 +155,18 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                         </div>
 
                         <div className="w-full h-80 md:h-[500px] rounded-xl overflow-hidden relative">
-                            <Image 
-                                fill 
+                            <Image
+                                fill
                                 src={
-                                    isCustomEvent && selectedShabbatData?.cover_picture?.url 
+                                    isCustomEvent && selectedShabbatData?.cover_picture?.url
                                         ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${selectedShabbatData.cover_picture.url}`
                                         : getAssetPath("/assets/pictures/shabbat-meals/meals-single.jpg")
-                                } 
-                                alt="picture-shabbat-meal" 
-                                className="w-full h-full object-cover" 
+                                }
+                                alt="picture-shabbat-meal"
+                                className="w-full h-full object-cover"
                             />
                         </div>
                     </section>
-
                     {/* Main Content Section */}
                     <div className="flex flex-col lg:flex-row md:gap-12">
                         {/* About Section */}
@@ -165,7 +206,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                             </div>
                                                         </div>
                                                     )}
-                                                    
+
                                                     <div className="border border-gray-200 p-4 rounded-2xl">
                                                         <h3 className="font-semibold text-myBlack text-base mb-2">
                                                             Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -240,16 +281,16 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                             {selectedShabbatData?.name || "Error to fetch"}
                                         </h3>
                                         <p className="text-gray-text text-sm">
-                                            {isCustomEvent ? 
+                                            {isCustomEvent ?
                                                 `Join us for ${selectedShabbatData?.name || 'this special event'}. Register in advance to secure your spot and enjoy a unique experience with our community.` :
                                                 'Join us for a meaningful Shabbat or holiday experience by registering in advance for our communal meals. Whether you\'re traveling, new to the area, or just looking to connect, there\'s always a seat for you at our table.'
                                             }
                                         </p>
-                                        <ButtonTheme 
-                                            title={isCustomEvent ? `Register for ${selectedShabbatData?.name || 'Event'}` : "Register for Shabbat Meals"} 
-                                            variation={2} 
-                                            onClick={handleGeneralRegistration} 
-                                            disableLink={true} 
+                                        <ButtonTheme
+                                            title={isCustomEvent ? `Register for ${selectedShabbatData?.name || 'Event'}` : "Register for Shabbat Meals"}
+                                            variation={2}
+                                            onClick={handleGeneralRegistration}
+                                            disableLink={true}
                                         />
                                     </div>
                                 </div>

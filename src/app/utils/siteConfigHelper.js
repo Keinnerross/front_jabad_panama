@@ -117,11 +117,14 @@ export function formatCustomerInfo(customer) {
   };
 }
 
-// Helper para generar ID único de orden
+// Helper para generar ID único de orden (formato compacto con fecha)
 export function generateOrderId() {
-  const timestamp = Date.now().toString();
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `ORD-${timestamp}-${random}`;
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2); // Últimos 2 dígitos del año
+  const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Mes con 2 dígitos
+  const day = now.getDate().toString().padStart(2, '0'); // Día con 2 dígitos
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase(); // 4 caracteres random
+  return `ORD-${year}${month}${day}-${random}`;
 }
 
 // Helper para parsear items del carrito desde line_items de Stripe
@@ -135,8 +138,12 @@ export function parseLineItems(lineItems) {
     if (item.price_data) {
       return {
         name: item.price_data.product_data?.name || 'Unknown Item',
+        description: item.price_data.product_data?.description || '',
         price: item.price_data.unit_amount / 100, // Convertir de centavos a dólares
         quantity: item.quantity || 1,
+        total: (item.price_data.unit_amount / 100) * (item.quantity || 1),
+        // Detectar el tipo de producto basado en el nombre o descripción
+        productType: detectProductType(item.price_data.product_data?.name, item.price_data.product_data?.description)
       };
     }
     
@@ -144,17 +151,47 @@ export function parseLineItems(lineItems) {
     if (item.price) {
       return {
         name: 'Product', // Necesitarías hacer fetch del producto para obtener el nombre
+        description: '',
         price: 0, // Necesitarías hacer fetch del price para obtener el monto
         quantity: item.quantity || 1,
+        total: 0,
+        productType: 'unknown'
       };
     }
 
     return {
       name: 'Unknown Item',
+      description: '',
       price: 0,
       quantity: 1,
+      total: 0,
+      productType: 'unknown'
     };
   });
+}
+
+// Helper para detectar el tipo de producto
+function detectProductType(name, description) {
+  const nameStr = (name || '').toLowerCase();
+  const descStr = (description || '').toLowerCase();
+  
+  if (nameStr.includes('shabbat box') || nameStr.includes('shabatbox')) {
+    return 'shabbatBox';
+  }
+  
+  if (nameStr.includes('donation') || nameStr.includes('donación')) {
+    return 'donation';
+  }
+  
+  if (nameStr.includes('transaction fee') || nameStr.includes('processing fee')) {
+    return 'fee';
+  }
+  
+  if (descStr.includes('shabbat') || descStr.includes('meal') || descStr.includes('reservation')) {
+    return 'mealReservation';
+  }
+  
+  return 'product';
 }
 
 // Helper para calcular total de items

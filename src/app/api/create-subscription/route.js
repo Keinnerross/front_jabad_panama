@@ -1,10 +1,36 @@
 import Stripe from 'stripe';
+import { getFullUrl } from '../../utils/urlHelper.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(request) {
   try {
-    const { amount, frequency, customMonths, customer, metadata } = await request.json();
+    // Validar el Content-Type
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return Response.json({ error: 'Content-Type must be application/json' }, { status: 400 });
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
+
+    const { amount, frequency, customMonths, customer, metadata } = body;
+
+    // Validar variables de entorno necesarias
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('STRIPE_SECRET_KEY is not configured');
+      return Response.json({ error: 'Payment system not configured' }, { status: 500 });
+    }
+
+    if (!process.env.NEXT_PUBLIC_BASE_URL) {
+      console.error('NEXT_PUBLIC_BASE_URL is not configured');
+      return Response.json({ error: 'Base URL not configured' }, { status: 500 });
+    }
 
     // Validar datos de entrada
     if (!amount || amount <= 0) {
@@ -46,6 +72,11 @@ export async function POST(request) {
       originalAmount: amount.toString(),
     };
 
+    // Debug: Ver las URLs que se van a enviar a Stripe
+    const successUrl = `${getFullUrl('/success')}?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = getFullUrl('/donation');
+    console.log('🔧 Subscription Stripe URLs:', { successUrl, cancelUrl });
+
     // 3. Crear sesión de suscripción
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -53,8 +84,8 @@ export async function POST(request) {
       mode: 'subscription',
       customer_email: customer.email,
       metadata: expandedMetadata,
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/donation`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
     // Los emails se envían desde el webhook después del pago exitoso
@@ -65,7 +96,23 @@ export async function POST(request) {
     });
   } catch (err) {
     console.error('Error creating subscription:', err);
-    return Response.json({ error: err.message }, { status: 500 });
+    
+    // Manejar diferentes tipos de errores de Stripe
+    if (err.type === 'StripeCardError') {
+      return Response.json({ error: 'Your card was declined.' }, { status: 400 });
+    } else if (err.type === 'StripeRateLimitError') {
+      return Response.json({ error: 'Too many requests made to the API too quickly.' }, { status: 429 });
+    } else if (err.type === 'StripeInvalidRequestError') {
+      return Response.json({ error: 'Invalid parameters were supplied to Stripe API.' }, { status: 400 });
+    } else if (err.type === 'StripeAPIError') {
+      return Response.json({ error: 'An error occurred internally with Stripe API.' }, { status: 500 });
+    } else if (err.type === 'StripeConnectionError') {
+      return Response.json({ error: 'Network communication with Stripe failed.' }, { status: 500 });
+    } else if (err.type === 'StripeAuthenticationError') {
+      return Response.json({ error: 'Authentication with Stripe API failed.' }, { status: 500 });
+    } else {
+      return Response.json({ error: err.message || 'An unexpected error occurred creating subscription.' }, { status: 500 });
+    }
   }
 }
 

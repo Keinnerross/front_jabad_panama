@@ -107,9 +107,21 @@ export default function Checkout() {
                 })),
                 donation: parseFloat(formData.donation || 0),
                 metadata: {
-                    orderType: 'reservation',
+                    orderType: cartItems.every(item => item.productType === 'shabbatBox') ? 'shabbatBox' : 'reservation',
                     agreeTerms: formData.agreeTerms,
-                    agreeUpdates: formData.agreeUpdates
+                    agreeUpdates: formData.agreeUpdates,
+                    // Agregar datos del primer item del carrito para información del evento
+                    ...(cartItems && cartItems.length > 0 && {
+                        eventName: cartItems[0].shabbatName,
+                        eventDate: cartItems[0].shabbatDate,
+                        productType: cartItems[0].productType,
+                        // Determinar tipo de evento basado en productType
+                        eventType: cartItems[0].productType === 'shabbatBox' 
+                            ? 'Shabbat Box Delivery' 
+                            : cartItems[0].productType === 'mealReservation'
+                                ? (cartItems[0].shabbatName ? `${cartItems[0].shabbatName}` : 'Meal Reservation')
+                                : 'Event'
+                    })
                 }
             };
 
@@ -146,13 +158,41 @@ export default function Checkout() {
             }
 
             // 4. Crear sesión de pago con Stripe
-            const response = await fetch('/api/checkout', {
+            console.log('BASE_PATH:', process.env.NEXT_PUBLIC_BASE_PATH);
+            const apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/checkout/`;
+            console.log('API URL:', apiUrl);
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(paymentData)
             });
 
-            const { id } = await response.json();
+            // Verificar si la respuesta es exitosa
+            if (!response.ok) {
+                let errorMessage = 'Network error occurred';
+                try {
+                    // Intentar obtener el mensaje de error del JSON
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (parseError) {
+                    // Si no es JSON válido, usar el status de la respuesta
+                    errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
+            }
+
+            let responseData;
+            try {
+                responseData = await response.json();
+            } catch (parseError) {
+                throw new Error('Invalid response format from server');
+            }
+
+            if (!responseData.id) {
+                throw new Error('No session ID received from payment processor');
+            }
+
+            const { id } = responseData;
 
             // 5. Redirigir a Stripe Checkout
             const { error } = await stripe.redirectToCheckout({ sessionId: id });

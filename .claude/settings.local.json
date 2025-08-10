@@ -3,7 +3,8 @@
     "allow": [
       "Bash(rg:*)",
       "Bash(find:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

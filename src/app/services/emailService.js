@@ -292,12 +292,16 @@ const baseTemplate = (content, title, siteConfig = {}) => {
 export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
   const { customer, items, total, orderId, metadata } = orderData;
   
-  // Obtener información del evento de los items
-  const eventInfo = items.length > 0 ? {
-    shabbatName: items[0].shabbatName,
-    shabbatDate: items[0].shabbatDate,
-    productType: items[0].productType
-  } : null;
+  // Obtener información del evento de los items o metadata (prioridad a metadata)
+  const eventInfo = {
+    shabbatName: metadata?.eventName || items[0]?.shabbatName || metadata?.shabbatName || 'Event',
+    shabbatDate: metadata?.eventDate || items[0]?.shabbatDate || metadata?.shabbatDate || metadata?.serviceDate || 'Date not available',
+    productType: metadata?.productType || items[0]?.productType || metadata?.orderType || 'reservation',
+    eventType: metadata?.eventType || 
+              (metadata?.productType === 'shabbatBox' ? 'Shabbat Box Delivery' : 
+               metadata?.productType === 'mealReservation' ? 'Shabbat or Holiday' : 
+               'Event')
+  };
   
   const itemsHtml = items.map(item => {
     const itemName = item.meal || item.name;
@@ -323,7 +327,7 @@ export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
       </div>
     </div>
 
-    ${eventInfo ? `
+    ${eventInfo && eventInfo.shabbatName !== 'Event' ? `
     <div class="info-section">
       <h3>Event Information</h3>
       <div class="info-row">
@@ -331,12 +335,12 @@ export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
         <span class="info-value">${eventInfo.shabbatName}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Date:</span>
+        <span class="info-label">${eventInfo.productType === 'shabbatBox' ? 'Delivery Date:' : 'Event Date:'}:</span>
         <span class="info-value">${eventInfo.shabbatDate}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Type:</span>
-        <span class="info-value">${eventInfo.productType === 'mealReservation' ? 'Meal Reservation' : eventInfo.productType}</span>
+        <span class="info-value">${eventInfo.eventType}</span>
       </div>
     </div>` : ''}
 
@@ -420,7 +424,7 @@ export const donationNotificationTemplate = (donationData, siteConfig = {}) => {
     </div>
 
     <div class="total">
-      Thank you for supporting ${siteTitle}!
+      New donation received
     </div>
   `;
 
@@ -814,12 +818,16 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
   const { customer, items, total, orderId, metadata } = orderData;
   const siteTitle = siteConfig.site_title || 'Website';
   
-  // Obtener información del evento de los items
-  const eventInfo = items.length > 0 ? {
-    shabbatName: items[0].shabbatName,
-    shabbatDate: items[0].shabbatDate,
-    productType: items[0].productType
-  } : null;
+  // Obtener información del evento de los items o metadata (prioridad a metadata)
+  const eventInfo = {
+    shabbatName: metadata?.eventName || items[0]?.shabbatName || metadata?.shabbatName || 'Event',
+    shabbatDate: metadata?.eventDate || items[0]?.shabbatDate || metadata?.shabbatDate || metadata?.serviceDate || 'Date not available',
+    productType: metadata?.productType || items[0]?.productType || metadata?.orderType || 'reservation',
+    eventType: metadata?.eventType || 
+              (metadata?.productType === 'shabbatBox' ? 'Shabbat Box Delivery' : 
+               metadata?.productType === 'mealReservation' ? 'Shabbat or Holiday' : 
+               'Event')
+  };
   
   // Obtener colores dinámicos basados en el tema
   const emailColors = getThemeColors(siteConfig);
@@ -857,7 +865,7 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
       </div>
     </div>
 
-    ${eventInfo ? `
+    ${eventInfo && eventInfo.shabbatName !== 'Event' ? `
     <div class="info-section">
       <h3>Event Information</h3>
       <div class="info-row">
@@ -865,8 +873,12 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
         <span class="info-value">${eventInfo.shabbatName}</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Event Date:</span>
+        <span class="info-label">${eventInfo.productType === 'shabbatBox' ? 'Delivery Date:' : 'Event Date:'}:</span>
         <span class="info-value">${eventInfo.shabbatDate}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Type:</span>
+        <span class="info-value">${eventInfo.eventType}</span>
       </div>
     </div>` : ''}
 
@@ -905,12 +917,15 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
 // Template para confirmación de donación del usuario
 export const userDonationConfirmationTemplate = (donationData, siteConfig = {}) => {
   const { amount, frequency, donationType, metadata } = donationData;
-  const siteTitle = siteConfig.site_title || 'Website';
+  const siteTitle = siteConfig.site_title || 'Chabad Panama City';
+  
+  // Obtener colores dinámicos basados en el tema
+  const emailColors = getThemeColors(siteConfig);
   
   const content = `
-    <h2 style="color: ${emailColors.primaryDark}; margin-bottom: 20px; font-size: 24px;">Thank you for your generous donation!</h2>
+    <h2 style="color: ${emailColors.primaryDark}; margin-bottom: 20px; font-size: 24px;">Thank you for your generous donation to ${siteTitle}!</h2>
     <p style="font-size: 16px; margin-bottom: 30px; color: #374151; line-height: 1.6;">
-      Your contribution makes a real difference in our community. With your support, we can continue our mission of bringing warmth, learning, and joy to everyone who walks through our doors.
+      Your contribution to our Shabbat programs makes a real difference in our community. With your support, we can continue our mission of bringing warmth, learning, and joy to everyone who walks through our doors.
     </p>
 
     <div class="info-section">
@@ -968,6 +983,9 @@ export const userDonationConfirmationTemplate = (donationData, siteConfig = {}) 
 export const userNewsletterWelcomeTemplate = (subscriberData, siteConfig = {}) => {
   // subscriberData no se usa actualmente pero se mantiene para consistencia de API
   const siteName = siteConfig?.site_title || 'Website';
+  
+  // Obtener colores dinámicos basados en el tema
+  const emailColors = getThemeColors(siteConfig);
   
   const content = `
     <h2 style="color: ${emailColors.primaryDark}; margin-bottom: 20px; font-size: 24px;">Welcome to our community!</h2>

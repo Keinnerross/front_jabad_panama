@@ -6,23 +6,58 @@ import Link from 'next/link';
 import { FaCheck } from 'react-icons/fa';
 import { useCart } from '../../../context/CartContext';
 import { getAssetPath } from '@/app/utils/assetPath';
+import { getInternalUrl, getApiUrl } from '@/app/utils/urlHelper';
 
 function SuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { clearCart } = useCart();
     const [countdown, setCountdown] = useState(5);
+    const [processed, setProcessed] = useState(false);
     
     // Get session_id from URL parameters to confirm successful payment
     const sessionId = searchParams.get('session_id');
 
-    // Clear cart on successful payment
+    // Clear cart and conditionally process payment based on environment
     useEffect(() => {
         // Only clear cart if we have a session_id (indicates successful payment from Stripe)
-        if (sessionId) {
+        if (sessionId && !processed) {
             clearCart(true); // Pass true for silent clearing (no notification)
+            setProcessed(true);
+            console.log('✅ Cart cleared for session:', sessionId);
+            
+            // Always call process-success, it will decide based on USE_WEBHOOK_PROCESSING
+            console.log('🔄 Processing payment in success page');
+            processSuccessfulPayment(sessionId);
         }
-    }, [sessionId]); // Remove clearCart from dependencies to avoid infinite loop
+    }, [sessionId, processed]);
+    
+    // Function to handle post-payment actions when webhooks are disabled (development)
+    const processSuccessfulPayment = async (sessionId) => {
+        try {
+            console.log('🔄 Calling process-success API for session:', sessionId);
+            const response = await fetch(getApiUrl('/api/process-success'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId })
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Error processing successful payment:', errorText || response.statusText);
+            } else {
+                const result = await response.json();
+                console.log('✅ Payment processed successfully:', result.message);
+                if (result.alreadyProcessed) {
+                    console.log('ℹ️ Session was already processed');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Network error processing payment success:', error);
+        }
+    };
 
     // Countdown timer and redirect
     useEffect(() => {
@@ -31,7 +66,7 @@ function SuccessContent() {
                 if (prev <= 1) {
                     clearInterval(timer);
                     // Use window.location for redirect to avoid router issues
-                    window.location.href = '/';
+                    window.location.href = getInternalUrl('/');
                     return 0;
                 }
                 return prev - 1;
@@ -76,7 +111,7 @@ function SuccessContent() {
                             </p>
                             
                             <Link 
-                                href="/" 
+                                href={getInternalUrl('/')}
                                 className="bg-darkBlue text-white px-8 py-3 rounded-lg font-medium hover:bg-darkBlue/90 transition-colors inline-block"
                             >
                                 Go to Home

@@ -138,9 +138,8 @@ export const Footer = () => {
     {
       title: "Legal",
       links: [
-        { name: "FAQS", path: "/#" },
-        { name: "Terms & Conditions", path: "/#" },
-        { name: "Privacy Policy", path: "/#" }
+        { name: "Terms & Conditions", path: "/terms-conditions" },
+        { name: "Privacy Policy", path: "/privacy-policy" }
       ]
     }
   ];

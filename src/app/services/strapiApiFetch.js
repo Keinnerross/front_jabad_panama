@@ -162,4 +162,7 @@ export const api = {
     shabbatBoxSingle: () => strapiFetch("/shabbat-box-page?populate=*"),
     socialMediaLinks: () => strapiFetch("/site-config/?fields[0]=id&populate[social_media]=*"),
     copiesPages: () => strapiFetch("/content-page?populate[activities][populate]=*&populate[restaurants][populate]=*&populate[accommodations][populate]=*&populate[visitor_info][populate]=picture&populate[contact_page][populate]=picture&populate[donations][populate]=*"),
+    copiesPages: () => strapiFetch("/content-page?populate[activities][populate]=*&populate[restaurants][populate]=*&populate[accommodations][populate]=*&populate[visitor_info][populate]=picture&populate[contact_page][populate]=picture&populate[donations][populate]=*"),
+    termsAndConditions: () => strapiFetch("/content-page?populate[terms_and_conditions][populate]=*"),
+    privacyPolicy: () => strapiFetch("/content-page?populate[privacy_policy][populate]=*"),
 }

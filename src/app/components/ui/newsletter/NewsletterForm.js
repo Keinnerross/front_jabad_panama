@@ -62,10 +62,7 @@ export const NewsletterForm = () => {
             </h3>
             <p className="text-blue-100">
               Get updates about Shabbat meals, upcoming holidays, and
-              community events while you're visiting Panama.
-            </p>
-            <p className="text-blue-100 text-sm mt-2">
-              Contact us:
+              community events while you're visiting.
             </p>
           </div>
         </div>

@@ -7,6 +7,7 @@ import React, { Fragment, useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa";
 import { getAssetPath } from "@/app/utils/assetPath";
 import { getApiUrl } from "@/app/utils/urlHelper";
+import ReactMarkdown from 'react-markdown';
 
 export default function Donation() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -17,7 +18,7 @@ export default function Donation() {
         frequency: '',
         customMonths: '',
         email: '',
-        coverFees: false
+        coverFees: true
     });
     const [selectedPresetAmount, setSelectedPresetAmount] = useState(null);
 
@@ -261,28 +262,25 @@ export default function Donation() {
                                 {copiesData?.donations?.title || "Donation to Chabad House Panama City"}
                             </h1>
 
-                            <p className="text-gray-text text-base mb-8">
-                                {copiesData?.donations?.description || "Your gift keeps Chabad House Panama City's doors open to everyone—whether they're here for a Shabbat meal, a Torah class, or simply a friendly face. With your support we can:"}
-                            </p>
-
-                            <div className="mb-8">
-                                <h2 className="text-2xl font-bold text-myBlack mb-4">
-                                    Why donating to our charity?
-                                </h2>
-
-                                <ul className="space-y-4">
-                                    {[
-                                        "Host uplifting holiday celebrations and weekly services",
-                                        "Offer free educational programs and community events",
-                                        "Provide spiritual guidance and material assistance to those in need"
-                                    ].map((item, index) => (
-                                        <li key={index} className="flex items-start gap-3">
-                                            <FaCheck className="text-primary mt-1 flex-shrink-0" />
-                                            <span className="text-gray-text">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                            <div className="text-gray-text text-base mb-8">
+                                <ReactMarkdown 
+                                    components={{
+                                        p: ({children}) => <p className="mb-4">{children}</p>,
+                                        strong: ({children}) => <strong className="font-semibold text-darkBlue">{children}</strong>,
+                                        ul: ({children}) => <ul className="list-disc ml-6 space-y-2">{children}</ul>,
+                                        ol: ({children}) => <ol className="list-decimal ml-6 space-y-2">{children}</ol>,
+                                        li: ({children}) => <li className="mb-1">{children}</li>,
+                                        a: ({href, children}) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
+                                        h4: ({children}) => <h4 className="text-lg font-bold text-darkBlue mt-4 mb-2">{children}</h4>,
+                                        h3: ({children}) => <h3 className="text-xl font-bold text-darkBlue mt-6 mb-3">{children}</h3>,
+                                        br: () => <br className="mb-2" />
+                                    }}
+                                >
+                                    {copiesData?.donations?.description || "Your gift keeps Chabad House Panama City's doors open to everyone—whether they're here for a Shabbat meal, a Torah class, or simply a friendly face. With your support we can:"}
+                                </ReactMarkdown>
                             </div>
+
+                           
                         </div>
 
                         {/* Right Donation Form */}
@@ -520,46 +518,7 @@ export default function Donation() {
 
 
 
-            {/* About Donations Section */}
-            {/* <div className="w-full max-w-4xl mx-auto ounded-xl border bg-white rounded-2xl border-gray-200 p-6 md:p-12 -translate-y-10">
-                <div className="flex flex-col gap-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">
-                        About Donations for Shabbat at Chabad Panama
-                    </h2>
-
-                    <div className="space-y-6 text-gray-text">
-                        <p>
-                            Every gift helps keep our home alive—from lighting Shabbat candles
-                            to Torah classes and supporting those in need. Your generosity
-                            creates a warm, meaningful space for our entire community.
-                        </p>
-
-                        <div className="space-y-4">
-                            <p className="font-semibold">One-time gift:</p>
-                            <p>Fuels special projects like a festive Shabbat dinner or holiday celebration.</p>
-
-                            <p className="font-semibold">Monthly support:</p>
-                            <p>Ensures our weekly services and free classes run without interruption.</p>
-
-                            <p className="font-semibold">Event sponsorship:</p>
-                            <p>Underwrite a lecture series, spiritual retreat, or kids' camp.</p>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-myBlack">
-                                Is this the right way to give?
-                            </h3>
-
-                            <ul className="space-y-3 pl-5 list-disc">
-                                <li>You want to make an immediate impact with a one-off contribution</li>
-                                <li>You prefer to sustain our programs through a steady monthly pledge</li>
-                                <li>You'd like to put your name (or your business) behind a specific event</li>
-                                <li>You value full transparency and want to see exactly how your donation is used</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div> */}
+          
         </Fragment>
 
 

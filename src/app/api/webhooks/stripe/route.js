@@ -8,6 +8,15 @@ if (process.env.NODE_ENV === 'development') {
 import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../../utils/siteConfigHelper.js';
 import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../../services/emailService.js';
 import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../../utils/siteConfigHelper.js';
+import { 
+  saveDonationToStrapi, 
+  saveShabbatOrder, 
+  saveShabbatBoxOrder, 
+  saveCustomEventDeliveryOrder,
+  detectOrderType,
+  formatOrderDescription,
+  extractDateRange
+} from '../../../services/strapi-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -25,63 +34,90 @@ export async function POST(request) {
     return Response.json({ error: 'Webhook signature verification failed' }, { status: 400 });
   }
 
+  // Procesar eventos y esperar a que terminen antes de responder
   try {
     switch (event.type) {
       case 'checkout.session.completed':
+        // Esperar a que se complete el procesamiento
         await handleCheckoutSessionCompleted(event.data.object);
+        console.log('✅ Checkout session processing completed');
         break;
       
       case 'invoice.payment_succeeded':
         await handleInvoicePaymentSucceeded(event.data.object);
+        console.log('✅ Invoice payment processing completed');
         break;
       
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object);
+        console.log('✅ Subscription created processing completed');
         break;
       
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object);
+        console.log('✅ Subscription updated processing completed');
         break;
       
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object);
+        console.log('✅ Subscription deleted processing completed');
         break;
       
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
-
-    return Response.json({ received: true });
   } catch (err) {
-    console.error('Error processing webhook:', err);
-    return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
+    console.error('❌ Error processing webhook event:', err);
+    // Log the error but still respond success to Stripe to avoid retries
+    // The error is already logged and we don't want Stripe to keep retrying
   }
+
+  // Responder a Stripe después de completar el procesamiento
+  return Response.json({ received: true });
 }
 
 async function handleCheckoutSessionCompleted(session) {
   console.log('Checkout session completed:', session.id);
   
   try {
+    // Recuperar la sesión completa con line_items expandidos
+    // El webhook solo recibe datos básicos, necesitamos más información
+    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ['line_items', 'line_items.data.price.product']
+    });
+    
+    // Usar fullSession en lugar de session para tener toda la información
+    session = fullSession;
+    
     // Obtener email de notificación
     const notificationEmail = await getNotificationEmail();
     
     if (session.mode === 'subscription') {
       // Manejar suscripciones (donaciones recurrentes)
-      const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      let subscription = await stripe.subscriptions.retrieve(session.subscription);
       console.log('Subscription created:', subscription.id);
       
       // Obtener metadata de la sesión
       const metadata = session.metadata || {};
       
-      // Si es una suscripción limitada, agregar metadata a la suscripción
-      if (metadata.subscriptionType === 'limited' && metadata.maxPayments) {
-        await stripe.subscriptions.update(subscription.id, {
-          metadata: {
-            ...metadata,
-            paymentsCount: '0', // Inicializar contador
-            createdAt: new Date().toISOString()
-          }
+      // Si es una suscripción limitada, programar cancelación
+      if (metadata.subscriptionType === 'limited' && metadata.cancel_at_timestamp) {
+        const cancelAt = parseInt(metadata.cancel_at_timestamp);
+        console.log(`📅 Setting subscription to auto-cancel at timestamp: ${cancelAt}`);
+        
+        // Actualizar la suscripción con la fecha de cancelación
+        subscription = await stripe.subscriptions.update(subscription.id, {
+          cancel_at: cancelAt
         });
+        
+        const cancelDate = new Date(cancelAt * 1000);
+        console.log(`✅ Subscription ${subscription.id} will auto-cancel on: ${cancelDate.toISOString()}`);
+      }
+      
+      // Log de información de cancelación si existe
+      if (subscription.cancel_at) {
+        const cancelDate = new Date(subscription.cancel_at * 1000);
+        console.log(`📅 Subscription scheduled to auto-cancel on: ${cancelDate.toISOString()}`);
       }
 
       // Enviar emails de confirmación de donación
@@ -107,37 +143,34 @@ async function handleCheckoutSessionCompleted(session) {
         };
 
         // Enviar notificación al admin
-        sendDonationNotification(notificationEmail, donationData)
-          .then((result) => {
-            if (result.success) {
-              logNotification('DONATION', notificationEmail, donationData);
-            }
-          })
-          .catch((error) => {
-            handleNotificationError(error, 'webhook donation notification');
-          });
+        try {
+          const adminResult = await sendDonationNotification(notificationEmail, donationData);
+          if (adminResult.success) {
+            logNotification('DONATION', notificationEmail, donationData);
+          }
+        } catch (error) {
+          handleNotificationError(error, 'webhook donation notification');
+        }
 
         // Enviar confirmación al usuario
-        sendUserDonationConfirmation(customerInfo.email, donationData)
-          .then((result) => {
-            if (result.success) {
-              logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
-            }
-          })
-          .catch((error) => {
-            handleNotificationError(error, 'webhook user donation confirmation');
-          });
+        try {
+          const userResult = await sendUserDonationConfirmation(customerInfo.email, donationData);
+          if (userResult.success) {
+            logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
+          }
+        } catch (error) {
+          handleNotificationError(error, 'webhook user donation confirmation');
+        }
 
         // Guardar donación de suscripción en Strapi después de emails exitosos
-        saveDonationToStrapi(session, metadata, 'subscription')
-          .then((result) => {
-            if (result) {
-              console.log('✅ Subscription donation successfully saved to Strapi:', result.data?.documentId);
-            }
-          })
-          .catch((error) => {
-            console.error('❌ Failed to save subscription donation to Strapi:', error);
-          });
+        try {
+          const strapiResult = await saveDonationToStrapi(session, metadata, 'subscription');
+          if (strapiResult) {
+            console.log('✅ Subscription donation successfully saved to Strapi:', strapiResult.data?.documentId);
+          }
+        } catch (error) {
+          console.error('❌ Failed to save subscription donation to Strapi:', error);
+        }
       }
 
     } else if (session.mode === 'payment') {
@@ -171,42 +204,40 @@ async function handleCheckoutSessionCompleted(session) {
           };
 
           // Notificación al admin
-          sendDonationNotification(notificationEmail, donationData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('DONATION', notificationEmail, donationData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook donation notification');
-            });
+          try {
+            const adminResult = await sendDonationNotification(notificationEmail, donationData);
+            if (adminResult.success) {
+              logNotification('DONATION', notificationEmail, donationData);
+            }
+          } catch (error) {
+            handleNotificationError(error, 'webhook donation notification');
+          }
 
           // Confirmación al usuario
-          sendUserDonationConfirmation(customerInfo.email, donationData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook user donation confirmation');
-            });
+          try {
+            const userResult = await sendUserDonationConfirmation(customerInfo.email, donationData);
+            if (userResult.success) {
+              logNotification('USER_DONATION_CONFIRMATION', customerInfo.email, donationData);
+            }
+          } catch (error) {
+            handleNotificationError(error, 'webhook user donation confirmation');
+          }
 
           // Guardar donación en Strapi después de emails exitosos
-          saveDonationToStrapi(session, metadata, 'one-time')
-            .then((result) => {
-              if (result) {
-                console.log('✅ Donation successfully saved to Strapi:', result.data?.documentId);
-              }
-            })
-            .catch((error) => {
-              console.error('❌ Failed to save donation to Strapi:', error);
-            });
+          try {
+            const strapiResult = await saveDonationToStrapi(session, metadata, 'one-time');
+            if (strapiResult) {
+              console.log('✅ Donation successfully saved to Strapi:', strapiResult.data?.documentId);
+            }
+          } catch (error) {
+            console.error('❌ Failed to save donation to Strapi:', error);
+          }
 
         } else {
           // Enviar emails de pedido regular
-          const items = metadata.line_items ? 
-            parseLineItems(JSON.parse(metadata.line_items)) : 
+          // Usar line_items de la sesión expandida si están disponibles
+          const items = session.line_items?.data ? 
+            parseLineItems(session.line_items.data) : 
             [{ name: 'Order', price: session.amount_total / 100, quantity: 1 }];
           
           // Enriquecer items con información específica por tipo de producto desde metadata
@@ -244,37 +275,77 @@ async function handleCheckoutSessionCompleted(session) {
           };
 
           // Notificación al admin
-          sendOrderNotification(notificationEmail, orderData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('ORDER', notificationEmail, orderData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook order notification');
-            });
+          try {
+            const adminResult = await sendOrderNotification(notificationEmail, orderData);
+            if (adminResult.success) {
+              logNotification('ORDER', notificationEmail, orderData);
+            }
+          } catch (error) {
+            handleNotificationError(error, 'webhook order notification');
+          }
 
           // Confirmación al usuario
-          sendUserOrderConfirmation(customerInfo.email, orderData)
-            .then((result) => {
-              if (result.success) {
-                logNotification('USER_ORDER_CONFIRMATION', customerInfo.email, orderData);
-              }
-            })
-            .catch((error) => {
-              handleNotificationError(error, 'webhook user order confirmation');
-            });
+          try {
+            const userResult = await sendUserOrderConfirmation(customerInfo.email, orderData);
+            if (userResult.success) {
+              logNotification('USER_ORDER_CONFIRMATION', customerInfo.email, orderData);
+            }
+          } catch (error) {
+            handleNotificationError(error, 'webhook user order confirmation');
+          }
 
           // Guardar orden en Strapi después de emails exitosos
-          saveOrderToStrapi(session, metadata, enrichedItems)
-            .then((result) => {
+          // Decidir si es Shabbat/Holiday o una orden regular
+          const orderType = detectOrderType(metadata, enrichedItems);
+          
+          console.log('🔍 Order type detected:', orderType);
+          console.log('🔍 Metadata orderType:', metadata.orderType);
+          console.log('🔍 EventDate from metadata:', metadata.eventDate);
+          
+          if (orderType === 'shabbat or holiday') {
+            // Guardar en shabbat-orders
+            console.log('📝 Saving to shabbat-orders collection');
+            try {
+              const result = await saveShabbatOrder(session, metadata, enrichedItems);
               if (result) {
-                console.log('✅ Order successfully saved to Strapi:', result.data?.documentId);
+                console.log('✅ Shabbat order successfully saved to Strapi:', result.data?.documentId);
               }
-            })
-            .catch((error) => {
-              console.error('❌ Failed to save order to Strapi:', error);
-            });
+            } catch (error) {
+              console.error('❌ Failed to save Shabbat order to Strapi:', error);
+            }
+          } else if (orderType === 'shabbatBox') {
+            // Guardar Shabbat Box usando la función específica
+            console.log('📝 Saving Shabbat Box order');
+            console.log('📝 Session ID:', session.id);
+            console.log('📝 Metadata:', JSON.stringify(metadata));
+            try {
+              const result = await saveShabbatBoxOrder(session, metadata, enrichedItems);
+              if (result) {
+                console.log('✅ Shabbat Box order successfully saved to Strapi:', result.data?.documentId);
+              } else {
+                console.log('⚠️ saveShabbatBoxOrder returned null or undefined');
+              }
+            } catch (error) {
+              console.error('❌ Failed to save Shabbat Box order to Strapi:', error);
+              console.error('❌ Full error:', JSON.stringify(error));
+            }
+          } else if (orderType === 'customEvent') {
+            // Guardar Custom Event usando la función específica
+            console.log('📝 Saving Custom Event order');
+            console.log('📝 Session ID:', session.id);
+            console.log('📝 Metadata:', JSON.stringify(metadata));
+            try {
+              const result = await saveCustomEventDeliveryOrder(session, metadata, enrichedItems);
+              if (result) {
+                console.log('✅ Custom Event order successfully saved to Strapi:', result.data?.documentId);
+              } else {
+                console.log('⚠️ saveCustomEventDeliveryOrder returned null or undefined');
+              }
+            } catch (error) {
+              console.error('❌ Failed to save Custom Event order to Strapi:', error);
+              console.error('❌ Full error:', JSON.stringify(error));
+            }
+          }
         }
       }
     }
@@ -287,59 +358,39 @@ async function handleCheckoutSessionCompleted(session) {
 async function handleInvoicePaymentSucceeded(invoice) {
   console.log('Invoice payment succeeded:', invoice.id);
   
-  // Solo procesar si es una suscripción
-  if (!invoice.subscription) return;
-  
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
-  const metadata = subscription.metadata || {};
-  
-  // Solo procesar suscripciones limitadas
-  if (metadata.subscriptionType !== 'limited' || !metadata.maxPayments) {
-    return;
-  }
-  
-  const maxPayments = parseInt(metadata.maxPayments);
-  const currentPayments = parseInt(metadata.paymentsCount || '0') + 1;
-  
-  console.log(`Pago ${currentPayments} de ${maxPayments} para suscripción ${subscription.id}`);
-  
-  // Actualizar contador de pagos
-  await stripe.subscriptions.update(subscription.id, {
-    metadata: {
-      ...metadata,
-      paymentsCount: currentPayments.toString(),
-      lastPaymentDate: new Date().toISOString()
+  // Solo log informativo, Stripe maneja la cancelación automática con cancel_at
+  if (invoice.subscription) {
+    const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+    
+    if (subscription.cancel_at) {
+      const cancelDate = new Date(subscription.cancel_at * 1000);
+      console.log(`📅 Subscription ${subscription.id} scheduled to cancel on: ${cancelDate.toISOString()}`);
     }
-  });
-  
-  // Si se alcanzó el máximo de pagos, cancelar la suscripción
-  if (currentPayments >= maxPayments) {
-    console.log(`Cancelando suscripción ${subscription.id} - se alcanzó el máximo de pagos`);
     
-    await stripe.subscriptions.cancel(subscription.id, {
-      prorate: false // No prorratear el último pago
-    });
-    
-    // Opcional: Enviar notificación al usuario
-    await sendSubscriptionCompletedNotification(subscription, metadata);
+    console.log(`✅ Monthly payment processed for subscription: ${subscription.id}`);
   }
 }
 
 async function handleSubscriptionCreated(subscription) {
   console.log('Subscription created:', subscription.id);
   
-  // Log para debugging
+  // Log de información útil
+  if (subscription.cancel_at) {
+    const cancelDate = new Date(subscription.cancel_at * 1000);
+    console.log(`📅 Will auto-cancel on: ${cancelDate.toISOString()}`);
+  }
+  
   const metadata = subscription.metadata || {};
-  console.log('Subscription metadata:', metadata);
+  console.log('Subscription type:', metadata.frequency || 'monthly');
 }
 
 async function handleSubscriptionUpdated(subscription) {
   console.log('Subscription updated:', subscription.id);
   
-  // Log para debugging
-  const metadata = subscription.metadata || {};
-  if (metadata.subscriptionType === 'limited') {
-    console.log(`Suscripción limitada actualizada - Pagos: ${metadata.paymentsCount}/${metadata.maxPayments}`);
+  // Log de información útil
+  if (subscription.cancel_at) {
+    const cancelDate = new Date(subscription.cancel_at * 1000);
+    console.log(`📅 Scheduled to cancel on: ${cancelDate.toISOString()}`);
   }
 }
 
@@ -348,16 +399,20 @@ async function handleSubscriptionDeleted(subscription) {
   
   const metadata = subscription.metadata || {};
   
-  // Log específico para suscripciones completadas vs canceladas
-  if (metadata.subscriptionType === 'limited') {
-    const paymentsCount = parseInt(metadata.paymentsCount || '0');
-    const maxPayments = parseInt(metadata.maxPayments || '0');
-    
-    if (paymentsCount >= maxPayments) {
-      console.log(`Suscripción ${subscription.id} completada exitosamente - ${paymentsCount} pagos realizados`);
+  // Log para distinguir si fue cancelación automática o manual
+  if (subscription.canceled_at && subscription.cancel_at) {
+    if (subscription.canceled_at >= subscription.cancel_at) {
+      console.log(`✅ Subscription ${subscription.id} completed successfully (auto-canceled as scheduled)`);
+      
+      // Opcional: Enviar notificación de completado
+      if (metadata.frequency && ['12-months', '24-months', 'other'].includes(metadata.frequency)) {
+        await sendSubscriptionCompletedNotification(subscription, metadata);
+      }
     } else {
-      console.log(`Suscripción ${subscription.id} cancelada prematuramente - ${paymentsCount}/${maxPayments} pagos realizados`);
+      console.log(`⚠️ Subscription ${subscription.id} canceled before scheduled end date`);
     }
+  } else {
+    console.log(`Subscription ${subscription.id} canceled`);
   }
 }
 
@@ -411,177 +466,6 @@ async function sendSubscriptionCompletedNotification(subscription, metadata) {
   }
 }
 
-// Helper para guardar donaciones en Strapi
-async function saveDonationToStrapi(session, metadata, donationType) {
-  try {
-    console.log('📝 Attempting to save donation to Strapi...');
-    console.log('Session data:', { 
-      id: session.id, 
-      amount: session.amount_total / 100,
-      email: session.customer_email,
-      subscription: session.subscription 
-    });
-    console.log('Metadata:', metadata);
-    
-    // Generar ID único para la donación
-    const donationId = `DON-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const donationData = {
-      data: {
-        donationId: donationId,
-        subscriptionId: session.subscription || null,
-        donorName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim() || 'Anonymous',
-        donorEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
-        donorPhone: metadata.customer_phone || null,
-        totalAmount: session.amount_total / 100,
-        donationType: metadata.frequency || donationType || 'one-time',
-        customMonths: metadata.customMonths ? parseInt(metadata.customMonths) : null,
-        isDonationCustom: metadata.selectedPresetAmount === 'custom' || false,
-        donationStatus: 'completed'
-      }
-    };
-    
-    console.log('📤 Sending to Strapi:', JSON.stringify(donationData, null, 2));
-
-    // Fix para certificados SSL en desarrollo
-    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    }
-
-    const response = await fetch(`${process.env.STRAPI_API_URL}/api/donations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN}`
-      },
-      body: JSON.stringify(donationData)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Strapi error response:', errorText);
-      console.error('❌ Status:', response.status);
-      throw new Error(`Strapi API error: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Donation saved to Strapi:', result.data?.donationId);
-    return result;
-
-  } catch (error) {
-    console.error('❌ Error saving donation to Strapi:', error);
-    handleNotificationError(error, 'donation save to Strapi');
-    return null;
-  }
-}
-
-// Helper para guardar órdenes en Strapi
-async function saveOrderToStrapi(session, metadata, parsedItems) {
-  try {
-    // Solo guardar para reservaciones y shabbatBox (no donaciones)
-    if (metadata.purpose === 'Donation') {
-      return null;
-    }
-
-    const orderData = {
-      data: {
-        orderId: metadata.orderId || `ORDER-${session.id}`,
-        orderType: detectOrderType(metadata, parsedItems),
-        totalAmount: session.amount_total / 100,
-        stripeSessionId: session.id,
-        customerName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim() || 'N/A',
-        customerEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
-        customerPhone: metadata.customer_phone || null,
-        customerNationality: metadata.customer_nationality || null,
-        serviceDate: extractServiceDate(metadata, parsedItems),
-        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100),
-        orderStatus: 'paid'
-      }
-    };
-
-    const response = await fetch(`${process.env.STRAPI_API_URL}/api/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN}`
-      },
-      body: JSON.stringify(orderData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Strapi API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Order saved to Strapi:', result.data?.orderId);
-    return result;
-
-  } catch (error) {
-    console.error('❌ Error saving order to Strapi:', error);
-    handleNotificationError(error, 'order save to Strapi');
-    return null;
-  }
-}
-
-// Helper para detectar tipo de orden
-function detectOrderType(metadata, parsedItems) {
-  // Verificar en metadata primero
-  if (metadata.orderType === 'reservation' || metadata.orderType === 'mealReservation') {
-    return 'shabbat or holiday';
-  }
-  
-  if (metadata.orderType === 'shabbatBox') {
-    return 'shabbatBox';
-  }
-
-  // Verificar por los nombres de productos
-  const hasShabbatBox = parsedItems.some(item => 
-    item.productType === 'shabbatBox' || 
-    item.name.toLowerCase().includes('shabbat box')
-  );
-
-  if (hasShabbatBox) {
-    return 'shabbatBox';
-  }
-
-  // Default para reservaciones
-  return 'shabbat or holiday';
-}
-
-// Helper para extraer fecha de servicio
-function extractServiceDate(metadata, parsedItems) {
-  // Buscar fecha en diferentes ubicaciones - prioridad a eventDate
-  if (metadata.eventDate) {
-    return metadata.eventDate; // Mantener formato original del texto
-  }
-  
-  // Mantener compatibilidad con shabbatDate
-  if (metadata.shabbatDate) {
-    return metadata.shabbatDate; // Mantener formato original del texto
-  }
-
-  // Buscar en items
-  const itemWithDate = parsedItems.find(item => item.shabbatDate);
-  if (itemWithDate) {
-    return itemWithDate.shabbatDate; // Mantener formato original del texto
-  }
-
-  // Default a próximo viernes en formato DD/MM/YYYY
-  const nextFriday = new Date();
-  nextFriday.setDate(nextFriday.getDate() + (5 - nextFriday.getDay()));
-  const day = nextFriday.getDate().toString().padStart(2, '0');
-  const month = (nextFriday.getMonth() + 1).toString().padStart(2, '0');
-  const year = nextFriday.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-// Helper para formatear fecha para Strapi (DEPRECATED - ya no se usa)
-// Ahora el campo serviceDate es texto y mantiene el formato original
-function formatDateForStrapi(dateString) {
-  // Esta función ya no se usa, pero se mantiene por si hay otras partes del código que la llamen
-  return dateString; // Devolver el texto original sin conversión
-}
-
 // Helper para extraer nombre del evento de la descripción
 function extractEventNameFromDescription(description) {
   if (!description) return null;
@@ -606,34 +490,4 @@ function extractParashahFromDescription(description) {
   
   const parashahMatch = description.match(/Parashat\s+(\w+)/i);
   return parashahMatch ? `Parashat ${parashahMatch[1]}` : null;
-}
-
-// Helper para formatear descripción de orden
-function formatOrderDescription(parsedItems, totalAmount) {
-  const lines = [];
-  
-  parsedItems.forEach(item => {
-    if (item.productType !== 'fee' && item.productType !== 'donation') {
-      const unitPrice = item.price.toFixed(2);
-      const totalPrice = item.total.toFixed(2);
-      lines.push(`${item.name} x${item.quantity} - $${unitPrice} cada - $${totalPrice}`);
-    }
-  });
-
-  // Agregar donación si existe
-  const donation = parsedItems.find(item => item.productType === 'donation');
-  if (donation) {
-    lines.push(`Donación - $${donation.total.toFixed(2)}`);
-  }
-
-  // Agregar fee si existe
-  const fee = parsedItems.find(item => item.productType === 'fee');
-  if (fee) {
-    lines.push(`Cargo por procesamiento - $${fee.total.toFixed(2)}`);
-  }
-
-  lines.push('----------------------');
-  lines.push(`Total: $${totalAmount.toFixed(2)}`);
-
-  return lines.join('\n');
 }

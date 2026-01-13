@@ -17,11 +17,7 @@ export function getEnvVars() {
     };
 }
 
-
-
-
 // Validation of environment variables (moved inside functions)
-
 // Función auxiliar para limpiar URLs
 function cleanUrl(baseUrl, endpoint) {
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
@@ -29,28 +25,12 @@ function cleanUrl(baseUrl, endpoint) {
     return `${cleanBaseUrl}${cleanEndpoint}`;
 }
 
-/**
-* Endpoints - moved inside functions to avoid server component initialization issues
-*/
+/** Endpoints - moved inside functions to avoid server component initialization issues*/
+
 
 export async function strapiFetch(endpoint) {
     const { STRAPI_BASE_URL, STRAPI_TOKEN } = getEnvVars();
 
-    // TEMPORARY DEBUG
-    if (typeof window !== 'undefined') {
-        console.log('🚨 CLIENT strapiFetch called with:', { endpoint, type: typeof endpoint });
-    } else {
-        console.log('🚨 SERVER strapiFetch called with:', { endpoint, type: typeof endpoint });
-    }
-
-    // Validation of environment variables
-    console.log('🔍 ENV VALIDATION:', {
-        STRAPI_BASE_URL: STRAPI_BASE_URL,
-        STRAPI_TOKEN: STRAPI_TOKEN ? 'EXISTS' : 'MISSING',
-        NODE_ENV: process.env.NODE_ENV,
-        NEXT_PUBLIC_STRAPI_API_URL: process.env.NEXT_PUBLIC_STRAPI_API_URL,
-        NEXT_PUBLIC_STRAPI_API_TOKEN: process.env.NEXT_PUBLIC_STRAPI_API_TOKEN ? 'EXISTS' : 'MISSING'
-    });
 
     if (!endpoint || endpoint === undefined) {
         console.error('ENDPOINT IS UNDEFINED!', { endpoint, type: typeof endpoint });
@@ -63,19 +43,20 @@ export async function strapiFetch(endpoint) {
             headers['Authorization'] = `Bearer ${STRAPI_TOKEN}`;
         }
         // Si ya tiene populate, lo usa. Si no, agrega populate=*
-        const url = endpoint.includes('populate')
-            ? cleanUrl(STRAPI_BASE_URL, `/api${endpoint}`)
-            : cleanUrl(STRAPI_BASE_URL, `/api${endpoint}?populate=*`);
-
-        console.log('🚀 Fetching:', url);
-        console.log('📍 Endpoint:', endpoint);
-        console.log('📍 Base URL:', STRAPI_BASE_URL);
-        console.log('📍 Headers:', headers);
+        let url;
+        if (endpoint.includes('populate')) {
+            url = cleanUrl(STRAPI_BASE_URL, `/api${endpoint}`);
+        } else {
+            const separator = endpoint.includes('?') ? '&' : '?';
+            url = cleanUrl(STRAPI_BASE_URL, `/api${endpoint}${separator}populate=*`);
+        }
 
         const response = await fetch(url, {
             method: "GET",
             headers,
-            cache: 'no-cache' //Manejo de caché
+            // next: { revalidate: 300 } 
+            cache: 'no-cache'
+            // ISR: Revalida cada 5 minutos
         });
 
 
@@ -85,12 +66,7 @@ export async function strapiFetch(endpoint) {
 
         const json = await response.json()
         const data = json.data; // <--- directo
-        console.log('✅ Response for', endpoint, ':', {
-            status: response.status,
-            dataType: typeof data,
-            dataLength: Array.isArray(data) ? data.length : 'not array',
-            data: data
-        });
+
         return data// <--- directo
 
     } catch (error) {
@@ -120,7 +96,10 @@ export async function strapiFetchById(endpoint, id, populate) {
         const response = await fetch(url, {
             method: "GET",
             headers,
+
+
             cache: 'no-cache'
+            // next: { revalidate: 60 } // ISR: Revalida cada 5 minutos
         });
 
         if (!response.ok) {
@@ -151,11 +130,24 @@ export const api = {
     homeAbout: () => strapiFetch("/about-us?populate[home_about][populate][item_list]=true&populate[home_about][populate][pictures]=true"),
     restaurants: () => strapiFetch("/Restaurants?populate=*"),
     singleRestaurant: (id, populate) => strapiFetchById("/restaurants", id, populate),
+
+
+
     hotels: () => strapiFetch("/hotels?populate=*"),
+    singleHotel: (id, populate) => strapiFetchById("/hotels", id, populate),
+
     activities: () => strapiFetch("/activities?populate=*"),
+    singleActivity: (id, populate) => strapiFetchById("/activities", id, populate),
+
     infoTourist: () => strapiFetch("/visitor-infos?populate=*"),
     packages: () => strapiFetch("/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"),
-    shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[repeat_control][populate]=*&populate[category_menu][populate][option][populate]=*"),
+
+    //Esta de acá es la que llama los eventos, su nombre debe ser cambiado a Custom Events
+    shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[announce][populate]=*"),
+
+    pwywSiteConfig: () => strapiFetch("/platform-setting?fields=pay_wy_want_reservations,pay_wy_want_shabbat_box"),
+
+    shabbatRegisterSingleReservation: () => strapiFetch("/reservations-shabbat-page?populate=*"),
     shabbatsAndHolidaysPage: () => strapiFetch("/shabbat-and-holidays-page?populate[register_for_meal_section][populate]=*&populate[shabbat_box_section][populate]=*"),
     shabbatsRegisterPrices: () => strapiFetch("/shabbat-pricings?populate=*"),
     shabbatBoxOptions: () => strapiFetch("/shabbat-boxes?populate[options][populate][variants]=*"),
@@ -165,4 +157,12 @@ export const api = {
     copiesPages: () => strapiFetch("/content-page?populate[activities][populate]=*&populate[restaurants][populate]=*&populate[accommodations][populate]=*&populate[visitor_info][populate]=picture&populate[contact_page][populate]=picture&populate[donations][populate]=*"),
     termsAndConditions: () => strapiFetch("/content-page?populate[terms_and_conditions][populate]=*"),
     privacyPolicy: () => strapiFetch("/content-page?populate[privacy_policy][populate]=*"),
+
+
+    // Este endpoint es el que trae la configuracion de algunas vistas de personalizacion que controlamos nosotros como proovedores de la plataforma,
+    // Por ahora solo controla:
+    // PWYW, PACKAGES, SHABBATBOX
+
+    platformSettings: () => strapiFetch("/platform-setting?populate=*"),
+
 }

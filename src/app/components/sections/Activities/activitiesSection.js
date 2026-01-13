@@ -5,7 +5,7 @@ import { CardEntry } from "../(cards)/cardEntry";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { getAssetPath } from "@/app/utils/assetPath";
 
-export const ActivitiesSection = ({ activitiesData, packagesData }) => {
+export const ActivitiesSection = ({ activitiesData, packagesData, singleActivitiesActive = true }) => {
 
 
   const fallbackData = [
@@ -27,17 +27,26 @@ export const ActivitiesSection = ({ activitiesData, packagesData }) => {
 
 
   // Datos Api Construidos
-  const processedData = (activitiesData && Array.isArray(activitiesData)) ? activitiesData.map(activity => ({
-    id: activity.documentId || "#",
-    title: activity.title,
-    description: activity.description,
-    category: activity.category,
-    imageUrls: imagesArrayValidation(activity.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
-    website: activity.website,
-    address: activity.address,
-    tags: activity.Tags,
-    link_contact_packages: packagesData.link_contact_packages || "/#"
-  })) : [];
+  const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+  const processedData = (activitiesData && Array.isArray(activitiesData)) ? activitiesData
+    .map(activity => ({
+      id: activity.documentId || "#",
+      title: activity.title,
+      description: activity.description,
+      category: activity.category,
+      // Usar medium para cards (~750px) - imageUrl es ahora un array
+      imageUrls: activity.imageUrl?.[0]?.formats?.medium?.url
+        ? [`${url}${activity.imageUrl[0].formats.medium.url}`]
+        : activity.imageUrl?.[0]?.url
+          ? [`${url}${activity.imageUrl[0].url}`]
+          : [getAssetPath("/assets/global/asset001.png")],
+      website: activity.website,
+      address: activity.address,
+      tags: activity.Tags,
+      link_activities: activity.link_activities || "/#",
+      order: activity.order !== undefined && activity.order !== null ? activity.order : 100
+    }))
+    .sort((a, b) => a.order - b.order) : [];
 
 
 
@@ -49,7 +58,7 @@ export const ActivitiesSection = ({ activitiesData, packagesData }) => {
       <EntryLayout
         data={dataToUse}
         filterKey="category"
-        renderItem={(item) => <CardEntry item={item} />}
+        renderItem={(item) => <CardEntry item={item} singlePageActive={singleActivitiesActive} />}
       />
     </div>
   );

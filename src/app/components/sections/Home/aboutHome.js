@@ -53,33 +53,29 @@ export const AboutHome = ({ aboutData }) => {
 
 
   return (
-    <div id="aboutHero" className="w-full bg-blueBackground md:pt-12 pb-24">
+    <div id="aboutHero" className="w-full bg-blueBackground pt-14 md:pt-20 lg:pt-24 pb-16 md:pb-24 lg:pb-28">
       <div className={`max-w-7xl mx-auto px-4`}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="order-1 lg:order-none">
             <div className="text-primary font-bold text-lg md:text-xl tracking-wider mb-2">
               {pageData.primaryDescription}
             </div>
-
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-myBlack mb-6 leading-tight">
               {pageData.title}
             </h1>
-
             <p className="text-gray-text text-base mb-8 leading-relaxed">
               {pageData.description1}
             </p>
-
             <div className="flex items-center gap-3 mb-12 ">
               <FaWhatsapp className="text-2xl text-green-500" />
               <a
+                target="_blank" rel="noopener noreferrer"
                 href={links.wsapGroup}
                 className="text-myBlack font-medium text-lg underline hover:text-primary transition-colors"
               >
                 Join our WhatsApp group
               </a>
             </div>
-
-
             <div className="space-y-12">
               <div className="relative w-full h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden ">
                 <Image

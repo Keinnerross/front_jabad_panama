@@ -21,6 +21,15 @@ export async function POST(request) {
 
     const { amount, frequency, customMonths, customer, metadata } = body;
 
+    // Log para debugging
+    console.log('🔍 Create subscription request:', {
+      amount,
+      frequency,
+      customMonths,
+      customMonthsType: typeof customMonths,
+      customerEmail: customer?.email
+    });
+
     // Validar variables de entorno necesarias
     if (!process.env.STRIPE_SECRET_KEY) {
       console.error('STRIPE_SECRET_KEY is not configured');
@@ -49,7 +58,8 @@ export async function POST(request) {
     const subscriptionConfig = getSubscriptionConfig(frequency, customMonths);
     
     if (!subscriptionConfig) {
-      return Response.json({ error: 'Invalid frequency' }, { status: 400 });
+      console.error('❌ Invalid subscription config for:', { frequency, customMonths });
+      return Response.json({ error: 'Invalid frequency configuration' }, { status: 400 });
     }
 
     // 1. Crear precio recurrente dinámico
@@ -62,12 +72,11 @@ export async function POST(request) {
       },
     });
 
-    // 2. Preparar metadata expandida
+    // 2. Preparar metadata expandida (sin contador, solo para referencia)
     const expandedMetadata = {
       ...metadata,
       frequency,
       customMonths: customMonths || '',
-      maxPayments: subscriptionConfig.maxPayments || '',
       subscriptionType: subscriptionConfig.type,
       originalAmount: amount.toString(),
     };
@@ -77,13 +86,37 @@ export async function POST(request) {
     const cancelUrl = getFullUrl('/donation');
     console.log('🔧 Subscription Stripe URLs:', { successUrl, cancelUrl });
 
-    // 3. Crear sesión de suscripción
+    // 3. Preparar datos de suscripción
+    let subscription_data = {
+      metadata: expandedMetadata,
+      description: `${subscriptionConfig.description} - ${metadata?.project || 'Chabad Boquete'}`
+    };
+    
+    // Para suscripciones limitadas, calcular fecha de cancelación
+    // Nota: cancel_at debe establecerse DESPUÉS de crear la suscripción, no en checkout.sessions.create
+    if (subscriptionConfig.type === 'limited' && subscriptionConfig.maxPayments) {
+      const endDate = new Date();
+      // Para N pagos: agregar (N-1) meses + 1 día
+      // Esto asegura exactamente N pagos mensuales
+      endDate.setMonth(endDate.getMonth() + subscriptionConfig.maxPayments - 1);
+      endDate.setDate(endDate.getDate() + 1);
+      
+      // Guardar la fecha de fin en metadata para procesarla después
+      subscription_data.metadata.cancel_at_timestamp = Math.floor(endDate.getTime() / 1000).toString();
+      subscription_data.metadata.planned_end_date = endDate.toISOString();
+      subscription_data.metadata.total_payments_expected = subscriptionConfig.maxPayments.toString();
+      
+      console.log(`📅 Subscription for ${subscriptionConfig.maxPayments} payments will auto-cancel on:`, endDate.toISOString());
+    }
+
+    // 4. Crear sesión de suscripción
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{ price: price.id, quantity: 1 }],
       mode: 'subscription',
       customer_email: customer.email,
-      metadata: expandedMetadata,
+      metadata: expandedMetadata, // Metadata de la sesión para el webhook
+      subscription_data: subscription_data, // Metadata y cancel_at para la suscripción
       success_url: successUrl,
       cancel_url: cancelUrl,
     });
@@ -95,7 +128,14 @@ export async function POST(request) {
       subscriptionConfig: subscriptionConfig // Para debugging
     });
   } catch (err) {
-    console.error('Error creating subscription:', err);
+    console.error('❌ Error creating subscription:', err);
+    console.error('Error details:', {
+      type: err.type,
+      message: err.message,
+      param: err.param,
+      code: err.code,
+      statusCode: err.statusCode
+    });
     
     // Manejar diferentes tipos de errores de Stripe
     if (err.type === 'StripeCardError') {
@@ -103,7 +143,9 @@ export async function POST(request) {
     } else if (err.type === 'StripeRateLimitError') {
       return Response.json({ error: 'Too many requests made to the API too quickly.' }, { status: 429 });
     } else if (err.type === 'StripeInvalidRequestError') {
-      return Response.json({ error: 'Invalid parameters were supplied to Stripe API.' }, { status: 400 });
+      // Incluir más detalles del error para debugging
+      const errorMsg = err.param ? `Invalid parameter: ${err.param} - ${err.message}` : err.message;
+      return Response.json({ error: errorMsg || 'Invalid parameters were supplied to Stripe API.' }, { status: 400 });
     } else if (err.type === 'StripeAPIError') {
       return Response.json({ error: 'An error occurred internally with Stripe API.' }, { status: 500 });
     } else if (err.type === 'StripeConnectionError') {

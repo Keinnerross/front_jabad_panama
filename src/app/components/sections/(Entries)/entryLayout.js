@@ -95,7 +95,7 @@ export const EntryLayout = ({ data, filterKey = "category", renderItem }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 mb-8">
           {paginatedData.map((item, index) => (
-            <React.Fragment key={index}>
+            <React.Fragment key={`${currentFilter}-${currentPage}-${index}`}>
               {renderItem(item)}
             </React.Fragment>
           ))}

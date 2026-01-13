@@ -6,8 +6,10 @@ import { getAssetPath } from "@/app/utils/assetPath";
 
 export default async function Restaurants() {
 
-    const restaurantsData = await api.restaurants();
-    const copiesData = await api.copiesPages();
+    const [restaurantsData, copiesData] = await Promise.all([
+        api.restaurants(),
+        api.copiesPages()
+    ]);
 
 
 

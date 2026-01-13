@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = 'https://chabadboquete.com';
+  const baseUrl = 'https://chabad.kosherwithoutborders.com';
   
   return [
     {

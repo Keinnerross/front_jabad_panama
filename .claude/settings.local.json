@@ -4,7 +4,8 @@
       "Bash(rg:*)",
       "Bash(find:*)",
       "Bash(curl:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }

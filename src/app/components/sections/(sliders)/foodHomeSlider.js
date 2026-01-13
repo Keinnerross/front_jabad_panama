@@ -33,12 +33,17 @@ export const FoodHomeSlider = ({ restaurantsData, siteConfig }) => {
 
     // Datos Api Construidos
 
-    const processedData = (restaurantsData && Array.isArray(restaurantsData)) ? restaurantsData.map(restaurant => ({
-        id: restaurant.documentId || "#",
-        title: restaurant.name || restaurant.title,
-        description: restaurant.description,
-        imageUrls: imagesArrayValidation(restaurant.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
-    })) : [];
+    const processedData = (restaurantsData && Array.isArray(restaurantsData)) ? restaurantsData
+        .map(restaurant => ({
+            id: restaurant.documentId || "#",
+            title: restaurant.name || restaurant.title,
+            description: restaurant.description,
+            imageUrls: imagesArrayValidation(restaurant.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }, 'medium') || [],
+            is_direct_link: restaurant.is_direct_link || false,
+            direct_link: restaurant.direct_link || null,
+            order: restaurant.order !== undefined && restaurant.order !== null ? restaurant.order : 100
+        }))
+        .sort((a, b) => a.order - b.order) : [];
 
 
 
@@ -48,7 +53,7 @@ export const FoodHomeSlider = ({ restaurantsData, siteConfig }) => {
 
 
     return (
-        <div className={` bg-background pt-20 pb-6 flex justify-center items-center w-full flex-col px-6`}>
+        <div className={`bg-background pt-16 md:pt-24 lg:pt-28 pb-14 md:pb-20 lg:pb-24 flex justify-center items-center w-full flex-col px-6`}>
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">
@@ -72,11 +77,16 @@ export const FoodHomeSlider = ({ restaurantsData, siteConfig }) => {
                         {(dataToUse || []).map((restaurant, i) =>
 
                         (
-                            <Link href={`/single-restaurant/${restaurant.id}`} key={i} className="">
-                                <CardFoodSlider imageUrl={restaurant.imageUrls[0]} title={restaurant.title} description={restaurant.description} />
-                            </Link>
+                            restaurant.is_direct_link && restaurant.direct_link ? (
+                                <a href={restaurant.direct_link} key={i} className="">
+                                    <CardFoodSlider imageUrl={restaurant.imageUrls[0]} title={restaurant.title} description={restaurant.description} />
+                                </a>
+                            ) : (
+                                <Link href={`/single-restaurant/${restaurant.id}`} key={i} className="">
+                                    <CardFoodSlider imageUrl={restaurant.imageUrls[0]} title={restaurant.title} description={restaurant.description} />
+                                </Link>
+                            )
                         )
-
                         )}
                     </CarouselWrapper>
                 </div>

@@ -24,10 +24,10 @@ export const LegalPageContent = ({ title, description }) => {
                 
                 {/* Circle decorations */}
                 <div className="hidden lg:block absolute left-0 top-4 w-40 h-72">
-                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" sizes="160px" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-20 w-60 h-72">
-                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" sizes="240px" />
                 </div>
             </section>
 

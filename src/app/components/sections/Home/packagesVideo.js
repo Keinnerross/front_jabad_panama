@@ -33,31 +33,49 @@ const DynamicYouTubeEmbed = dynamic(() => Promise.resolve(YouTubeEmbed), {
 
 export const PackagesVideo = ({ title = "Everything about our packages", buttonText = "Check Details", href = "#", packagesData }) => {
 
+  // Función para convertir URLs de YouTube a formato embed con autoplay y mute
+  const convertToEmbedUrl = (url) => {
+    if (!url) return '';
 
+    let embedUrl = '';
 
+    // Si ya es embed, extraer el videoId para reconstruir con parámetros
+    if (url.includes('youtube.com/embed/')) {
+      const videoId = url.split('youtube.com/embed/')[1].split('?')[0];
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Convertir youtu.be a embed
+    else if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1].split('?')[0];
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Convertir youtube.com/watch a embed
+    else if (url.includes('youtube.com/watch')) {
+      const videoId = url.split('v=')[1].split('&')[0];
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    else {
+      return url;
+    }
 
-
-
-
-
-
-/*   console.log(packagesData) */
-
-
-
-  const fallbackData = {
-    videoUrl: "  https://www.youtube.com/embed/2u9dYbs1KCE?autoplay=1&mute=1",
-
+    // Extraer el videoId para añadir el parámetro playlist necesario para loop
+    const videoId = embedUrl.split('/embed/')[1];
+    
+    // Agregar parámetros de autoplay, mute, loop y playlist (necesario para loop)
+    return `${embedUrl}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
   };
 
-
+  const fallbackData = {
+    videoUrl: "https://www.youtube.com/embed/2u9dYbs1KCE?autoplay=1&mute=1&loop=1&playlist=2u9dYbs1KCE",
+  };
 
   // Separamos info de about
   const packagesInfo = packagesData?.hero_packages;
 
-  // Procesamos datos con fallback
+  // Procesamos datos con fallback y conversión automática
+  const rawVideoUrl = packagesInfo?.videoUrl || fallbackData.videoUrl;
   const pageData = {
-    videoUrl: packagesInfo?.videoUrl || fallbackData.videoUrl,
+    videoUrl: convertToEmbedUrl(rawVideoUrl),
   };
 
 
@@ -75,7 +93,7 @@ export const PackagesVideo = ({ title = "Everything about our packages", buttonT
 
 
   return (
-    <section className="bg-white pt-8 pb-16 flex justify-center items-center">
+    <section className="bg-white pt-14 md:pt-20 lg:pt-24 pb-14 md:pb-20 lg:pb-24 flex justify-center items-center">
       <div className="w-full max-w-7xl px-6 md:px-0">
         {/* Header Video Section */}
         <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">

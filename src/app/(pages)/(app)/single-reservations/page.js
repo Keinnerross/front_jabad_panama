@@ -1,5 +1,6 @@
 import SingleReservationsSection from "@/app/components/sections/(Entries)/singleReservations/singleReservationsSection";
 import { api } from "@/app/services/strapiApiFetch";
+import { getUpcomingShabbatEvents } from "@/app/services/shabbatTimesApi";
 import { Fragment, Suspense } from "react";
 
 // Loading skeleton component for better UX
@@ -19,21 +20,41 @@ const PageSkeleton = () => (
 );
 
 export default async function SingleReservations() {
-    // Llamada a la API
-    const shabbatsAndHolidaysData = await api.shabbatsAndHolidays();
-    const restaurantsData = await api.restaurants();
-    const shabbatsRegisterPricesData = await api.shabbatsRegisterPrices();
+    // Llamadas a la API en paralelo para mejor performance
+    const [
+        shabbatsAndHolidaysData,
+        restaurantsData,
+        shabbatsRegisterPricesData,
+        pwywSiteConfigData,
+        pageData,
+        upcomingShabbatEvents
+    ] = await Promise.all([
+        api.shabbatsAndHolidays(),
+        api.restaurants(),
+        api.shabbatsRegisterPrices(),
+        api.pwywSiteConfig(),
+        api.shabbatRegisterSingleReservation(),
+        getUpcomingShabbatEvents()
+    ]);
 
 
 
+
+    
+    
     return (
         <Fragment>
             <Suspense fallback={<PageSkeleton />}>
                 <SingleReservationsSection
                     shabbatsAndHolidaysData={shabbatsAndHolidaysData}
                     restaurantsData={restaurantsData}
-                    shabbatsRegisterPricesData={shabbatsRegisterPricesData} />
+                    shabbatsRegisterPricesData={shabbatsRegisterPricesData}
+                    upcomingShabbatEvents={upcomingShabbatEvents}
+                    pwywSiteConfigData={pwywSiteConfigData}
+                    pageData={pageData}
+                    />
             </Suspense>
         </Fragment>
     );
 };
+

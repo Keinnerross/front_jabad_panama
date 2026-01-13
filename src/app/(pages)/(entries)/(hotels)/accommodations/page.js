@@ -8,9 +8,11 @@ import { getAssetPath } from "@/app/utils/assetPath";
 
 export default async function Acomodations() {
 
-
-    const hotelsData = await api.hotels() || [];
-    const copiesData = await api.copiesPages() || {};
+    const [hotelsData, copiesData, platformSettings] = await Promise.all([
+        api.hotels(),
+        api.copiesPages(),
+        api.platformSettings()
+    ]);
 
 
     return (
@@ -50,7 +52,7 @@ export default async function Acomodations() {
                 </div >
             </section >
             <div className="z-10 relative">
-                <AccommodationsSection hotelsData={hotelsData} />
+                <AccommodationsSection hotelsData={hotelsData} singleHotelsActive={platformSettings?.SingleHotelsActive === true} />
             </div>
         </Fragment >
     )

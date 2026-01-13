@@ -150,6 +150,7 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                                 fill
                                 className="w-full h-full object-cover"
                                 alt="Panama City tourist information and skyline view"
+                                sizes="(max-width: 768px) 100vw, 1200px"
                             />
                         </div>
                     </div>
@@ -159,10 +160,10 @@ export const VisitorInformationSection = ({ infoTouristData, socialMediaLinksDat
                 <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
                 {/* Circle Images */}
                 <div className="hidden lg:block absolute left-0 top-4  w-40 h-72 ">
-                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" sizes="160px" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-20 w-60 h-72 ">
-                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" sizes="240px" />
                 </div>
             </section>
             <section className="w-full flex justify-center pb-20 px-6 md:px-0">

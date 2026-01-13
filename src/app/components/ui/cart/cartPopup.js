@@ -105,9 +105,29 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-semibold text-gray-800 truncate text-sm sm:text-base">{item.meal}</h3>
                                         <p className="text-gray-600 text-xs sm:text-sm">{item.priceType}</p>
-                                        <p className="text-gray-500 text-xs hidden sm:block">
-                                            Duration: {item.shabbatName}
-                                        </p>
+                                        {/* Mostrar información del evento/entrega */}
+                                        {item.shabbatName && (
+                                            <p className="text-gray-500 text-xs mt-1">
+                                                {item.productType === 'shabbatBox' ? 'Delivery' : 
+                                                 item.productType === 'customEvent' || item.productType === 'customEventDelivery' ? 'Event' : 
+                                                 'Shabbat'}: {item.shabbatName}
+                                            </p>
+                                        )}
+                                        {/* Mostrar fecha siempre que esté disponible */}
+                                        {(item.shabbatDate || item.deliveryDate || item.eventDate) && (
+                                            <p className="text-gray-500 text-xs">
+                                                Date: {item.eventDate || item.deliveryDate || item.shabbatDate}
+                                            </p>
+                                        )}
+                                        {/* Mostrar tipo de producto si es especial */}
+                                        {item.productType && item.productType !== 'mealReservation' && (
+                                            <span className="inline-block mt-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs">
+                                                {item.productType === 'shabbatBox' ? 'Shabbat Box' : 
+                                                 item.productType === 'customEventDelivery' ? 'Custom Event' : 
+                                                 item.productType === 'customEvent' ? 'Special Event' : 
+                                                 'Reservation'}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Price and Remove */}

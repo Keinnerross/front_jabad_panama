@@ -4,13 +4,14 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FiMail } from "react-icons/fi";
+import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { NewsletterForm } from "../ui/newsletter/NewsletterForm";
 import { getAssetPath } from "@/app/utils/assetPath";
 
 
-export const Footer = () => {
+export const Footer = ({ platformSettings }) => {
   const [siteConfig, setSiteConfig] = useState(null);
   const [activitiesData, setActivitiesData] = useState([]);
 
@@ -18,12 +19,12 @@ export const Footer = () => {
     const fetchData = async () => {
       try {
         console.log('🔍 Footer: Starting API calls...');
-        
+
         const [siteConfigData, activitiesDataFetch] = await Promise.all([
           api.siteConfig(),
           api.activities()
         ]);
-        
+
         console.log('🔍 Footer Results:', {
           siteConfig: {
             type: typeof siteConfigData,
@@ -35,7 +36,7 @@ export const Footer = () => {
             data: activitiesDataFetch
           }
         });
-        
+
         setSiteConfig(siteConfigData);
         setActivitiesData(activitiesDataFetch || []);
       } catch (error) {
@@ -61,34 +62,22 @@ export const Footer = () => {
   ];
 
 
-  let allImages = [];
-
-  const arrayAllImages = (data) => {
-    if (Array.isArray(data)) {
-      data.forEach(activity => {
-        if (activity.imageUrls) {
-          // Si imageUrls es un array, concatenamos sus elementos
-          if (Array.isArray(activity.imageUrls)) {
-            allImages = allImages.concat(activity.imageUrls);
-          }
-          // Si imageUrls es un string, lo añadimos directamente
-          else if (typeof activity.imageUrls === 'string') {
-            allImages.push(activity.imageUrls);
-          }
-        }
-      });
-    }
-
-    return allImages;
-  }
-  const arrayAllImagesUrl = arrayAllImages(activitiesData);
-  const imageUrls = imagesArrayValidation(arrayAllImagesUrl, { imageUrls: [] });
-
-  const categoriesActivities = (activitiesData && Array.isArray(activitiesData)) ? activitiesData.map((activity) => ({
-    title: activity.title || "lorep Ipsum",
-  })) : []
-  const displayedActivitiesPictures = (imageUrls || []).slice(-3);
-  const displayedInfoActivities = (categoriesActivities || []).slice(-3)
+  // Procesar actividades con imagen única
+  const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+  const processedActivities = (activitiesData && Array.isArray(activitiesData)) 
+    ? activitiesData.map((activity) => ({
+        title: activity.title || "Lorem Ipsum",
+        // Usar thumbnail para el footer (40x40px) - imageUrl es ahora un array
+        imageUrl: activity.imageUrl?.[0]?.formats?.thumbnail?.url
+          ? `${url}${activity.imageUrl[0].formats.thumbnail.url}`
+          : activity.imageUrl?.[0]?.url
+            ? `${url}${activity.imageUrl[0].url}`
+            : getAssetPath("/assets/global/asset001.png")
+      }))
+    : [];
+  
+  // Tomar solo las últimas 3 actividades para mostrar
+  const displayedActivities = processedActivities.slice(-3);
 
 
 
@@ -109,30 +98,36 @@ export const Footer = () => {
       links: [
         { name: "Restaurants", path: "/restaurants" },
         { name: "Activities", path: "/activities" },
-        { name: "Packages", path: "/packages" },
+        ...(platformSettings?.habilitar_packages ? [
+          { name: "Packages", path: "/packages" }
+        ] : []),
         { name: "Accommodations", path: "/accommodations" }
       ]
     },
     {
-      title: "Services",
+      title: "Kosher Food",
       links: [
-        { name: "Shabbat Box", path: "/shabbat-holidays" },
-        { name: "Reservations", path: "/shabbat-holidays" }
+        // Shabbat Box solo se muestra si isActiveShabbatBox es true
+        ...(platformSettings?.isActiveShabbatBox ? [
+          { name: "Shabbat Box", path: "/single-shabbatbox" }
+        ] : []),
+        { name: "Shabbat Meals", path: "/shabbat-holidays" }
+        // Renderizar aquí los events
       ]
     },
     {
       title: "Attractions",
-      links: (displayedInfoActivities || []).map((activity, i) => ({
+      links: (displayedActivities || []).map((activity) => ({
         name: activity.title,
-        path: "/packages",
-        image: displayedActivitiesPictures[i]
+        path: "/activities",
+        image: activity.imageUrl
       }))
     },
     {
       title: "Help",
       links: [
         { name: "Tourist Info", path: "/visitor-information" },
-        { name: "Community", path: "/visitor-information" }
+        { name: "Whatsapp Group", path: siteConfig?.whatsapp_groups_url_footer || "/visitor-information" }
       ]
     },
     {
@@ -165,6 +160,8 @@ export const Footer = () => {
                         </div>
                         <span className="text-gray-text group-hover:text-primary transition-colors text-base">{link.name}</span>
                       </Link>
+                    ) : link.name === "Whatsapp Group" ? (
+                      <Link href={link.path} target="_blank" rel="noopener noreferrer" className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</Link>
                     ) : (
                       <Link href={link.path} className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</Link>
                     )}
@@ -175,12 +172,61 @@ export const Footer = () => {
           ))}
         </div>
 
+        {/* Social Media Links */}
+        {siteConfig?.social_media && (
+          <div className="flex justify-center items-center gap-4 mt-8 mb-12">
+            {siteConfig.social_media.link_facebook && (
+              <a
+                href={siteConfig.social_media.link_facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary p-3 rounded-xl hover:bg-opacity-90 transition-all hover:scale-110"
+                aria-label="Facebook"
+              >
+                <FaFacebookF fill="white" size={20} />
+              </a>
+            )}
+            {siteConfig.social_media.link_instagram && (
+              <a
+                href={siteConfig.social_media.link_instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary p-3 rounded-xl hover:bg-opacity-90 transition-all hover:scale-110"
+                aria-label="Instagram"
+              >
+                <FaInstagram fill="white" size={20} />
+              </a>
+            )}
+            {siteConfig.social_media.link_whatsapp && (
+              <a
+                href={siteConfig.social_media.link_whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary p-3 rounded-xl hover:bg-opacity-90 transition-all hover:scale-110"
+                aria-label="WhatsApp"
+              >
+                <FaWhatsapp fill="white" size={20} />
+              </a>
+            )}
+          </div>
+        )}
+
+
         {/* Newsletter */}
-        <NewsletterForm />
+        {/* <NewsletterForm /> */}
+
 
         {/* Derechos de autor */}
         <p className="mt-4 text-center text-gray-500">
-          © {new Date().getFullYear()} {siteConfig?.site_title || "Site Title"}. All rights reserved.
+          © {new Date().getFullYear()} | Powered by{" "}
+          <a 
+            href="https://kosherwithoutborders.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-gray-600 hover:text-primary transition-colors underline"
+          >
+            Kosher Without Borders
+          </a> - v1.1.5
         </p>
       </div>
     </footer>

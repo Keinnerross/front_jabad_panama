@@ -134,7 +134,16 @@ export function parseLineItems(lineItems) {
   }
 
   return lineItems.map(item => {
-    // Para items con price_data (creados dinámicamente)
+    // Log para debug
+    console.log('🔍 Parsing line item:', {
+      has_price_data: !!item.price_data,
+      has_price: !!item.price,
+      description: item.description,
+      amount_total: item.amount_total,
+      quantity: item.quantity
+    });
+    
+    // Para items con price_data (creados dinámicamente) - este es el caso normal
     if (item.price_data) {
       return {
         name: item.price_data.product_data?.name || 'Unknown Item',
@@ -143,29 +152,56 @@ export function parseLineItems(lineItems) {
         quantity: item.quantity || 1,
         total: (item.price_data.unit_amount / 100) * (item.quantity || 1),
         // Detectar el tipo de producto basado en el nombre o descripción
-        productType: detectProductType(item.price_data.product_data?.name, item.price_data.product_data?.description)
+        productType: detectProductType(item.price_data.product_data?.name, item.price_data.product_data?.description),
+        // Mantener datos originales para procesamiento posterior
+        unitPrice: item.price_data.unit_amount / 100,
+        meal: item.price_data.product_data?.name
       };
     }
     
-    // Para items con price ID (productos predefinidos)
-    if (item.price) {
+    // Para items con price object expandido
+    if (item.price?.product) {
+      const product = item.price.product;
+      const unitAmount = item.price.unit_amount || item.amount_total / item.quantity;
+      
       return {
-        name: 'Product', // Necesitarías hacer fetch del producto para obtener el nombre
-        description: '',
-        price: 0, // Necesitarías hacer fetch del price para obtener el monto
+        name: product.name || item.description || 'Product',
+        description: product.description || item.description || '',
+        price: unitAmount / 100,
         quantity: item.quantity || 1,
-        total: 0,
-        productType: 'unknown'
+        total: (item.amount_total || (unitAmount * item.quantity)) / 100,
+        productType: detectProductType(product.name || item.description, product.description),
+        unitPrice: unitAmount / 100,
+        meal: product.name || item.description
+      };
+    }
+    
+    // Para items con price ID pero sin producto expandido
+    if (item.price) {
+      // Usar description como fallback para el nombre
+      const unitAmount = item.price.unit_amount || item.amount_total / item.quantity;
+      return {
+        name: item.description || 'Product',
+        description: item.description || '',
+        price: unitAmount / 100,
+        quantity: item.quantity || 1,
+        total: (item.amount_total || (unitAmount * item.quantity)) / 100,
+        productType: detectProductType(item.description, ''),
+        unitPrice: unitAmount / 100,
+        meal: item.description || 'Product'
       };
     }
 
+    // Fallback final
     return {
-      name: 'Unknown Item',
-      description: '',
-      price: 0,
-      quantity: 1,
-      total: 0,
-      productType: 'unknown'
+      name: item.description || 'Unknown Item',
+      description: item.description || '',
+      price: (item.amount_total / item.quantity) / 100,
+      quantity: item.quantity || 1,
+      total: (item.amount_total || 0) / 100,
+      productType: 'unknown',
+      unitPrice: (item.amount_total / item.quantity) / 100,
+      meal: item.description || 'Unknown Item'
     };
   });
 }
@@ -175,7 +211,9 @@ function detectProductType(name, description) {
   const nameStr = (name || '').toLowerCase();
   const descStr = (description || '').toLowerCase();
   
-  if (nameStr.includes('shabbat box') || nameStr.includes('shabatbox')) {
+  // Buscar shabbatBox tanto en nombre como en descripción
+  if (nameStr.includes('shabbat box') || nameStr.includes('shabatbox') || 
+      descStr.includes('shabbatbox') || descStr.includes('shabbat box')) {
     return 'shabbatBox';
   }
   

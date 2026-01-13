@@ -8,8 +8,8 @@ import { PackagesIcon } from "@/app/components/ui/icons/packagesIcon"
 import { AccommodationsIcon } from "@/app/components/ui/icons/AccommodationsIcon"
 import { ActivitiesIcon } from "@/app/components/ui/icons/activitiesIcon"
 
-export const CardsHeroSection = () => {
-    const dataCardsHero = [
+export const CardsHeroSection = ({ platformSettings }) => {
+    const baseCards = [
         {
             title: "Kosher Food",
             icon: <FoodIcon size={40} />,
@@ -25,11 +25,19 @@ export const CardsHeroSection = () => {
             icon: <ShabbatIcon size={40} />,
             href: "/shabbat-holidays",
         },
-        {
+    ];
+
+    // Conditionally add the Packages card
+    if (platformSettings?.habilitar_packages) {
+        baseCards.push({
             title: "All-Inclusive Packages",
             icon: <PackagesIcon size={40} />,
             href: "/packages",
-        },
+        });
+    }
+
+    // Add the remaining cards
+    baseCards.push(
         {
             title: "Accommodations",
             icon: <AccommodationsIcon size={40} />,
@@ -39,22 +47,39 @@ export const CardsHeroSection = () => {
             title: "Activities",
             icon: <ActivitiesIcon size={40} />,
             href: "/activities",
-        },
-    ];
+        }
+    );
+
+    const dataCardsHero = baseCards;
+    
+    // Determine grid classes based on number of cards
+    const gridClasses = dataCardsHero.length === 5 
+        ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 w-full lg:max-w-5xl lg:mx-auto"
+        : "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 w-full";
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-[repeat(3,minmax(0,1fr))] lg:grid-cols-6 gap-4 w-full ">
-            {dataCardsHero.map((dataCard, i) => (
-                <div
-                    key={i}
-                    className="flex justify-center items-center opacity-0 translate-y-6"
-                    style={{
-                        animation: `slideUpFadeCard 0.6s ease-out ${0.05 * i + 1}s forwards`
-                    }}
-                >
-                    <CardHero data={dataCard} />
-                </div>
-            ))}
+        <>
+            <div className={gridClasses}>
+                {dataCardsHero.map((dataCard, i) => {
+                    // For mobile: center the 5th card when there are 5 cards total
+                    const isLastOddCard = dataCardsHero.length === 5 && i === 4;
+                    const cardClasses = isLastOddCard 
+                        ? "flex justify-center items-center opacity-0 translate-y-6 col-span-2 sm:col-span-1"
+                        : "flex justify-center items-center opacity-0 translate-y-6";
+                    
+                    return (
+                        <div
+                            key={i}
+                            className={cardClasses}
+                            style={{
+                                animation: `slideUpFadeCard 0.6s ease-out ${0.05 * i + 1}s forwards`
+                            }}
+                        >
+                            <CardHero data={dataCard} />
+                        </div>
+                    );
+                })}
+            </div>
 
             <style jsx>{`
                 @keyframes slideUpFadeCard {
@@ -68,6 +93,6 @@ export const CardsHeroSection = () => {
                     }
                 }
             `}</style>
-        </div>
+        </>
     );
 };

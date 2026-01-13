@@ -9,6 +9,7 @@ import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaur
 import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
 import { getAssetPath } from "@/app/utils/assetPath";
 import ReactMarkdown from 'react-markdown';
+import { getShabbatTimesForDate } from "@/app/services/shabbatTimesApi";
 // import { pricesRegistrationShabbat } from "@/app/data/shabbatData";
 
 // Lazy load the popup component for better performance
@@ -55,7 +56,7 @@ const SingleReservationsSkeleton = () => (
     </div>
 );
 
-export default function SingleReservationsSection({ shabbatsAndHolidaysData, restaurantsData, shabbatsRegisterPricesData }) {
+export default function SingleReservationsSection({ shabbatsAndHolidaysData, restaurantsData, shabbatsRegisterPricesData, upcomingShabbatEvents, pageData, pwywSiteConfigData }) {
 
     // Use API data instead of static data
     const pricesRegistrationShabbat = shabbatsRegisterPricesData || [];
@@ -65,6 +66,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [isCustomEvent, setIsCustomEvent] = useState(false);
     const [isDataReady, setIsDataReady] = useState(false);
+    const [shabbatTimes, setShabbatTimes] = useState(null);
 
     // Get sorted Shabbats from API data  
     const sortedShabbats = shabbatsAndHolidaysData || [];
@@ -75,26 +77,70 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
     }
 
     useEffect(() => {
-        const shabbatId = searchParams.get('shabbat');
+        const eventId = searchParams.get('event') || searchParams.get('shabbat'); // Support both params for backward compatibility
 
-        // Exit early if no ID or no data
-        if (!shabbatId || sortedShabbats.length === 0) {
-            setIsDataReady(true); // Mark as ready even if no data
+        // Exit early if no ID
+        if (!eventId) {
+            setIsDataReady(true);
             return;
         }
 
-        // Find event by ID (not index)
-        const selectedEvent = sortedShabbats.find(event => event.id.toString() === shabbatId);
+        // First, try to find in Hebcal events
+        if (upcomingShabbatEvents && upcomingShabbatEvents.length > 0) {
+            const hebcalEvent = upcomingShabbatEvents.find(event => event.id === eventId);
+            if (hebcalEvent) {
+                // Calculate correct end date (Shabbat ends on Saturday)
+                const startDate = new Date(hebcalEvent.date);
+                const endDate = new Date(startDate);
+                endDate.setDate(endDate.getDate() + 1); // Add one day for Shabbat end
+                
+                // Convert Hebcal event to expected format
+                setSelectedShabbatData({
+                    id: hebcalEvent.id,
+                    name: hebcalEvent.title,
+                    hebrew_name: hebcalEvent.hebrew,
+                    startDate: hebcalEvent.date,
+                    endDate: endDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+                    formattedDate: hebcalEvent.formattedDate,
+                    displayDate: hebcalEvent.formattedDate, // Keep the original formatted date
+                    type_of_event: 'shabbat or holiday',
+                    category_menu: [],
+                    description: `Join us for ${hebcalEvent.title} on ${hebcalEvent.formattedDate}`,
+                    leyning: hebcalEvent.leyning,
+                    hdate: hebcalEvent.hdate
+                });
+                setIsCustomEvent(false);
+                
+                // Fetch specific Shabbat info for this event's date
+                getShabbatTimesForDate(hebcalEvent.date).then(times => {
+                    setShabbatTimes(times);
+                    setIsDataReady(true);
+                });
+                return;
+            }
+        }
 
-        // Only update if event found and different from current
-        if (selectedEvent && selectedEvent.id !== selectedShabbatData?.id) {
-            setSelectedShabbatData(selectedEvent);
-            setIsCustomEvent(selectedEvent.type_of_event === 'custom');
+        // If not found in Hebcal, try Strapi data (for backward compatibility)
+        if (sortedShabbats.length > 0) {
+            const selectedEvent = sortedShabbats.find(event => event.id.toString() === eventId);
+            if (selectedEvent && selectedEvent.id !== selectedShabbatData?.id) {
+                setSelectedShabbatData(selectedEvent);
+                // Custom Events tienen event_type (reservation/delivery), NO type_of_event
+                // Si tiene event_type, es un Custom Event
+                setIsCustomEvent(!!selectedEvent.event_type);
+                
+                // Si es un evento de Shabbat/Holiday (no custom), obtener info de Shabbat
+                if (selectedEvent.type_of_event === 'shabbat or holiday' && selectedEvent.startDate) {
+                    getShabbatTimesForDate(selectedEvent.startDate).then(times => {
+                        setShabbatTimes(times);
+                    });
+                }
+            }
         }
 
         // Mark data as ready
         setIsDataReady(true);
-    }, [searchParams.get('shabbat'), sortedShabbats.length]); // More specific dependencies
+    }, [searchParams.get('event'), searchParams.get('shabbat'), sortedShabbats.length, upcomingShabbatEvents]); // More specific dependencies
 
     const handleMealSelection = (meal) => {
         setSelectedMeal(meal);
@@ -130,7 +176,11 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                             <div className="md:w-[60%] mb-4 md:mb-0">
                                 <div>
                                     <h1 className="text-4xl font-bold text-darkBlue md:max-w-[80%]">
-                                        {isCustomEvent ? `Registration for ${selectedShabbatData?.name || 'Custom Event'}` : 'Registration for Shabbat and Holiday meals'}
+                                        {isCustomEvent ? 
+                                            `Registration for ${selectedShabbatData?.name || 'Custom Event'}` : 
+                                            (selectedShabbatData ? 
+                                                `Registration for ${selectedShabbatData.name || selectedShabbatData.title}` : 
+                                                'Registration for Shabbat and Holiday meals')}
                                     </h1>
                                 </div>
                             </div>
@@ -141,26 +191,17 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                 <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
                             </div>
                         </div>
-                        <div className="flex justify-center md:justify-start items-center gap-4 mb-8">
-                            {isCustomEvent ? (
-                                selectedShabbatData?.category_menu?.slice(0, 3).map((category, index) => (
-                                    <CategoryTag key={index} categoryTitle={category.category_name || `Category ${index + 1}`} />
-                                ))
-                            ) : (
-                                <>
-                                    <CategoryTag categoryTitle="Shabbat Meals" />
-                                    <CategoryTag categoryTitle="Kosher Foods" />
-                                </>
-                            )}
-                        </div>
+                        
 
                         <div className="w-full h-80 md:h-[500px] rounded-xl overflow-hidden relative">
                             <Image
                                 fill
                                 src={
-                                    isCustomEvent && selectedShabbatData?.cover_picture?.url
-                                        ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${selectedShabbatData.cover_picture.url}`
-                                        : getAssetPath("/assets/pictures/shabbat-meals/meals-single.jpg")
+                                    pageData?.main_picture?.url
+                                        ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${pageData.main_picture.url}`
+                                        : (isCustomEvent && selectedShabbatData?.cover_picture?.url
+                                            ? `${process.env.NEXT_PUBLIC_STRAPI_API_URL}${selectedShabbatData.cover_picture.url}`
+                                            : getAssetPath("/assets/pictures/shabbat-meals/meals-single.jpg"))
                                 }
                                 alt="picture-shabbat-meal"
                                 className="w-full h-full object-cover"
@@ -175,7 +216,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                 {!isCustomEvent ? (
                                     <>
                                         <h2 className="text-3xl font-bold text-darkBlue mb-6">
-                                            Shabbat times:
+                                            Service Information:
                                         </h2>
                                         <div className="text-gray-text text-sm leading-relaxed space-y-4">
                                             {selectedShabbatData && (
@@ -207,31 +248,93 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                         </div>
                                                     )}
 
-                                                    <div className="border border-gray-200 p-4 rounded-2xl">
-                                                        <h3 className="font-semibold text-myBlack text-base mb-2">
-                                                            Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                        </h3>
-                                                        <ul>
-                                                            {selectedShabbatData.fridayNight && Array.isArray(selectedShabbatData.fridayNight) && selectedShabbatData.fridayNight.map((event, index) => (
-                                                                <li key={index}>
-                                                                    <strong className="text-myBlack">{event.hora}</strong> {event.activity}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
+                                                    {/* Friday Night Section - Solo mostrar si hay datos */}
+                                                    {(shabbatTimes?.candleLighting || shabbatTimes?.parashat || shabbatTimes?.torah || shabbatTimes?.hdate || 
+                                                      (selectedShabbatData.fridayNight && selectedShabbatData.fridayNight.length > 0)) && (
+                                                        <div className="border border-gray-200 p-4 rounded-2xl">
+                                                            <h3 className="font-semibold text-myBlack text-base mb-2">
+                                                                Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                            </h3>
+                                                            <ul className="space-y-2">
+                                                                {/* Datos de Hebcal API */}
+                                                                {shabbatTimes?.candleLighting && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Candle Lighting:</strong> {shabbatTimes.candleLighting}
+                                                                    </li>
+                                                                )}
+                                                                {shabbatTimes?.parashat && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Torah Portion:</strong> {shabbatTimes.parashat}
+                                                                        {shabbatTimes.hebrew && (
+                                                                            <span className="text-gray-500 ml-2">({shabbatTimes.hebrew})</span>
+                                                                        )}
+                                                                    </li>
+                                                                )}
+                                                                {shabbatTimes?.torah && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Torah Reading:</strong> {shabbatTimes.torah}
+                                                                    </li>
+                                                                )}
+                                                                {shabbatTimes?.hdate && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Hebrew Date:</strong> {shabbatTimes.hdate}
+                                                                    </li>
+                                                                )}
+                                                                
+                                                                {/* Datos de Strapi si existen */}
+                                                                {selectedShabbatData.fridayNight && Array.isArray(selectedShabbatData.fridayNight) && 
+                                                                 selectedShabbatData.fridayNight.map((event, index) => (
+                                                                    <li key={index}>
+                                                                        <strong className="text-myBlack">{event.hora}</strong> {event.activity}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
 
-                                                    <div className="border border-gray-200 p-4 rounded-2xl">
-                                                        <h3 className="font-semibold text-myBlack text-base mb-2">
-                                                            Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                        </h3>
-                                                        <ul>
-                                                            {selectedShabbatData.shabbatDay && Array.isArray(selectedShabbatData.shabbatDay) && selectedShabbatData.shabbatDay.map((event, index) => (
-                                                                <li key={index}>
-                                                                    <strong className="text-myBlack">{event.hora}</strong> {event.activity}
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
+                                                    {/* Shabbat Day Section - Solo mostrar si hay datos */}
+                                                    {(shabbatTimes?.haftarah || shabbatTimes?.maftir || shabbatTimes?.mevarchim || shabbatTimes?.havdalah ||
+                                                      (selectedShabbatData.shabbatDay && selectedShabbatData.shabbatDay.length > 0)) && (
+                                                        <div className="border border-gray-200 p-4 rounded-2xl">
+                                                            <h3 className="font-semibold text-myBlack text-base mb-2">
+                                                                Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                            </h3>
+                                                            <ul className="space-y-2">
+                                                                {/* Datos de Hebcal API */}
+                                                                {shabbatTimes?.haftarah && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Haftarah:</strong> {shabbatTimes.haftarah}
+                                                                    </li>
+                                                                )}
+                                                                {shabbatTimes?.maftir && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Maftir:</strong> {shabbatTimes.maftir}
+                                                                    </li>
+                                                                )}
+                                                                {shabbatTimes?.mevarchim && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Special:</strong> {shabbatTimes.mevarchim}
+                                                                        {shabbatTimes.molad && (
+                                                                            <div className="text-gray-500 text-sm mt-1">{shabbatTimes.molad}</div>
+                                                                        )}
+                                                                    </li>
+                                                                )}
+                                                                {shabbatTimes?.havdalah && (
+                                                                    <li>
+                                                                        <strong className="text-myBlack">Havdalah:</strong> {shabbatTimes.havdalah}
+                                                                    </li>
+                                                                )}
+                                                                
+                                                                {/* Datos de Strapi si existen */}
+                                                                {selectedShabbatData.shabbatDay && Array.isArray(selectedShabbatData.shabbatDay) && 
+                                                                 selectedShabbatData.shabbatDay.map((event, index) => (
+                                                                    <li key={index}>
+                                                                        <strong className="text-myBlack">{event.hora}</strong> {event.activity}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -281,13 +384,14 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                             {selectedShabbatData?.name || "Error to fetch"}
                                         </h3>
                                         <p className="text-gray-text text-sm">
-                                            {isCustomEvent ?
-                                                `Join us for ${selectedShabbatData?.name || 'this special event'}. Register in advance to secure your spot and enjoy a unique experience with our community.` :
-                                                'Join us for a meaningful Shabbat or holiday experience by registering in advance for our communal meals. Whether you\'re traveling, new to the area, or just looking to connect, there\'s always a seat for you at our table.'
+                                            {pageData?.description_sidebar || 
+                                                (isCustomEvent ?
+                                                    `Join us for ${selectedShabbatData?.name || 'this special event'}. Register in advance to secure your spot and enjoy a unique experience with our community.` :
+                                                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Join us for a meaningful Shabbat or holiday experience by registering in advance for our communal meals.')
                                             }
                                         </p>
                                         <ButtonTheme
-                                            title={isCustomEvent ? `Register for ${selectedShabbatData?.name || 'Event'}` : "Register for Shabbat Meals"}
+                                            title={pageData?.text_button_sidebar || "Register now!"}
                                             variation={2}
                                             onClick={handleGeneralRegistration}
                                             disableLink={true}
@@ -300,7 +404,9 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                 </div>
             </div>
 
-            <RestaurantsSection restaurantsData={restaurantsData} />
+            {pageData?.show_restaurants_sections && (
+                <RestaurantsSection restaurantsData={restaurantsData} />
+            )}
 
             {/* Lazy loaded popup with suspense boundary */}
             <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div></div>}>
@@ -311,6 +417,12 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                     shabbatData={selectedShabbatData}
                     allMeals={isCustomEvent ? (selectedShabbatData?.category_menu?.flatMap(cat => cat.option) || []) : pricesRegistrationShabbat}
                     isCustomEvent={isCustomEvent}
+                    enableLocalPricing={pageData?.enable_local_pricing || false}
+                    pwywSiteConfigData={
+                        isCustomEvent
+                            ? (selectedShabbatData?.pay_wy_want_custom_event === true)
+                            : (pwywSiteConfigData?.pay_wy_want_reservations === true)
+                    }
                 />
             </Suspense>
         </Fragment>

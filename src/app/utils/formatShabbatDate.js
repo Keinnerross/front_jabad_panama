@@ -8,13 +8,22 @@ export const formatShabbatDate = (shabbat) => {
         return shabbat.date || '';
     }
     
-    const startDate = new Date(shabbat.startDate);
-    const endDate = new Date(shabbat.endDate);
-    
-    const startDay = startDate.getUTCDate().toString().padStart(2, '0');
-    const endDay = endDate.getUTCDate().toString().padStart(2, '0');
-    const month = (endDate.getUTCMonth() + 1).toString().padStart(2, '0');
-    const year = endDate.getUTCFullYear();
-    
-    return `${startDay}-${endDay}/${month}/${year}`;
+    try {
+        const startDate = new Date(shabbat.startDate);
+        const endDate = new Date(shabbat.endDate);
+        
+        // Check if dates are valid
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return '';
+        }
+        
+        const startDay = startDate.getDate().toString().padStart(2, '0');
+        const endDay = endDate.getDate().toString().padStart(2, '0');
+        const month = (endDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = endDate.getFullYear();
+        
+        return `${startDay}-${endDay}/${month}/${year}`;
+    } catch (error) {
+        return '';
+    }
 };

@@ -1,18 +1,28 @@
 import ShabbatHolidaysSection from "@/app/components/sections/(Entries)/shabbatHolidays/shabbatHolidaysSection";
 import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
-import { getShabbatTimes } from "@/app/services/shabbatTimesApi";
+import { getShabbatTimes, getUpcomingShabbatEvents } from "@/app/services/shabbatTimesApi";
 import { Fragment } from "react";
 
 export default async function ShabbatHolidays() {
 
-    //Llamada a la API
+    // Llamadas a la API en paralelo para mejor performance
+    const [
+        ShabbatHolidaysPage,
+        popUpsData,
+        aboutPageData,
+        shabbatTimes,
+        upcomingShabbatEvents,
+        platformSettings
+    ] = await Promise.all([
+        api.shabbatsAndHolidaysPage(),
+        api.popUps(),
+        api.aboutPage(),
+        getShabbatTimes(),
+        getUpcomingShabbatEvents(),
+        api.platformSettings()
+    ]);
 
-    const ShabbatHolidaysPage = await api.shabbatsAndHolidaysPage() || {};
-    const popUpsData = await api.popUps() || [];
-    const aboutPageData = await api.aboutPage() || {};
-    const shabbatsAndHolidaysData = await api.shabbatsAndHolidays() || [];
-    const shabbatTimes = await getShabbatTimes() || {};
     const pictures = aboutPageData?.about_page?.pictures || [];
     const aboutPicturesData = {
         imageUrls: imagesArrayValidation(pictures, { imageUrls: [] }) || []
@@ -22,10 +32,11 @@ export default async function ShabbatHolidays() {
         <Fragment>
             <ShabbatHolidaysSection
                 aboutPicturesData={aboutPicturesData}
-                shabbatsAndHolidaysData={shabbatsAndHolidaysData}
+                upcomingShabbatEvents={upcomingShabbatEvents}
                 shabbatTimes={shabbatTimes}
                 ShabbatHolidaysPage={ShabbatHolidaysPage}
                 popUpsData={popUpsData}
+                platformSettings={platformSettings}
             />
         </Fragment>
     )

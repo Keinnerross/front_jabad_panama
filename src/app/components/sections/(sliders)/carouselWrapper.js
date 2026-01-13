@@ -10,7 +10,7 @@ export const CarouselWrapper = ({ children }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: 'start',
-    containScroll: 'trimSnaps',
+    containScroll: 'trimSnaps'
   })
 
   const scrollPrev = useCallback(() => {
@@ -25,7 +25,7 @@ export const CarouselWrapper = ({ children }) => {
     <div className="relative md:w-full max-w-7xl">
       {/* Viewport */}
       <div className="" ref={emblaRef}>
-        <div className="flex w-screen">{children}</div>
+        <div className="flex w-full">{children}</div>
       </div>
 
       {/* Arrows */}

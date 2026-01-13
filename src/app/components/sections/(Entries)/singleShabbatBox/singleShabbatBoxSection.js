@@ -17,12 +17,11 @@ const PopupShabbatBox = lazy(() =>
     }))
 );
 
-export default function SingleShabbatBoxSection({ shabbatBoxOptionsData, shabbatsAndHolidaysData, restaurantsData, shabbatBoxSingleData }) {
+export default function SingleShabbatBoxSection({ shabbatBoxOptionsData, upcomingShabbatEvents, restaurantsData, shabbatBoxSingleData, pwywSiteConfigData }) {
     const [isShabbatBoxModalOpen, setIsShabbatBoxModalOpen] = useState(false);
     
     // Use API data
     const shabbatBoxOptions = shabbatBoxOptionsData || [];
-    const shabbatAndHolidays = shabbatsAndHolidaysData || [];
     
     // Extract page content data
     const pageData = shabbatBoxSingleData || {};
@@ -39,9 +38,6 @@ export default function SingleShabbatBoxSection({ shabbatBoxOptionsData, shabbat
         sidebarDescription: "Enjoy a warm stay near the Chabad House, with nearby kosher-friendly hotels and easy access to Shabbat services."
     };
     
-    // console.log('shabbatBoxOptions:', shabbatBoxOptions);
-    // console.log('shabbatAndHolidays:', shabbatAndHolidays);
-
     const dataEntry = [];
 
     return (
@@ -131,8 +127,9 @@ export default function SingleShabbatBoxSection({ shabbatBoxOptionsData, shabbat
                     isOpen={isShabbatBoxModalOpen}
                     handleModal={setIsShabbatBoxModalOpen}
                     shabbatBoxOptions={shabbatBoxOptions}
-                    shabbatAndHolidays={shabbatAndHolidays}
+                    upcomingShabbatEvents={upcomingShabbatEvents}
                     shabbatBoxSingleData={pageData}
+                    pwywSiteConfigData={pwywSiteConfigData?.pay_wy_want_shabbat_box || false}
                 />
             </Suspense>
         </Fragment>

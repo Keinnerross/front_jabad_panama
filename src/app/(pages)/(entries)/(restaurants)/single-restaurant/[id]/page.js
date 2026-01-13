@@ -143,7 +143,7 @@ export default async function Single({ params }) {
                                         <IoLocationOutline size={20} className="text-primary" />
                                         <p className="text-gray-text text-sm">{pageData.location}</p>
                                     </div>
-                                    {pageData.website !== "/#" && (
+                                    {pageData.website && pageData.website !== "#" && pageData.website !== "/#" && pageData.website !== "" && (
                                         <div className="flex gap-2 items-center">
                                             <CiGlobe size={20} className="text-primary" />
                                             <a

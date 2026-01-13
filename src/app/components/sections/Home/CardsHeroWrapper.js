@@ -1,5 +1,5 @@
 import { CardsHeroSection } from "./cardsHeroSection"
 
-export const CardsHeroWrapper = () => {
-  return <CardsHeroSection />
+export const CardsHeroWrapper = ({ platformSettings }) => {
+  return <CardsHeroSection platformSettings={platformSettings} />
 }

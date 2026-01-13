@@ -3,9 +3,12 @@ import { VisitorInformationSection } from "@/app/components/sections/(Entries)/v
 import { api } from "@/app/services/strapiApiFetch";
 
 export default async function TouristInfo() {
-    const infoTouristData = await api.infoTourist();
-    const socialMediaLinksData = await api.socialMediaLinks();
-    const copiesData = await api.copiesPages();
+    // Llamadas a la API en paralelo para mejor performance
+    const [infoTouristData, socialMediaLinksData, copiesData] = await Promise.all([
+        api.infoTourist(),
+        api.socialMediaLinks(),
+        api.copiesPages()
+    ]);
 
     
 

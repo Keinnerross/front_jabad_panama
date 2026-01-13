@@ -75,6 +75,7 @@ export const NotificationPopup = ({
             alt="Background"
             fill
             className="object-cover"
+            sizes="400px"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-30" />
         </div>

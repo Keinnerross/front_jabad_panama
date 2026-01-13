@@ -2,12 +2,17 @@
 import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loadStripe } from '@stripe/stripe-js';
 import { getAssetPath } from "@/app/utils/assetPath";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -17,7 +22,7 @@ export default function Checkout() {
         phone: '',
         email: '',
         donation: '',
-        coverFees: false,
+        coverFees: true,
         agreeTerms: false,
         agreeUpdates: false
     });
@@ -84,6 +89,30 @@ export default function Checkout() {
             // 1. Cargar Stripe.js
             const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
+            // Detectar tipo de orden para metadata - SÚPER SIMPLE
+            const firstItem = cartItems[0] || {};
+            const orderType = firstItem.productType || 'mealReservation';
+            
+            // TRES TIPOS ÚNICOS - Verificar también el flag isCustomEvent
+            const isCustomEvent = orderType === 'customEvent' || firstItem.isCustomEvent === true;  // Custom Events (verificar flag también)
+            const isShabbatBox = orderType === 'shabbatBox';         // Shabbat Box  
+            const isTraditionalShabbat = orderType === 'mealReservation' && !firstItem.isCustomEvent; // Shabbat/Holiday tradicional (solo si NO es custom event)
+            
+            // Logs para debugging de detección de tipo de orden
+            console.log('🛒 Checkout order detection (SIMPLIFIED):', {
+                firstItem_productType: firstItem.productType,
+                firstItem_isCustomEvent: firstItem.isCustomEvent,
+                firstItem_shabbatName: firstItem.shabbatName,
+                firstItem_eventName: firstItem.shabbatName, // DEBUG: Verificar nombre del evento
+                DETECTION_RESULTS: {
+                    isCustomEvent: isCustomEvent,        // → orders
+                    isShabbatBox: isShabbatBox,          // → orders  
+                    isTraditionalShabbat: isTraditionalShabbat  // → shabbat-orders
+                },
+                cartItemsCount: cartItems.length,
+                eventNameToSend: isCustomEvent ? firstItem.shabbatName : 'N/A' // DEBUG: Ver qué se enviará
+            });
+
             // 2. Preparar datos para el pago
             const paymentData = {
                 customer: {
@@ -94,22 +123,63 @@ export default function Checkout() {
                         nationality: formData.nationality
                     }
                 },
-                line_items: (cartItems || []).map(item => ({
-                    price_data: {
-                        currency: 'usd',
-                        product_data: {
-                            name: item.meal,
-                            description: `${item.shabbatName} - ${item.productType}`
+                line_items: (cartItems || []).map(item => {
+                    // Calcular precio unitario de forma segura
+                    let unitAmount = 0;
+                    if (item.quantity && item.quantity > 0) {
+                        unitAmount = Math.round((item.totalPrice / item.quantity) * 100);
+                    } else if (item.unitPrice) {
+                        unitAmount = Math.round(item.unitPrice * 100);
+                    }
+                    
+                    // Log para debug
+                    console.log('Line item:', {
+                        name: item.meal,
+                        quantity: item.quantity,
+                        totalPrice: item.totalPrice,
+                        unitPrice: item.unitPrice,
+                        calculatedUnitAmount: unitAmount
+                    });
+                    
+                    // Validar que tenemos valores válidos
+                    if (!unitAmount || unitAmount <= 0 || !item.quantity || item.quantity <= 0) {
+                        console.error('Invalid item values:', item);
+                        alert(`Error: Invalid price or quantity for ${item.meal}`);
+                        throw new Error(`Invalid values for ${item.meal}`);
+                    }
+                    
+                    return {
+                        price_data: {
+                            currency: 'usd',
+                            product_data: {
+                                // Incluir el tipo de precio en el nombre para no perderlo
+                                name: `${item.meal || 'Item'} - ${item.priceType || ''}`.trim(),
+                                description: `${item.shabbatName || ''} - ${item.productType || ''}`
+                            },
+                            unit_amount: unitAmount
                         },
-                        unit_amount: Math.round(item.totalPrice * 100 / item.quantity), // Precio unitario en centavos
-                    },
-                    quantity: item.quantity,
-                })),
+                        quantity: parseInt(item.quantity)
+                    };
+                }),
                 donation: parseFloat(formData.donation || 0),
                 metadata: {
-                    orderType: cartItems.every(item => item.productType === 'shabbatBox') ? 'shabbatBox' : 'reservation',
+                    orderType: isCustomEvent ? 'customEvent' : orderType,  // Asegurar que sea 'customEvent' si es un custom event
+                    isCustomEvent: isCustomEvent,  // Siempre incluir el flag explícitamente
                     agreeTerms: formData.agreeTerms,
                     agreeUpdates: formData.agreeUpdates,
+                    // Si es Shabbat/Holiday tradicional, preparar datos resumidos
+                    ...(isTraditionalShabbat && {
+                        // Crear un resumen compacto para no exceder 500 chars
+                        shabbat_name: cartItems[0].shabbatName?.substring(0, 50),
+                        friday_dinner_count: cartItems.filter(item => 
+                            item.meal.toLowerCase().includes('friday') || 
+                            item.meal.toLowerCase().includes('dinner')
+                        ).reduce((sum, item) => sum + item.quantity, 0).toString(),
+                        shabbat_lunch_count: cartItems.filter(item => 
+                            item.meal.toLowerCase().includes('lunch')
+                        ).reduce((sum, item) => sum + item.quantity, 0).toString(),
+                        total_guests: cartItems.reduce((sum, item) => sum + item.quantity, 0).toString()
+                    }),
                     // Agregar datos del primer item del carrito para información del evento
                     ...(cartItems && cartItems.length > 0 && {
                         eventName: cartItems[0].shabbatName,
@@ -121,9 +191,49 @@ export default function Checkout() {
                             : cartItems[0].productType === 'mealReservation'
                                 ? (cartItems[0].shabbatName ? `${cartItems[0].shabbatName}` : 'Meal Reservation')
                                 : 'Event'
+                    }),
+                    // Agregar datos específicos de Shabbat Box
+                    ...(isShabbatBox && cartItems && cartItems.length > 0 && {
+                        deliveryType: cartItems[0].deliveryType,
+                        deliveryAddress: cartItems[0].deliveryAddress?.substring(0, 200), // Limitar a 200 chars
+                        shabbatHolidayStart: cartItems[0].shabbatHolidayStart,
+                        shabbatHolidayEnd: cartItems[0].shabbatHolidayEnd,
+                        shabbat_name: cartItems[0].shabbatName?.substring(0, 50)
+                    }),
+                    // Agregar datos para Custom Events (delivery o reservation)
+                    ...(isCustomEvent && cartItems && cartItems.length > 0 && {
+                        isCustomEvent: true, // Marcador específico para Custom Events
+                        deliveryType: cartItems[0].deliveryType || 'pickup',
+                        deliveryAddress: cartItems[0].deliveryAddress?.substring(0, 200), // Limitar a 200 chars
+                        customEventType: cartItems[0].eventType || 'reservation',
+                        eventName: cartItems[0].shabbatName?.substring(0, 50),
+                        eventDate: cartItems[0].shabbatDate
                     })
                 }
             };
+            
+            // Logs para debugging de metadata que se envía a Stripe
+            console.log('🛒 Checkout metadata being sent to Stripe (SIMPLIFIED):', {
+                orderType: paymentData.metadata.orderType,
+                isCustomEvent_inMetadata: paymentData.metadata.isCustomEvent,
+                eventName: firstItem.shabbatName,
+                FINAL_ROUTING: {
+                    willGoTo_orders_customEvent: isCustomEvent,
+                    willGoTo_orders_shabbatBox: isShabbatBox,
+                    willGoTo_shabbatOrders_traditional: isTraditionalShabbat
+                },
+                customEventFields: isCustomEvent ? {
+                    deliveryType: paymentData.metadata.deliveryType,
+                    deliveryAddress: paymentData.metadata.deliveryAddress,
+                    customEventType: paymentData.metadata.customEventType,
+                    eventName: paymentData.metadata.eventName,
+                    eventDate: paymentData.metadata.eventDate
+                } : 'N/A - Not custom event',
+                shabbatBoxFields: isShabbatBox ? {
+                    deliveryType: paymentData.metadata.deliveryType,
+                    shabbat_name: paymentData.metadata.shabbat_name
+                } : 'N/A - Not shabbat box'
+            });
 
             // 3. Si hay donación, agregarla como ítem adicional
             if (paymentData.donation > 0) {
@@ -249,7 +359,11 @@ export default function Checkout() {
                                 {/* Order Details */}
                                 <div className="flex flex-col justify-between">
                                     <div className="space-y-3 xs:space-y-4 sm:space-y-6">
-                                        {(cartItems || []).length > 0 ? (
+                                        {!mounted ? (
+                                            <div className="text-center text-gray-500 py-4 xs:py-6 sm:py-8 text-sm">
+                                                Loading...
+                                            </div>
+                                        ) : (cartItems || []).length > 0 ? (
                                             (cartItems || []).map((item, index) => (
                                                 <div key={index} className="flex justify-between items-start p-2 xs:p-3 bg-gray-50 rounded-lg">
                                                     <div className="flex flex-col flex-1 min-w-0 pr-2">
@@ -263,8 +377,14 @@ export default function Checkout() {
                                                             {item.productType && (
                                                                 <div className="mt-1">
                                                                     <span className="inline-block px-1.5 xs:px-2 py-0.5 xs:py-1 bg-primary/10 text-primary rounded text-xs">
-                                                                        {item.productType === 'shabbatBox' ? 'Shabbat Box' : 'Meal'}
+                                                                        {item.productType === 'shabbatBox' ? 'Shabbat Box' : 
+                                                                         item.productType === 'customEventDelivery' ? 'Custom Event' : 'Meal'}
                                                                     </span>
+                                                                    {item.productType === 'customEventDelivery' && item.deliveryType && (
+                                                                        <span className="inline-block ml-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                                                            {item.deliveryType === 'delivery' ? 'Delivery' : 'Pickup'}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -286,7 +406,7 @@ export default function Checkout() {
                                         {/* Subtotal */}
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-gray-600 text-sm xs:text-base">Subtotal:</span>
-                                            <span className="text-gray-600 text-sm xs:text-base">${total.toFixed(2)}</span>
+                                            <span className="text-gray-600 text-sm xs:text-base">${mounted ? total.toFixed(2) : '0.00'}</span>
                                         </div>
 
                                         {/* Donation if present */}
@@ -309,7 +429,7 @@ export default function Checkout() {
                                         <div className="border-t border-gray-200 pt-2 mt-2">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">Total:</span>
-                                                <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">${calculateGrandTotal().toFixed(2)}</span>
+                                                <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">${mounted ? calculateGrandTotal().toFixed(2) : '0.00'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -507,8 +627,8 @@ export default function Checkout() {
                             <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting || (cartItems || []).length === 0}
-                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${isSubmitting || (cartItems || []).length === 0
+                                    disabled={isSubmitting}
+                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${isSubmitting
                                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         : 'bg-primary text-white hover:bg-opacity-90 cursor-pointer active:bg-opacity-80'
                                         }`}
@@ -519,7 +639,7 @@ export default function Checkout() {
                                             <span className="text-sm xs:text-base">Processing...</span>
                                         </div>
                                     ) : (
-                                        `Pay now - $${calculateGrandTotal().toFixed(2)}`
+                                        'Pay now'
                                     )}
                                 </button>
                                 <p className="text-gray-text text-xs text-center leading-relaxed px-2">

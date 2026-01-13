@@ -22,7 +22,7 @@ export const Hero = ({ siteConfig }) => {
     const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
     const bgUrl = `${url}${siteConfig.hero_image?.url}`
 
-    console.log("HERO", siteConfig);
+    // console.log("HERO", siteConfig);
 
 
     const sectionData = {
@@ -44,10 +44,12 @@ export const Hero = ({ siteConfig }) => {
                 <Image
                     src={sectionData.hero_image}
                     fill
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover opacity-0"
                     alt={sectionData.site_title}
+                    sizes="100vw"
                     style={{
-                        animation: 'fadeInZoom 2s ease-out forwards'
+                        animation: 'fadeInZoom 2s ease-out forwards',
+                        borderRadius: '0'
                     }}
                     priority={true}
                     onError={(e) => {
@@ -67,21 +69,20 @@ export const Hero = ({ siteConfig }) => {
             />
 
             {/* Contenido principal con animaciones escalonadas */}
-            <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center text-white overflow-hidden">
+            <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 sm:px-8 md:px-12 lg:px-16 text-center text-white overflow-hidden">
                 <h1
-                    className="sm:w-[30%] md:w-[40%] text-4xl md:text-6xl font-bold opacity-0 translate-y-8"
+                    className="w-full sm:w-[80%] md:w-[60%] lg:w-[50%] xl:w-[40%] text-3xl sm:text-4xl md:text-5xl  lg:text-5xl 2xl:text-6xl font-bold opacity-0 translate-y-8"
                     style={{
                         animation: 'slideUpFade 1s ease-out 0.3s forwards'
                     }}
                 >
-
 
                     {sectionData.site_title}
 
                 </h1>
 
                 <div
-                    className="mt-4 text-sm md:text-base text-accent opacity-0 translate-y-6"
+                    className="mt-4 text-sm md:text-base text-accent opacity-0 translate-y-6 max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[60%]"
                     style={{
                         animation: 'slideUpFade 1s ease-out 0.8s forwards'
                     }}

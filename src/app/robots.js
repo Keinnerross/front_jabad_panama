@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: ['/api/', '/checkout/'],
     },
-    sitemap: 'https://chabadboquete.com/sitemap.xml',
+    sitemap: 'https://chabad.kosherwithoutborders.com/sitemap.xml',
   };
 }

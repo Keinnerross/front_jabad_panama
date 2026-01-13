@@ -2,6 +2,7 @@ import Image from "next/image"
 import { CategoryTag } from "../../ui/common/categoryTag"
 import { getAssetPath } from "@/app/utils/assetPath"
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { ButtonTheme } from "../../ui/common/buttonTheme"
 const { Fragment } = require("react")
 
@@ -31,6 +32,7 @@ export const PageTemplate = ({ singleData }) => {
                                     alt={singleData?.title || "Custom page image"}
                                     fill
                                     className="w-full h-full object-cover"
+                                    sizes="(max-width: 768px) 100vw, 1200px"
                                 />
                             </div>
                         </div>
@@ -40,10 +42,10 @@ export const PageTemplate = ({ singleData }) => {
                 <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-background to-blueBackground z-10" />
                 {/* Circle Images */}
                 <div className="hidden lg:block absolute left-0 top-4  w-40 h-72 ">
-                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/a.png")} alt="circle-image" fill className="object-contain" sizes="160px" />
                 </div>
                 <div className="hidden lg:block absolute right-0 bottom-20 w-60 h-72 ">
-                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" />
+                    <Image src={getAssetPath("/assets/global/circles/b.png")} alt="circle-image" fill className="object-contain" sizes="240px" />
                 </div>
             </section>
             <section className="w-full flex justify-center pb-20 px-6 md:px-0">
@@ -57,18 +59,62 @@ export const PageTemplate = ({ singleData }) => {
 
 
                             <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
                                 components={{
-                                    h1: ({ children }) => <h1 className="text-3xl font-bold text-darkBlue  mb-6">{children}</h1>,
-                                    h2: ({ children }) => <h2 className="text-2xl font-bold text-darkBlue  mb-4">{children}</h2>,
-                                    h3: ({ children }) => <h3 className="text-xl font-bold text-darkBlue mb-4">{children}</h3>,
-                                    h4: ({ children }) => <h4 className="text-lg font-bold text-darkBlue mb-3">{children}</h4>,
-                                    p: ({ children }) => <p className="mb-4 text-sm text-gray-500">{children}</p>,
-                                    strong: ({ children }) => <strong className="font-semibold text-darkBlue">{children}</strong>,
-                                    ul: ({ children }) => <ul className="list-disc ml-6 space-y-2">{children}</ul>,
-                                    ol: ({ children }) => <ol className="list-decimal ml-6 space-y-2">{children}</ol>,
-                                    li: ({ children }) => <li className="mb-1">{children}</li>,
-                                    a: ({ href, children }) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                    br: () => <br className="mb-2" />
+                                    h1: ({ children }) => {
+                                        return <h1 className="text-3xl font-bold text-darkBlue  mb-6">{children}</h1>;
+                                    },
+                                    h2: ({ children }) => {
+                                        return <h2 className="text-2xl font-bold text-darkBlue  mb-4">{children}</h2>;
+                                    },
+                                    h3: ({ children }) => {
+                                        return <h3 className="text-xl font-bold text-darkBlue mb-4">{children}</h3>;
+                                    },
+                                    h4: ({ children }) => {
+                                        return <h4 className="text-lg font-bold text-darkBlue mb-3">{children}</h4>;
+                                    },
+                                    p: ({ children }) => {
+                                        return <p className="mb-4 text-sm text-gray-500">{children}</p>;
+                                    },
+                                    strong: ({ children }) => {
+                                        return <strong className="font-semibold text-darkBlue">{children}</strong>;
+                                    },
+                                    ul: ({ children }) => {
+                                        return <ul className="list-disc ml-6 space-y-2">{children}</ul>;
+                                    },
+                                    ol: ({ children }) => {
+                                        return <ol className="list-decimal ml-6 space-y-2">{children}</ol>;
+                                    },
+                                    li: ({ children }) => {
+                                        return <li className="mb-1">{children}</li>;
+                                    },
+                                    a: ({ href, children }) => {
+                                        return <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>;
+                                    },
+                                    br: () => {
+                                        return <br className="mb-2" />;
+                                    },
+                                    hr: () => {
+                                        return <hr className="my-6 border-0 h-px bg-gray-300" />;
+                                    },
+                                    table: ({ children }) => {
+                                        return <div className="overflow-x-auto mb-4 border border-gray-300 rounded-lg"><table className="min-w-full border-separate border-spacing-0 bg-white rounded-lg shadow-sm overflow-hidden">{children}</table></div>;
+                                    },
+                                    thead: ({ children }) => {
+                                        return <thead className="bg-gray-50">{children}</thead>;
+                                    },
+                                    tbody: ({ children }) => {
+                                        return <tbody className="bg-white">{children}</tbody>;
+                                    },
+                                    tr: ({ children }) => {
+                                        return <tr>{children}</tr>;
+                                    },
+                                    th: ({ children }) => {
+                                        return <th className="px-4 py-3 text-left text-sm font-semibold text-darkBlue border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</th>;
+                                    },
+                                    td: ({ children }) => {
+                                        return <td className="px-4 py-3 text-sm text-gray-700 border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</td>;
+                                    }
                                 }}
                             >
                                 {singleData?.sidebar_description || ''}
@@ -81,6 +127,7 @@ export const PageTemplate = ({ singleData }) => {
 
                         <div className="text-gray-text text-sm leading-relaxed space-y-4 markdown-content">
                             <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
                                 components={{
                                     h1: ({ children }) => <h1 className="text-3xl font-bold text-darkBlue  mb-6">{children}</h1>,
                                     h2: ({ children }) => <h2 className="text-2xl font-bold text-darkBlue  mb-4">{children}</h2>,
@@ -89,10 +136,29 @@ export const PageTemplate = ({ singleData }) => {
                                     p: ({ children }) => <p className="mb-4">{children}</p>,
                                     strong: ({ children }) => <strong className="font-semibold text-darkBlue">{children}</strong>,
                                     ul: ({ children }) => <ul className="list-disc ml-6 space-y-2">{children}</ul>,
-                                    ol: ({ children }) => <ol className="list-decimal ml-6 space-y-2">{children}</ol>,
+                                    ol: ({ children }) => {
+                                        return <ol className="list-decimal ml-6 space-y-2">{children}</ol>;
+                                    },
                                     li: ({ children }) => <li className="mb-1">{children}</li>,
                                     a: ({ href, children }) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                    br: () => <br className="mb-2" />
+                                    br: () => <br className="mb-2" />,
+                                    hr: () => {
+                                        return <hr className="my-6 border-0 h-px bg-gray-300" />;
+                                    },
+                                    table: ({ children }) => {
+                                        return <div className="overflow-x-auto mb-6 border border-gray-300 rounded-lg"><table className="min-w-full border-separate border-spacing-0 bg-white rounded-lg shadow-sm overflow-hidden">{children}</table></div>;
+                                    },
+                                    thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
+                                    tbody: ({ children }) => <tbody className="bg-white">{children}</tbody>,
+                                    tr: ({ children }) => {
+                                        return <tr>{children}</tr>;
+                                    },
+                                    th: ({ children }) => {
+                                        return <th className="px-4 py-3 text-left text-sm font-semibold text-darkBlue border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</th>;
+                                    },
+                                    td: ({ children }) => {
+                                        return <td className="px-4 py-3 text-sm text-gray-700 border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</td>;
+                                    }
                                 }}
                             >
                                 {singleData?.content || ''}

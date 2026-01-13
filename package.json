@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "build:prod": "next build --env=production",
     "start": "next start",
@@ -13,12 +13,14 @@
   "dependencies": {
     "@stripe/stripe-js": "^7.5.0",
     "embla-carousel-react": "^8.6.0",
-    "next": "15.3.4",
+    "next": "^16.0.10",
     "nodemailer": "^7.0.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.0.3",
+    "react-dom": "^19.0.3",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "stripe": "^18.3.0"
   },
   "devDependencies": {

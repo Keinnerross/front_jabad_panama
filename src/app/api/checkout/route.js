@@ -65,25 +65,27 @@ export async function POST(request) {
     console.log('🔧 Stripe URLs:', { successUrl, cancelUrl });
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items,
-      mode: 'payment',
-      customer_email: customer.email,
-      phone_number_collection: { enabled: true },
-      metadata: {
-        ...metadata,
-        // Agregar información del cliente a metadata
-        customer_firstName: customer.name?.split(' ')[0] || customer.firstName || '',
-        customer_lastName: customer.name?.split(' ').slice(1).join(' ') || customer.lastName || '',
-        customer_nationality: customer.metadata?.nationality || customer.nationality || '',
-        customer_phone: customer.phone || '',
-        orderId: orderId,
-        // Agregar line_items como string para el webhook
-        line_items: JSON.stringify(line_items),
-      },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-    });
+        payment_method_types: ['card'],
+        line_items,
+        mode: 'payment',
+        customer_email: customer.email,
+        phone_number_collection: { enabled: true },
+        metadata: {
+          ...metadata,
+          // Agregar información del cliente a metadata
+          customer_firstName: customer.name?.split(' ')[0] || customer.firstName || '',
+          customer_lastName: customer.name?.split(' ').slice(1).join(' ') || customer.lastName || '',
+          customer_nationality: customer.metadata?.nationality || customer.nationality || '',
+          customer_phone: customer.phone || '',
+          orderId: orderId,
+          // NO incluir line_items completos - excede límite de 500 chars
+          // Solo guardar un resumen básico
+          items_count: line_items.length.toString(),
+          items_total: line_items.reduce((sum, item) => sum + (item.quantity || 0), 0).toString()
+        },
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+      });
 
     // Los emails se envían desde el webhook después del pago exitoso
 

@@ -20,8 +20,16 @@ const nextConfig = {
           hostname: '212.85.22.57',
         },
         {
+          protocol: 'https',
+          hostname: 'chabad.kosherwithoutborders.com',
+        },
+        {
           protocol: 'http',
           hostname: 'localhost',
+        },
+        {
+          protocol: 'https',
+          hostname: 'img.youtube.com',
         },
       ],
       formats: ['image/webp', 'image/avif'],
@@ -30,7 +38,8 @@ const nextConfig = {
       minimumCacheTTL: 60,
       dangerouslyAllowSVG: true,
       contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-      unoptimized: true,
+      // Optimizar imágenes solo en producción (más rápido en desarrollo)
+      unoptimized: process.env.NODE_ENV !== 'production',
     },
     // Enable experimental features for better performance
     experimental: {
@@ -39,10 +48,6 @@ const nextConfig = {
     // Optimize bundle
     compiler: {
       removeConsole: process.env.NODE_ENV === 'production',
-    },
-    // Public runtime config for client-side access
-    publicRuntimeConfig: {
-      basePath,
     },
   };
   

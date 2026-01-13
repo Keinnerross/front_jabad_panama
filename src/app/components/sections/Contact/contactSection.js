@@ -11,11 +11,13 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
         email: '',
         phone: '',
         city: '',
-        message: ''
+        message: '',
+        website: '' // Honeypot field - should remain empty
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [formLoadTime] = useState(Date.now()); // Track when form loaded for time-based validation
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -28,28 +30,43 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
+        // Anti-spam: Check honeypot field (should be empty)
+        if (formData.website) {
+            // Silently fail for bots - don't reveal it's a honeypot
+            setMessage('Message sent successfully! We will get back to you soon.');
+            setFormData({ name: '', email: '', phone: '', city: '', message: '', website: '' });
+            return;
+        }
+
+        // Anti-spam: Check if form was submitted too quickly (less than 3 seconds)
+        const timeTaken = Date.now() - formLoadTime;
+        if (timeTaken < 3000) {
+            setError('Please take your time filling out the form');
+            return;
+        }
+
         // Validate required fields
         if (!formData.name.trim()) {
             setError('Please enter your name');
             return;
         }
-        
+
         if (!formData.email.trim()) {
             setError('Please enter your email address');
             return;
         }
-        
+
         if (!formData.email.includes('@')) {
             setError('Please enter a valid email address');
             return;
         }
-        
+
         if (!formData.message.trim()) {
             setError('Please enter your message');
             return;
         }
-        
+
         if (formData.message.trim().length < 10) {
             setError('Message must be at least 10 characters long');
             return;
@@ -65,7 +82,10 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    _formTime: timeTaken // Send time taken for server-side validation
+                }),
             });
 
             const data = await response.json();
@@ -77,7 +97,8 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
                     email: '',
                     phone: '',
                     city: '',
-                    message: ''
+                    message: '',
+                    website: ''
                 });
             } else {
                 setError(data.error || 'Failed to send message. Please try again.');
@@ -124,6 +145,19 @@ export const ContactSection = ({ siteConfig, copiesData }) => {
                         <div className="lg:w-1/2">
                             <div className="bg-white rounded-xl border h-full border-gray-200  p-6 md:px-8 md:py-12">
                                 <form onSubmit={handleSubmit} className="space-y-6">
+                                    {/* Honeypot field - hidden from users, visible to bots */}
+                                    <div className="absolute -left-[9999px] opacity-0 h-0 overflow-hidden" aria-hidden="true">
+                                        <label htmlFor="website">Website</label>
+                                        <input
+                                            type="text"
+                                            id="website"
+                                            name="website"
+                                            value={formData.website}
+                                            onChange={handleInputChange}
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                        />
+                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {/* Name Field */}
                                         <div>

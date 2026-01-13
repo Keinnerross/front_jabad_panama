@@ -8,6 +8,15 @@ if (process.env.NODE_ENV === 'development') {
 import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../utils/siteConfigHelper.js';
 import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../services/emailService.js';
 import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../utils/siteConfigHelper.js';
+import { 
+  saveDonationToStrapi, 
+  saveShabbatOrder, 
+  saveShabbatBoxOrder, 
+  saveCustomEventDeliveryOrder,
+  detectOrderType,
+  formatOrderDescription,
+  extractDateRange
+} from '../../services/strapi-orders.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -45,8 +54,10 @@ export async function POST(request) {
     // Mark as processed immediately
     processedSessions.add(sessionId);
 
-    // Retrieve session from Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Retrieve session from Stripe con line_items expandidos y productos
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items', 'line_items.data.price.product']
+    });
     
     if (!session) {
       // Remove from processed set if session not found
@@ -196,8 +207,9 @@ async function handleCheckoutSessionCompleted(session) {
 
         } else {
           // Enviar emails de pedido regular
-          const items = metadata.line_items ? 
-            parseLineItems(JSON.parse(metadata.line_items)) : 
+          // Usar line_items de la sesión expandida si están disponibles
+          const items = session.line_items?.data ? 
+            parseLineItems(session.line_items.data) : 
             [{ name: 'Order', price: session.amount_total / 100, quantity: 1 }];
           
           // Enriquecer items con información específica por tipo de producto desde metadata
@@ -250,7 +262,8 @@ async function handleCheckoutSessionCompleted(session) {
             handleNotificationError(userResult.error, 'user order confirmation');
           }
 
-          // Guardar orden en Strapi después de emails exitosos
+          // Guardar orden en Strapi después de emails exitosos  
+          // Pasar los items enriquecidos que tienen la información completa
           const strapiResult = await saveOrderToStrapi(session, metadata, enrichedItems);
           if (strapiResult) {
             console.log('✅ Order successfully saved to Strapi:', strapiResult.data?.documentId);
@@ -265,70 +278,6 @@ async function handleCheckoutSessionCompleted(session) {
   }
 }
 
-// Helper para guardar donaciones en Strapi
-async function saveDonationToStrapi(session, metadata, donationType) {
-  try {
-    console.log('📝 Attempting to save donation to Strapi...');
-    console.log('Session data:', { 
-      id: session.id, 
-      amount: session.amount_total / 100,
-      email: session.customer_email,
-      subscription: session.subscription 
-    });
-    console.log('Metadata:', metadata);
-    
-    // Generar ID único para la donación
-    const donationId = `DON-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const donationData = {
-      data: {
-        donationId: donationId,
-        subscriptionId: session.subscription || null,
-        donorName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim() || 'Anonymous',
-        donorEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
-        donorPhone: metadata.customer_phone || null,
-        totalAmount: session.amount_total / 100,
-        donationType: metadata.frequency || donationType || 'one-time',
-        customMonths: metadata.customMonths ? parseInt(metadata.customMonths) : null,
-        isDonationCustom: metadata.selectedPresetAmount === 'custom' || false,
-        donationStatus: 'completed'
-      }
-    };
-    
-    console.log('📤 Sending to Strapi:', JSON.stringify(donationData, null, 2));
-
-    // Fix para certificados SSL en desarrollo
-    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    }
-
-    const response = await fetch(`${process.env.STRAPI_API_URL}/api/donations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN}`
-      },
-      body: JSON.stringify(donationData)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Strapi error response:', errorText);
-      console.error('❌ Status:', response.status);
-      throw new Error(`Strapi API error: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Donation saved to Strapi:', result.data?.donationId);
-    return result;
-
-  } catch (error) {
-    console.error('❌ Error saving donation to Strapi:', error);
-    handleNotificationError(error, 'donation save to Strapi');
-    return null;
-  }
-}
-
 // Helper para guardar órdenes en Strapi
 async function saveOrderToStrapi(session, metadata, parsedItems) {
   try {
@@ -337,10 +286,60 @@ async function saveOrderToStrapi(session, metadata, parsedItems) {
       return null;
     }
 
+    const orderType = detectOrderType(metadata, parsedItems);
+    
+    // Logs para debugging del routing de órdenes
+    console.log('🔍 saveOrderToStrapi received:', {
+      metadata_orderType: metadata.orderType,
+      metadata_isCustomEvent: metadata.isCustomEvent,
+      metadata_shabbat_name: metadata.shabbat_name,
+      metadata_eventName: metadata.eventName, // DEBUG: Este es el nombre que debería usarse
+      parsedItems_productTypes: parsedItems.map(item => ({ name: item.name, productType: item.productType })),
+      detectedOrderType: orderType,
+      eventNameFromMetadata: metadata.eventName || 'NOT_FOUND' // DEBUG: Verificar si llega
+    });
+    
+    console.log('🔍 Order routing - checking paths (PRIORITY ORDER):', {
+      '1_hasCustomEventMarker': metadata.isCustomEvent === true,
+      '2_orderTypeIsCustomEvent': orderType === 'customEvent',
+      '3_isShabbatBox': orderType === 'shabbatBox',
+      '4_isShabbatHoliday': orderType === 'shabbat or holiday',
+      detectedOrderType: orderType,
+      metadata_orderType: metadata.orderType,
+      finalDecision: (metadata.isCustomEvent === true || orderType === 'customEvent') ? 'CUSTOM EVENT → orders' :
+                     orderType === 'shabbatBox' ? 'SHABBAT BOX → orders' :
+                     orderType === 'shabbat or holiday' ? 'SHABBAT/HOLIDAY → shabbat-orders' : 'FALLBACK → orders'
+    });
+    
+    // Si es Custom Event, guardar en orders (igual que Shabbat Box)
+    if (orderType === 'customEvent' || metadata.isCustomEvent === true) {
+      console.log('🔍 Taking CUSTOM EVENT route', { 
+        orderType,
+        isCustomEvent: metadata.isCustomEvent, 
+        eventName: metadata.eventName 
+      });
+      return await saveCustomEventDeliveryOrder(session, metadata, parsedItems);
+    }
+    
+    // Si es Shabbat Box, guardar en orders con campos específicos
+    if (orderType === 'shabbatBox') {
+      console.log('🔍 Taking SHABBAT BOX route');
+      return await saveShabbatBoxOrder(session, metadata, parsedItems);
+    }
+    
+    // Si es Shabbat/Holiday tradicional, guardar en shabbat-orders
+    // IMPORTANTE: NO usar metadata.shabbat_name si ya sabemos que es Custom Event
+    if (orderType === 'shabbat or holiday') {
+      console.log('🔍 Taking SHABBAT/HOLIDAY route');
+      return await saveShabbatOrder(session, metadata, parsedItems);
+    }
+
+    // Para otros tipos, usar el flujo existente
+    console.log('🔍 Taking GENERAL/FALLBACK route - this might be the problem!', { orderType });
     const orderData = {
       data: {
         orderId: metadata.orderId || `ORDER-${session.id}`,
-        orderType: detectOrderType(metadata, parsedItems),
+        orderType: orderType,
         totalAmount: session.amount_total / 100,
         stripeSessionId: session.id,
         customerName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim() || 'N/A',
@@ -377,31 +376,6 @@ async function saveOrderToStrapi(session, metadata, parsedItems) {
   }
 }
 
-// Helper para detectar tipo de orden
-function detectOrderType(metadata, parsedItems) {
-  // Verificar en metadata primero
-  if (metadata.orderType === 'reservation' || metadata.orderType === 'mealReservation') {
-    return 'shabbat or holiday';
-  }
-  
-  if (metadata.orderType === 'shabbatBox') {
-    return 'shabbatBox';
-  }
-
-  // Verificar por los nombres de productos
-  const hasShabbatBox = parsedItems.some(item => 
-    item.productType === 'shabbatBox' || 
-    item.name.toLowerCase().includes('shabbat box')
-  );
-
-  if (hasShabbatBox) {
-    return 'shabbatBox';
-  }
-
-  // Default para reservaciones
-  return 'shabbat or holiday';
-}
-
 // Helper para extraer fecha de servicio
 function extractServiceDate(metadata, parsedItems) {
   // Buscar fecha en diferentes ubicaciones - prioridad a eventDate
@@ -427,43 +401,6 @@ function extractServiceDate(metadata, parsedItems) {
   const month = (nextFriday.getMonth() + 1).toString().padStart(2, '0');
   const year = nextFriday.getFullYear();
   return `${day}/${month}/${year}`;
-}
-
-// Helper para formatear fecha para Strapi (DEPRECATED - ya no se usa)
-// Ahora el campo serviceDate es texto y mantiene el formato original
-function formatDateForStrapi(dateString) {
-  // Esta función ya no se usa, pero se mantiene por si hay otras partes del código que la llamen
-  return dateString; // Devolver el texto original sin conversión
-}
-
-// Helper para formatear descripción de orden
-function formatOrderDescription(parsedItems, totalAmount) {
-  const lines = [];
-  
-  parsedItems.forEach(item => {
-    if (item.productType !== 'fee' && item.productType !== 'donation') {
-      const unitPrice = item.price.toFixed(2);
-      const totalPrice = item.total.toFixed(2);
-      lines.push(`${item.name} x${item.quantity} - $${unitPrice} cada - $${totalPrice}`);
-    }
-  });
-
-  // Agregar donación si existe
-  const donation = parsedItems.find(item => item.productType === 'donation');
-  if (donation) {
-    lines.push(`Donación - $${donation.total.toFixed(2)}`);
-  }
-
-  // Agregar fee si existe
-  const fee = parsedItems.find(item => item.productType === 'fee');
-  if (fee) {
-    lines.push(`Cargo por procesamiento - $${fee.total.toFixed(2)}`);
-  }
-
-  lines.push('----------------------');
-  lines.push(`Total: $${totalAmount.toFixed(2)}`);
-
-  return lines.join('\n');
 }
 
 // Helper para extraer nombre del evento de la descripción

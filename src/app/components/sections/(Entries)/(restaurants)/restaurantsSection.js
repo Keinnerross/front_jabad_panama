@@ -36,13 +36,18 @@ export const RestaurantsSection = ({ restaurantsData }) => {
 
     // Datos Api Construidos
 
-    const processedData = (restaurantsData && Array.isArray(restaurantsData)) ? restaurantsData.map(restaurant => ({
-        id: restaurant.documentId || "#",
-        title: restaurant.name || restaurant.title,
-        description: restaurant.description,
-        category: restaurant.category,
-        imageUrls: imagesArrayValidation(restaurant.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
-    })) : [];
+    const processedData = (restaurantsData && Array.isArray(restaurantsData)) ? restaurantsData
+        .map(restaurant => ({
+            id: restaurant.documentId || "#",
+            title: restaurant.name || restaurant.title,
+            description: restaurant.description,
+            category: restaurant.category,
+            imageUrls: imagesArrayValidation(restaurant.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }, 'medium') || [],
+            is_direct_link: restaurant.is_direct_link || false,
+            direct_link: restaurant.direct_link || null,
+            order: restaurant.order !== undefined && restaurant.order !== null ? restaurant.order : 100
+        }))
+        .sort((a, b) => a.order - b.order) : [];
 
 
 

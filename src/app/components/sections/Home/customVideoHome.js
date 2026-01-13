@@ -71,13 +71,16 @@ export const CustomVideoSection = ({ customVideoData }) => {
             return url;
         }
 
-        // Agregar parámetros de autoplay y mute a todos los videos
-        return `${embedUrl}?autoplay=1&mute=1`;
+        // Extraer el videoId para añadir el parámetro playlist necesario para loop
+        const videoId = embedUrl.split('/embed/')[1];
+        
+        // Agregar parámetros de autoplay, mute, loop y playlist (necesario para loop)
+        return `${embedUrl}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
     };
 
     // Validación de datos
     const fallbackData = {
-        videoUrl: "https://www.youtube.com/embed/2u9dYbs1KCE?autoplay=1&mute=1",
+        videoUrl: "https://www.youtube.com/embed/2u9dYbs1KCE?autoplay=1&mute=1&loop=1&playlist=2u9dYbs1KCE",
     };
 
     // Procesamos datos con fallback y conversión automática
@@ -87,14 +90,14 @@ export const CustomVideoSection = ({ customVideoData }) => {
     };
 
     return (
-        <section className="pt-16 pb-16 md:pt-20 md:pb-26 flex justify-center items-center bg-blueBackground">
+        <section className="pt-14 md:pt-20 lg:pt-24 pb-14 md:pb-20 lg:pb-24 flex justify-center items-center bg-blueBackground">
             <div className="w-full max-w-7xl px-6 md:px-0">
                 {/* Header Video Section */}
                 <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-darkBlue">
                         {customVideoData.title || "Title Section Video"}
                     </h2>
-                    <ButtonTheme title={customVideoData.button_text || "Button Text"} href={customVideoData.button_link} />
+                    <ButtonTheme title={customVideoData.button_text || "Button Text"} href={customVideoData.button_link || "#"} />
                 </div>
 
                 <div className="relative rounded-2xl overflow-hidden bg-myBlack aspect-video w-full z-20">

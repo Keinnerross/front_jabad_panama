@@ -32,10 +32,11 @@ export const TouristInfoEntry = ({ data }) => {
             </div>
             <div className="w-full h-[330px] overflow-hidden rounded-2xl relative">
                 <Image
-                    src={`${url}${data.imageUrls?.url}`}
+                    src={`${url}${data.imageUrls?.formats?.medium?.url || data.imageUrls?.url}`}
                     fill
                     className="w-full h-full object-cover"
                     alt={data?.title || "Tourist information image"}
+                    sizes="(max-width: 768px) 100vw, 800px"
                 />
             </div>
             <div className="text-gray-text text-sm leading-relaxed space-y-4 mt-4 markdown-content">

@@ -4,8 +4,10 @@ import { MapSection } from "@/app/components/sections/Contact/mapSection";
 import { api } from "@/app/services/strapiApiFetch";
 
 export default async function Contact() {
-    const siteConfig = await api.siteConfig();
-    const copiesData = await api.copiesPages();
+    const [siteConfig, copiesData] = await Promise.all([
+        api.siteConfig(),
+        api.copiesPages()
+    ]);
 
     return (
         <Fragment>

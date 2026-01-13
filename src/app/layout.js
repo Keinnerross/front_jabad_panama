@@ -2,14 +2,15 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "./components/layout/header";
 import { Footer } from "./components/layout/footer";
+import { TopBar } from "./components/layout/topBar";
 import { NotificationContainer } from "./components/ui/notifications/NotificationContainer";
 import { ClientProvidersWrapper } from "./components/providers/NotificationWrapper";
 import { api } from "./services/strapiApiFetch";
+import { getAvailableEvents } from "./utils/eventAvailability";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  // Opcional: puedes definir pesos específicos que necesites
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
@@ -20,12 +21,12 @@ export async function generateMetadata() {
   let siteConfig = {};
 
   try {
-    console.log('🔍 Metadata: Fetching site config for SEO...');
+    // console.log('🔍 Metadata: Fetching site config for SEO...');
     siteConfig = await api.siteConfig();
-    console.log('✅ Metadata: Site config fetched for SEO:', {
-      title: siteConfig?.site_title,
-      description: siteConfig?.site_description
-    });
+    // console.log('✅ Metadata: Site config fetched for SEO:', {
+    //   title: siteConfig?.site_title,
+    //   description: siteConfig?.site_description
+    // });
   } catch (error) {
     console.error('❌ Metadata: Error fetching site config for SEO:', error);
   }
@@ -46,26 +47,48 @@ export async function generateMetadata() {
 
 export default async function RootLayout({ children }) {
   let siteConfig = {};
+  let customEvents = [];
+  let platformSettings = {};
+  let customPagesData = [];
 
   try {
-    console.log('🔍 Layout: Attempting to fetch site config...');
-    siteConfig = await api.siteConfig();
-    console.log('✅ Layout: Site config fetched successfully:', siteConfig);
+    // console.log('🔍 Layout: Fetching all data in parallel...');
+
+    // Hacer todas las llamadas en paralelo para mejor performance
+    const [siteConfigData, platformSettingsData, allEvents, customPagesResult] = await Promise.all([
+      api.siteConfig(),
+      api.platformSettings(),
+      api.shabbatsAndHolidays(),
+      api.customPages()
+    ]);
+
+    siteConfig = siteConfigData || {};
+    platformSettings = platformSettingsData || { habilitar_packages: true };
+    customEvents = getAvailableEvents(allEvents || []);
+    customPagesData = customPagesResult || [];
+
+    // console.log('✅ Layout: All data fetched successfully');
+    // console.log('✅ Layout: Available custom events:', customEvents.length);
   } catch (error) {
-    console.error('❌ Layout: Error fetching site config:', error);
+    console.error('❌ Layout: Error fetching layout data:', error);
+    platformSettings = { habilitar_packages: true }; // Default to true if error
   }
-
-
-
-  const customPagesData = await api.customPages() || [];
 
   return (
     <html lang="en" data-theme={siteConfig?.color_theme || 'blue'}>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ClientProvidersWrapper>
-          <Header data={siteConfig} customPagesData={customPagesData} />
+          <TopBar 
+            platformSettings={platformSettings}
+          />
+          <Header 
+            data={siteConfig} 
+            customPagesData={customPagesData}
+            customEventsData={customEvents}
+            platformSettings={platformSettings}
+          />
           {children}
-          <Footer activitiesData={[]} />
+          <Footer activitiesData={[]} platformSettings={platformSettings} />
           <NotificationContainer />
         </ClientProvidersWrapper>
       </body>

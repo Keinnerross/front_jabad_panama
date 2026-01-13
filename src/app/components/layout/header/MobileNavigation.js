@@ -24,15 +24,29 @@ export const MobileNavigation = ({
                 {menuItems.map((item, index) => (
                     <div key={index} className="border-b border-gray-100 pb-2 last:border-b-0">
                         {!item.hasDropdown ? (
-                            <Link
-                                href={item.path}
-                                className="w-full flex justify-between items-center text-myBlack font-medium py-2 hover:text-primary transition-colors duration-200"
-                                onClick={closeMobileMenu} // Cerrar menú al hacer clic
-                            >
-                                <span className="transform hover:translate-x-1 transition-transform duration-200">
-                                    {item.name}
-                                </span>
-                            </Link>
+                            item.isExternalLink ? (
+                                <a
+                                    href={item.path}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full flex justify-between items-center text-myBlack font-medium py-2 hover:text-primary transition-colors duration-200"
+                                    onClick={closeMobileMenu} // Cerrar menú al hacer clic
+                                >
+                                    <span className="transform hover:translate-x-1 transition-transform duration-200">
+                                        {item.name}
+                                    </span>
+                                </a>
+                            ) : (
+                                <Link
+                                    href={item.path}
+                                    className="w-full flex justify-between items-center text-myBlack font-medium py-2 hover:text-primary transition-colors duration-200"
+                                    onClick={closeMobileMenu} // Cerrar menú al hacer clic
+                                >
+                                    <span className="transform hover:translate-x-1 transition-transform duration-200">
+                                        {item.name}
+                                    </span>
+                                </Link>
+                            )
                         ) : (
                             <button
                                 className="w-full flex justify-between items-center text-myBlack font-medium py-2 hover:text-primary transition-colors duration-200"
@@ -57,15 +71,27 @@ export const MobileNavigation = ({
                                     <p className="font-bold text-sm text-myBlack mb-2">{item.name}</p>
                                     {item.subItems.map((sub, i) => {
                                         const IconComponent = sub.icon;
-                                        return (
+                                        return sub.isExternalLink ? (
+                                            <a
+                                                key={i}
+                                                href={sub.path}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center py-2 text-sm text-gray-700 hover:text-primary font-medium rounded-md hover:bg-gray-50 px-2 transition-all duration-200 transform hover:translate-x-1"
+                                                onClick={closeMobileMenu} // Cerrar menú al hacer clic en sub-item
+                                            >
+                                                <IconComponent className={`mr-3 ${IconComponent.name === 'GoTriangleRight' ? 'text-xl' : 'text-sm'} flex-shrink-0 w-4 h-4`} />
+                                                <span className="flex-1">{sub.name}</span>
+                                            </a>
+                                        ) : (
                                             <Link
                                                 key={i}
                                                 href={sub.path}
                                                 className="flex items-center py-2 text-sm text-gray-700 hover:text-primary font-medium rounded-md hover:bg-gray-50 px-2 transition-all duration-200 transform hover:translate-x-1"
                                                 onClick={closeMobileMenu} // Cerrar menú al hacer clic en sub-item
                                             >
-                                                <IconComponent className={`mr-3 ${IconComponent.name === 'GoTriangleRight' ? 'text-xl' : 'text-sm'}`} />
-                                                <span>{sub.name}</span>
+                                                <IconComponent className={`mr-3 ${IconComponent.name === 'GoTriangleRight' ? 'text-xl' : 'text-sm'} flex-shrink-0 w-4 h-4`} />
+                                                <span className="flex-1">{sub.name}</span>
                                             </Link>
                                         );
                                     })}

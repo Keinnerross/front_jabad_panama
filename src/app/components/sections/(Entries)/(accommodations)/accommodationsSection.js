@@ -7,7 +7,7 @@ import { getAssetPath } from "@/app/utils/assetPath";
 /* import { hotelsData } from "@/app/data/hoteles"; */
 
 
-export const AccommodationsSection = ({ hotelsData }) => {
+export const AccommodationsSection = ({ hotelsData, singleHotelsActive = true }) => {
 
 
   const fallbackData = [
@@ -29,18 +29,21 @@ export const AccommodationsSection = ({ hotelsData }) => {
 
 
   // Datos Api Construidos
-  const processedData = (hotelsData && Array.isArray(hotelsData)) ? hotelsData.map(hotel => ({
-    id: hotel.documentId || "#",
-    title: hotel.title,
-    description: hotel.description,
-    category: hotel.category,
-    imageUrls: imagesArrayValidation(hotel.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
-    distance: hotel.distance,
-    website: hotel.website,
-    address: hotel.address,
-    stars: hotel.stars
-
-  })) : [];
+  const processedData = (hotelsData && Array.isArray(hotelsData)) ? hotelsData
+    .map(hotel => ({
+      id: hotel.documentId || "#",
+      title: hotel.title,
+      description: hotel.description,
+      category: hotel.category,
+      imageUrls: imagesArrayValidation(hotel.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }, 'medium') || [],
+      distance: hotel.distance,
+      website: hotel.website,
+      navigate_url: hotel.navigate_url,
+      address: hotel.address,
+      stars: hotel.stars,
+      order: hotel.order !== undefined && hotel.order !== null ? hotel.order : 100
+    }))
+    .sort((a, b) => a.order - b.order) : [];
 
 
 
@@ -59,7 +62,7 @@ export const AccommodationsSection = ({ hotelsData }) => {
       <EntryLayout
         data={dataToUse}
         filterKey="category"
-        renderItem={(item) => <CardEntry item={item} isHotel />}
+        renderItem={(item) => <CardEntry item={item} isHotel singlePageActive={singleHotelsActive} />}
       />
     </div>
   );

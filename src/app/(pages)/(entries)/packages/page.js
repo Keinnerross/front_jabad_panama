@@ -1,8 +1,6 @@
 import React, { Fragment } from "react";
 import Image from "next/image";
-import { EntryLayout } from "@/app/components/sections/(Entries)/entryLayout";
-import { CardEntry } from "@/app/components/sections/(cards)/cardEntry";
-import { HeroActivities } from "@/app/components/sections/Activities/heroActivities";
+import { redirect } from "next/navigation";
 import { PackagesHome } from "@/app/components/sections/Home/packagesHome";
 import { WhyPackagesSection } from "@/app/components/sections/Packages/whyPackagesSection";
 import { api } from "@/app/services/strapiApiFetch";
@@ -10,6 +8,14 @@ import { PackagesVideo } from "@/app/components/sections/Home/packagesVideo";
 
 
 export default async function Packages() {
+    // Check if packages module is enabled
+    const platformSettings = await api.platformSettings() || {};
+    
+    // Redirect to home if packages module is disabled
+    if (!platformSettings.habilitar_packages) {
+        redirect('/');
+    }
+    
     const packagesData = await api.packages();
     return (
         <Fragment>

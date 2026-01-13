@@ -95,6 +95,7 @@ export const WhyPackagesSection = ({ packagesData }) => {
                                         fill
                                         alt={pkg.title_card}
                                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                     />
                                 </div>
                             </div>

@@ -41,35 +41,19 @@ export const HeroActivities = ({ activitiesData, copiesData }) => {
     ];
 
 
-    let allImages = [];
-
-    const arrayAllImages = (data) => {
-        if (Array.isArray(data)) {
-            data.forEach(activity => {
-                if (activity.imageUrls) {
-                    // Si imageUrls es un array, concatenamos sus elementos
-                    if (Array.isArray(activity.imageUrls)) {
-                        allImages = allImages.concat(activity.imageUrls);
-                    }
-                    // Si imageUrls es un string, lo añadimos directamente
-                    else if (typeof activity.imageUrls === 'string') {
-                        allImages.push(activity.imageUrls);
-                    }
-                }
-            });
-        }
-
-        return allImages;
-    }
-
-
-    const arrayAllImagesUrl = arrayAllImages(activitiesData);
-
-
-    const imageUrls = imagesArrayValidation(arrayAllImagesUrl, { imageUrls: [] });
-
-
-    console.log(imageUrls);
+    // Procesar imágenes de actividades - imageUrl es ahora un array
+    const url = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+    const imageUrls = (activitiesData && Array.isArray(activitiesData))
+        ? activitiesData.map(activity => {
+            // Usar large para el hero (~1000px) - acceder al primer elemento del array
+            if (activity.imageUrl?.[0]?.formats?.large?.url) {
+                return `${url}${activity.imageUrl[0].formats.large.url}`;
+            } else if (activity.imageUrl?.[0]?.url) {
+                return `${url}${activity.imageUrl[0].url}`;
+            }
+            return getAssetPath("/assets/global/asset001.png");
+        })
+        : fallbackData.map(item => item.imageUrls[0]);
 
 
 
@@ -91,9 +75,6 @@ export const HeroActivities = ({ activitiesData, copiesData }) => {
         { images: selectedActivities.slice(2, 5), className: "flex-1 flex flex-col gap-6 -mt-12 -mb-12" },
         { images: selectedActivities.slice(5, 7), className: "flex-1 flex flex-col gap-6" }
     ];
-
-
-    console.log(columnLayout)
 
 
 
@@ -150,6 +131,7 @@ export const HeroActivities = ({ activitiesData, copiesData }) => {
                 alt={"activity"}
                 fill
                 className="object-cover transition-transform duration-500 ease-out"
+                sizes="(max-width: 768px) 50vw, 300px"
             />
             {/* Overlay sutil que aparece en hover */}
         </div>

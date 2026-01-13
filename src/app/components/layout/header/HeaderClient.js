@@ -1,6 +1,6 @@
 'use client'
-import React, { useState, lazy, Suspense } from "react";
-import { FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift } from "react-icons/fa";
+import React, { useState, useEffect, lazy, Suspense } from "react";
+import { FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift, FaStar, FaInfoCircle, FaStarOfDavid, FaUsers, FaPizzaSlice, FaConciergeBell } from "react-icons/fa";
 import { GoTriangleRight } from "react-icons/go";
 import { MdInfo, MdContactMail } from "react-icons/md";
 
@@ -19,23 +19,47 @@ import { CartButton } from "./CartButton";
 import { DonateButton } from "./DonateButton";
 import { MobileMenuButton } from "./MobileMenuButton";
 
-export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
-
-
+export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsData, platformSettings }) => {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [hoveredDropdown, setHoveredDropdown] = useState(null);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    // Detectar scroll para agregar shadow
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const pathDonate = "/donation";
 
-    
+    // Función para mapear el icono del evento según la selección en Strapi
+    // TODO: Agregar más iconos aquí cuando se necesite dar soporte a nuevos tipos de eventos
+    const getEventIcon = (iconName) => {
+        const iconMap = {
+            'utensils': FaUtensils,      // Cubiertos/utensilios
+            'catering': FaConciergeBell, // Campana de servicio/catering
+            'pizza': FaPizzaSlice,       // Pizza
+            // Agregar más iconos aquí cuando sea necesario:
+            // 'coffee': FaCoffee,
+            // 'wine': FaWineGlassAlt,
+            // 'burger': FaHamburger,
+            // etc.
+        };
+        
+        // Retorna el icono correspondiente o FaUtensils por defecto
+        return iconMap[iconName?.toLowerCase()] || FaUtensils;
+    };
 
     // Función para procesar las páginas personalizadas (Custom Pages)
     const processCustomPages = (customPagesData) => {
         if (!customPagesData) return { mainNav: [], chabadHouse: [], visitingPanama: [] };
-        
+
         const mainNav = [];
         const chabadHouse = [];
         const visitingPanama = [];
@@ -43,9 +67,10 @@ export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
         customPagesData.forEach(page => {
             const customPage = {
                 name: page.title,
-                path: `/single-page/${page.documentId}`,
-                icon: GoTriangleRight,
-                hasDropdown: false
+                path: page.is_direct_link ? page.direct_link : `/single-page/${page.documentId}`,
+                icon: FaStarOfDavid,
+                hasDropdown: false,
+                isExternalLink: page.is_direct_link || false
             };
 
             switch (page.position) {
@@ -84,28 +109,49 @@ export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
             name: "Chabad House",
             hasDropdown: true,
             subItems: [
+                { name: "About us", hasDropdown: false, path: "/about", icon: FaUsers },
                 { name: "Visitor Information", path: "/visitor-information", icon: FaHome },
-                { name: "Shabbat & Holidays Meals", path: "/shabbat-holidays", icon: FaUtensils },
                 ...customPages.chabadHouse
             ],
             path: "/about"
         },
-        // 2. Visiting Panama
+        // 2. Visiting [Ciudad]
         {
-            name: "Visiting Panama",
+            name: `Visiting ${platformSettings?.ciudad || 'Panama'}`,
             hasDropdown: true,
             subItems: [
                 { name: "Activities", path: "/activities", icon: FaMapMarkedAlt },
-                { name: "Restaurants", path: "/restaurants", icon: FaUtensils },
                 { name: "Accommodations", path: "/accommodations", icon: FaBed },
-                { name: "Packages", path: "/packages", icon: FaGift },
-
+                ...(platformSettings?.habilitar_packages ? [
+                    { name: "Packages", path: "/packages", icon: FaGift }
+                ] : []),
                 ...customPages.visitingPanama
             ]
         },
-        // 3. Páginas dinámicas (máximo 2)
+
+        // 3. Kosher Food dropdown (siempre visible)
+        {
+            name: "Kosher Food",
+            hasDropdown: true,
+            subItems: [
+                { name: "Shabbat Meals", path: "/shabbat-holidays", icon: FaStarOfDavid },
+                { name: "Restaurants", path: "/restaurants", icon: FaUtensils },
+
+                // Los eventos custom (si existen)
+                ...(customEventsData && customEventsData.length > 0
+                    ? customEventsData.map(event => ({
+                        name: event.name,
+                        path: `/custom-event?event=${event.documentId || event.id}`,
+                        icon: getEventIcon(event.icon) // Usa el icono dinámico basado en la propiedad 'icon' del evento
+                    }))
+                    : []
+                ),
+
+            ]
+        },
+        // 4. Páginas dinámicas (máximo 2)
         ...visibleMainNavPages,
-        // 4. Dropdown "More" (si hay 2+ páginas)
+        // 5. Dropdown "More" (si hay 2+ páginas)
         ...(morePages.length > 0 ? [{
             name: "More",
             hasDropdown: true,
@@ -115,9 +161,9 @@ export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
                 icon: page.icon
             }))
         }] : []),
-        // 5. About us y Contact al final
-        { name: "About us", hasDropdown: false, path: "/about", icon: MdInfo },
-        { name: "Contact", hasDropdown: false, path: "/contact", icon: MdContactMail }
+        // 6. About us y Contact al final
+        { name: "Contact", hasDropdown: false, path: "/contact", icon: MdContactMail },
+
     ];
 
 
@@ -150,8 +196,8 @@ export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
     };
 
     return (
-        <header className="w-full bg-white relative z-50">
-            <div className="max-w-7xl mx-auto py-4 md:py-6">
+        <header className={`w-full bg-white sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-[0_2px_8px_rgba(0,0,0,0.06)]' : ''}`}>
+            <div className="max-w-7xl mx-auto py-2">
                 <div className="flex items-center justify-between px-4 lg:px-0">
                     {/* Logo */}
                     <Logo logo={data.logo} />
@@ -164,7 +210,6 @@ export const HeaderClient = ({ data, colorTheme, customPagesData }) => {
                             setHoveredDropdown={setHoveredDropdown}
                             colorTheme={colorTheme}
                         />
-
                         <div className="flex items-center space-x-6">
                             {/* Cart Button */}
                             <CartButton onClick={() => setIsCartOpen(true)} colorTheme={colorTheme} />

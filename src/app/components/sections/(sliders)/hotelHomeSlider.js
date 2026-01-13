@@ -10,7 +10,7 @@ import { getAssetPath } from "@/app/utils/assetPath"
 
 /* import { hotelsData } from "@/app/data/hoteles" */
 
-export const HotelHomeSlider = ({ hotelsData }) => {
+export const HotelHomeSlider = ({ hotelsData, singleHotelsActive = true }) => {
 
 
 
@@ -37,19 +37,22 @@ export const HotelHomeSlider = ({ hotelsData }) => {
 
 
     // Datos Api Construidos
-    const processedData = (hotelsData && Array.isArray(hotelsData)) ? hotelsData.map(hotel => ({
-        id: hotel.documentId || "#",
-        title: hotel.title,
-        description: hotel.description,
-        address: hotel.address,
-        website: hotel.website,
+    const processedData = (hotelsData && Array.isArray(hotelsData)) ? hotelsData
+        .map(hotel => ({
+            id: hotel.documentId || "#",
+            title: hotel.title,
+            description: hotel.description,
+            address: hotel.address,
+            website: hotel.website,
+            navigate_url: hotel.navigate_url,
+            imageUrls: imagesArrayValidation(hotel.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }, 'medium') || [],
+            category: hotel.category,
+            order: hotel.order !== undefined && hotel.order !== null ? hotel.order : 100
+        }))
+        .sort((a, b) => a.order - b.order) : [];
 
-        imageUrls: imagesArrayValidation(hotel.imageUrls, { imageUrls: [getAssetPath("/assets/global/asset001.png")] }) || [],
-        category: hotel.category
-    })) : [];
 
-
-    console.log(processedData)
+    // console.log(processedData)
 
 
     const dataToUse = processedData.length > 0 ? processedData : fallbackData;
@@ -62,7 +65,7 @@ export const HotelHomeSlider = ({ hotelsData }) => {
 
 
     return (
-        <div className="bg-background py-20 flex justify-center items-center w-full flex-col  ">
+        <div className="bg-background py-14 md:py-20 lg:py-24 flex justify-center items-center w-full flex-col">
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full md:flex justify-between items-center mb-10 px-4 md:px-0 space-y-4 md:space-y-0">
@@ -80,7 +83,7 @@ export const HotelHomeSlider = ({ hotelsData }) => {
                         <CarouselWrapper>
                             {(dataToUse || []).map((hotel, i) => (
                                 <div key={i} className="w-[93vw] md:w-auto flex-shrink-0 pr-4 md:pr-0">
-                                    <CardHotelsSlider hotel={hotel} />
+                                    <CardHotelsSlider hotel={hotel} singlePageActive={singleHotelsActive} />
                                 </div>
                             ))}
 

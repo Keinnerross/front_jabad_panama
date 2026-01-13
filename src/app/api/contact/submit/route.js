@@ -3,7 +3,46 @@ import { sendContactNotification } from '../../../services/emailService.js';
 
 export async function POST(request) {
   try {
-    const { name, email, phone, city, message } = await request.json();
+    const { name, email, phone, city, message, website, _formTime } = await request.json();
+
+    // Anti-spam: Check honeypot field (should be empty)
+    if (website) {
+      // Log potential spam attempt but return success to not reveal honeypot
+      console.log(`🚫 Spam blocked (honeypot): attempted from IP ${request.headers.get('x-forwarded-for') || 'unknown'}`);
+      return Response.json({
+        success: true,
+        message: 'Your message has been sent successfully.',
+        contactId: `SPAM-${Date.now()}`
+      });
+    }
+
+    // Anti-spam: Check if form was submitted too quickly (less than 2 seconds server-side)
+    if (_formTime && _formTime < 2000) {
+      console.log(`🚫 Spam blocked (too fast): ${_formTime}ms from IP ${request.headers.get('x-forwarded-for') || 'unknown'}`);
+      return Response.json({ error: 'Please take your time filling out the form' }, { status: 400 });
+    }
+
+    // Anti-spam: Basic content checks for common spam patterns
+    const spamPatterns = [
+      /\[url=/i,
+      /\[link=/i,
+      /<a\s+href/i,
+      /viagra|cialis|casino|lottery|winner|congratulations.*won/i,
+      /click\s+here\s+to\s+(claim|win|get)/i,
+      /http[s]?:\/\/[^\s]{50,}/i // Very long URLs
+    ];
+
+    const messageToCheck = `${name} ${email} ${message}`;
+    for (const pattern of spamPatterns) {
+      if (pattern.test(messageToCheck)) {
+        console.log(`🚫 Spam blocked (content pattern): ${pattern} from IP ${request.headers.get('x-forwarded-for') || 'unknown'}`);
+        return Response.json({
+          success: true,
+          message: 'Your message has been sent successfully.',
+          contactId: `SPAM-${Date.now()}`
+        });
+      }
+    }
 
     // Validar campos obligatorios
     if (!name || !name.trim()) {

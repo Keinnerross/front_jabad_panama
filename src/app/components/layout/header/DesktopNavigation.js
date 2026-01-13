@@ -18,14 +18,27 @@ export const DesktopNavigation = ({
                 >
                     {/* Renderizar como Link si no tiene dropdown, como button si lo tiene */}
                     {!item.hasDropdown ? (
-                        <Link
-                            href={item.path}
-                            className="flex items-center text-myBlack font-medium text-sm lg:text-base hover:text-primary transition-all duration-300 cursor-pointer group"
-                        >
-                            <span >
-                                {item.name}
-                            </span>
-                        </Link>
+                        item.isExternalLink ? (
+                            <a
+                                href={item.path}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center text-myBlack font-medium text-sm lg:text-base hover:text-primary transition-all duration-300 cursor-pointer group"
+                            >
+                                <span>
+                                    {item.name}
+                                </span>
+                            </a>
+                        ) : (
+                            <Link
+                                href={item.path}
+                                className="flex items-center text-myBlack font-medium text-sm lg:text-base hover:text-primary transition-all duration-300 cursor-pointer group"
+                            >
+                                <span>
+                                    {item.name}
+                                </span>
+                            </Link>
+                        )
                     ) : (
                         <button className="flex items-center text-myBlack font-medium text-sm lg:text-base hover:text-primary transition-all duration-300 cursor-pointer group">
                             <span>
@@ -47,14 +60,25 @@ export const DesktopNavigation = ({
                                 <p className="px-4 pt-3 pb-2 font-bold text-myBlack">{item.name}</p>
                                 {item.subItems.map((sub, i) => {
                                     const IconComponent = sub.icon;
-                                    return (
+                                    return sub.isExternalLink ? (
+                                        <a
+                                            key={i}
+                                            href={sub.path}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
+                                        >
+                                            <IconComponent className={`${IconComponent.name === 'FaStarOfDavid' ? 'mr-3 text-sm' : 'mr-3 text-base'} flex-shrink-0 w-4 h-4`} />
+                                            <span className="flex-1">{sub.name}</span>
+                                        </a>
+                                    ) : (
                                         <Link
                                             key={i}
                                             href={sub.path}
                                             className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
                                         >
-                                            <IconComponent className={`${IconComponent.name === 'GoTriangleRight' ? 'mr-1 text-xl -translate-x-1' : 'mr-3   text-base'}`} />
-                                            <span>{sub.name}</span>
+                                            <IconComponent className={`${IconComponent.name === 'FaStarOfDavid' ? 'mr-3 text-sm' : 'mr-3 text-base'} flex-shrink-0 w-4 h-4`} />
+                                            <span className="flex-1">{sub.name}</span>
                                         </Link>
                                     );
                                 })}

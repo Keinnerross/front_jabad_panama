@@ -143,7 +143,17 @@ export const api = {
     packages: () => strapiFetch("/package?populate[hero_packages][populate]=*&populate[whyPackages][populate]=*"),
 
     //Esta de acá es la que llama los eventos, su nombre debe ser cambiado a Custom Events
-    shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[announce][populate]=*"),
+
+    // Version antes del update de Korea, no incluye el menu global.    
+
+// Tarea: Funcion single para los custom events.
+
+
+    // shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[announce][populate]=*"),
+
+    shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[Guided_Menu][populate][steps][populate]=*&populate[announce][populate]=*"),
+
+
 
     pwywSiteConfig: () => strapiFetch("/platform-setting?fields=pay_wy_want_reservations,pay_wy_want_shabbat_box"),
 

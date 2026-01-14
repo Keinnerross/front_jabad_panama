@@ -23,6 +23,12 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [showPricingSelector, setShowPricingSelector] = useState(false);
     const [loadingCategory, setLoadingCategory] = useState(null); // 'local' or 'tourist' while loading
     const [customAmount, setCustomAmount] = useState(''); // For Pay What You Want
+
+    // Guided Menu states
+    const [guidedMenuQuantity, setGuidedMenuQuantity] = useState(1);
+    const [guidedMenuSelections, setGuidedMenuSelections] = useState({}); // { stepId: optionId }
+    const [showGuidedMenuError, setShowGuidedMenuError] = useState(false);
+
     const { addToCart: addToCartContext } = useCart();
     
     // Determinar si se debe mostrar opciones de delivery
@@ -53,6 +59,10 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             setQuantities({}); // Reset all quantities to empty
             setTotal(0); // Reset total
             setCustomAmount(''); // Reset PWYW custom amount
+            // Reset Guided Menu states
+            setGuidedMenuQuantity(1);
+            setGuidedMenuSelections({});
+            setShowGuidedMenuError(false);
         }
 
         // Cleanup al desmontar
@@ -110,11 +120,19 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     }, [isCustomEvent ? JSON.stringify(allMeals) : JSON.stringify(filteredMeals), isCustomEvent]);
 
     // Set first tab as active when data loads for custom events
+    // If Guided Menu is active, it becomes the first tab
+    // Re-run when shabbatData changes (new event selected)
     useEffect(() => {
-        if (isCustomEvent && shabbatData?.category_menu?.length > 0 && !activeTab) {
-            setActiveTab(shabbatData.category_menu[0].category_name || 'Category 1');
+        if (isCustomEvent && shabbatData) {
+            if (shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.name) {
+                // Guided Menu tab is first
+                setActiveTab(shabbatData.Guided_Menu.name);
+            } else if (shabbatData?.category_menu?.length > 0) {
+                // Fallback to first category_menu tab
+                setActiveTab(shabbatData.category_menu[0].category_name || 'Category 1');
+            }
         }
-    }, [isCustomEvent]); // Remove activeTab from dependencies to avoid loop
+    }, [isCustomEvent, shabbatData?.documentId, shabbatData?.id, shabbatData?.base_meal_options_active]); // Re-run when event changes
 
     // Auto-select date when there's only one available (for 'once' repeat mode)
     useEffect(() => {
@@ -198,38 +216,44 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             return;
         }
 
-        const mealsToUse = isCustomEvent ? allMeals : filteredMeals;
-        if (mealsToUse.length > 0) {
-            const newTotal = Object.keys(quantities).reduce((sum, key) => {
-                const quantity = quantities[key];
-                if (quantity <= 0) return sum;
+        // Calculate Guided Menu total if active
+        let guidedMenuTotal = 0;
+        if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.price) {
+            guidedMenuTotal = parseFloat(shabbatData.Guided_Menu.price) * guidedMenuQuantity;
+        }
 
-                if (isCustomEvent) {
-                    if (key.includes('-variant-')) {
-                        // Handle variants
-                        const [mealIndex, , variantIndex] = key.split('-').map(Number);
-                        const meal = mealsToUse[mealIndex];
-                        const variant = meal?.variants?.[variantIndex];
-                        const price = parseFloat(variant?.price || 0);
-                        return sum + (quantity * price);
-                    } else {
-                        // Handle regular custom event option
-                        const [mealIndex] = key.split('-').map(Number);
-                        const meal = mealsToUse[mealIndex];
-                        const price = parseFloat(meal?.basePrice || 0);
-                        return sum + (quantity * price);
-                    }
-                } else {
-                    // Regular events
-                    const [mealIndex, priceIndex] = key.split('-').map(Number);
+        const mealsToUse = isCustomEvent ? allMeals : filteredMeals;
+        // Calculate extras total (category_menu items)
+        const extrasTotal = Object.keys(quantities).reduce((sum, key) => {
+            const quantity = quantities[key];
+            if (quantity <= 0) return sum;
+
+            if (isCustomEvent) {
+                if (key.includes('-variant-')) {
+                    // Handle variants
+                    const [mealIndex, , variantIndex] = key.split('-').map(Number);
                     const meal = mealsToUse[mealIndex];
-                    const price = parseFloat(meal?.prices[priceIndex]?.price || 0);
+                    const variant = meal?.variants?.[variantIndex];
+                    const price = parseFloat(variant?.price || 0);
+                    return sum + (quantity * price);
+                } else {
+                    // Handle regular custom event option
+                    const [mealIndex] = key.split('-').map(Number);
+                    const meal = mealsToUse[mealIndex];
+                    const price = parseFloat(meal?.basePrice || 0);
                     return sum + (quantity * price);
                 }
-            }, 0);
-            setTotal(newTotal);
-        }
-    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive]);
+            } else {
+                // Regular events
+                const [mealIndex, priceIndex] = key.split('-').map(Number);
+                const meal = mealsToUse[mealIndex];
+                const price = parseFloat(meal?.prices[priceIndex]?.price || 0);
+                return sum + (quantity * price);
+            }
+        }, 0);
+
+        setTotal(guidedMenuTotal + extrasTotal);
+    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, guidedMenuQuantity, shabbatData?.base_meal_options_active, shabbatData?.Guided_Menu?.price]);
 
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
@@ -247,8 +271,28 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         }
     };
 
-    // Check if there are items in cart
-    const hasItems = Object.values(quantities).some(qty => qty > 0);
+    // Handler for Guided Menu radio selection
+    const handleGuidedMenuSelection = (stepId, optionId) => {
+        setGuidedMenuSelections(prev => ({
+            ...prev,
+            [stepId]: optionId
+        }));
+        setShowGuidedMenuError(false);
+    };
+
+    // Check if currently viewing Guided Menu tab
+    const isGuidedMenuTab = shabbatData?.base_meal_options_active &&
+        shabbatData?.Guided_Menu?.name === activeTab;
+
+    // Helper to update Guided Menu quantity
+    const updateGuidedMenuQuantity = (change) => {
+        setGuidedMenuQuantity(prev => Math.max(1, prev + change));
+    };
+
+    // Check if there are items in cart (including Guided Menu)
+    const hasGuidedMenuItems = shabbatData?.base_meal_options_active && guidedMenuQuantity > 0;
+    const hasExtrasItems = Object.values(quantities).some(qty => qty > 0);
+    const hasItems = hasGuidedMenuItems || hasExtrasItems;
 
     // Calculate final amount (PWYW or regular total)
     const finalAmount = isPWYWActive
@@ -268,8 +312,20 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             return;
         }
 
+        // Validar selecciones del Guided Menu si está activo
+        if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.steps) {
+            const allStepsSelected = shabbatData.Guided_Menu.steps.every(
+                step => guidedMenuSelections[step.id] !== undefined
+            );
+            if (!allStepsSelected) {
+                setShowGuidedMenuError(true);
+                return;
+            }
+        }
+
         setShowDateError(false);
         setShowDeliveryError(false);
+        setShowGuidedMenuError(false);
         setIsLoading(true);
 
         const mealsToUse = isCustomEvent ? allMeals : filteredMeals;
@@ -278,13 +334,79 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // For PWYW: Calculate total units to distribute the custom amount
         let totalUnits = 0;
         if (isPWYWActive) {
-            totalUnits = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+            // Include Guided Menu quantity in total units
+            if (shabbatData?.base_meal_options_active) {
+                totalUnits += guidedMenuQuantity;
+            }
+            totalUnits += Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
         }
 
         // Calculate price per unit for PWYW, or price ratio for regular pricing
         const pricePerUnit = isPWYWActive && totalUnits > 0 ? finalAmount / totalUnits : 0;
         const priceRatio = !isPWYWActive && total > 0 ? finalAmount / total : 1;
 
+        // Add Guided Menu item if active
+        if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu) {
+            const guidedMenu = shabbatData.Guided_Menu;
+            const itemProductType = 'customEvent';
+
+            // Build selections object with step title -> option name
+            const selectionsForCart = {};
+            guidedMenu.steps?.forEach(step => {
+                const selectedOptionId = guidedMenuSelections[step.id];
+                const selectedOption = step.options?.find(opt => opt.id === selectedOptionId);
+                if (selectedOption) {
+                    selectionsForCart[step.title] = selectedOption.name;
+                }
+            });
+
+            // Calculate prices based on PWYW or regular pricing
+            let adjustedUnitPrice, adjustedTotalPrice;
+            if (isPWYWActive) {
+                adjustedUnitPrice = pricePerUnit;
+                adjustedTotalPrice = guidedMenuQuantity * pricePerUnit;
+            } else {
+                adjustedUnitPrice = parseFloat(guidedMenu.price || 0);
+                adjustedTotalPrice = guidedMenuQuantity * adjustedUnitPrice;
+            }
+
+            console.log('🍽️ Adding Guided Menu cart item:', {
+                mealName: guidedMenu.name,
+                quantity: guidedMenuQuantity,
+                selections: selectionsForCart,
+                adjustedUnitPrice,
+                adjustedTotalPrice
+            });
+
+            // Build selections string for display
+            const selectionsText = Object.entries(selectionsForCart)
+                .map(([step, option]) => `${step}: ${option}`)
+                .join(' | ');
+
+            cartItems.push({
+                meal: guidedMenu.name,
+                priceType: selectionsText || guidedMenu.name,
+                quantity: guidedMenuQuantity,
+                unitPrice: adjustedUnitPrice,
+                totalPrice: adjustedTotalPrice,
+                shabbatName: shabbatData?.name,
+                shabbatDate: selectedDate ? `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}` : shabbatData?.name,
+                productType: itemProductType,
+                isCustomEvent: true,
+                isGuidedMenu: true,
+                guidedMenuSelections: selectionsForCart,
+                pricingCategory: pricingCategory,
+                isPWYW: isPWYWActive,
+                customAmount: isPWYWActive ? finalAmount : undefined,
+                ...(isDeliveryEvent && {
+                    deliveryType: deliveryType,
+                    deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                    eventType: eventType
+                })
+            });
+        }
+
+        // Add category_menu extras
         Object.keys(quantities).forEach(key => {
             if (quantities[key] > 0) {
                 if (isCustomEvent) {
@@ -684,9 +806,23 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         )}
                         
                         {/* Tabs for Custom Events */}
-                        {isCustomEvent && shabbatData?.category_menu?.length > 0 && (
+                        {isCustomEvent && (shabbatData?.base_meal_options_active || shabbatData?.category_menu?.length > 0) && (
                             <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide pb-2">
-                                {shabbatData.category_menu.map((category, index) => (
+                                {/* Guided Menu Tab (first if active) */}
+                                {shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.name && (
+                                    <button
+                                        onClick={() => setActiveTab(shabbatData.Guided_Menu.name)}
+                                        className={`px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap cursor-pointer flex-shrink-0 ${
+                                            activeTab === shabbatData.Guided_Menu.name
+                                                ? 'text-primary border-b-2 border-primary'
+                                                : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        {shabbatData.Guided_Menu.name}
+                                    </button>
+                                )}
+                                {/* Category Menu Tabs */}
+                                {shabbatData?.category_menu?.map((category, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setActiveTab(category.category_name || `Category ${index + 1}`)}
@@ -782,7 +918,102 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         {(!showPricingSelector || isCustomEvent) && (
                         <div className="space-y-6">
                         {isCustomEvent ? (
-                            // Custom events - show only active tab items
+                            // Custom events - check if we're on Guided Menu tab or category_menu tab
+                            isGuidedMenuTab ? (
+                                // Guided Menu Content
+                                <div className="space-y-6">
+                                    {/* Quantity Selector */}
+                                    <div className="border border-gray-200 rounded-lg p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h3 className="text-base sm:text-lg font-semibold text-darkBlue">
+                                                    Number of Plates
+                                                </h3>
+                                                {!isPWYWActive && shabbatData?.Guided_Menu?.price && (
+                                                    <p className="text-sm text-gray-500">
+                                                        ${shabbatData.Guided_Menu.price} per plate
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => updateGuidedMenuQuantity(-1)}
+                                                    className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                >
+                                                    <FaMinus size={12} />
+                                                </button>
+                                                <span className="text-lg font-semibold text-darkBlue min-w-8 text-center">
+                                                    {guidedMenuQuantity}
+                                                </span>
+                                                <button
+                                                    onClick={() => updateGuidedMenuQuantity(1)}
+                                                    className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                >
+                                                    <FaPlus size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Steps with Radio Options */}
+                                    {shabbatData?.Guided_Menu?.steps?.map((step) => (
+                                        <div key={step.id} className={`border rounded-lg p-4 ${
+                                            showGuidedMenuError && !guidedMenuSelections[step.id]
+                                                ? 'border-red-500 bg-red-50'
+                                                : 'border-gray-200'
+                                        }`}>
+                                            <h3 className="text-base sm:text-lg font-semibold text-darkBlue mb-4">
+                                                {step.title} <span className="text-red-500">*</span>
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {step.options?.map((option) => (
+                                                    <label
+                                                        key={option.id}
+                                                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                                                            guidedMenuSelections[step.id] === option.id
+                                                                ? 'bg-primary/10 border border-primary'
+                                                                : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            name={`step-${step.id}`}
+                                                            checked={guidedMenuSelections[step.id] === option.id}
+                                                            onChange={() => handleGuidedMenuSelection(step.id, option.id)}
+                                                            className="mt-1 w-4 h-4 text-primary cursor-pointer"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <span className="text-sm sm:text-base font-medium text-darkBlue">
+                                                                {option.name}
+                                                            </span>
+                                                            {option.description && (
+                                                                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                                                                    {option.description}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                            {showGuidedMenuError && !guidedMenuSelections[step.id] && (
+                                                <p className="text-red-500 text-sm mt-2">
+                                                    Please select an option
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    {/* Guided Menu Description */}
+                                    {shabbatData?.Guided_Menu?.description && (
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                            <p className="text-sm text-blue-800">
+                                                {shabbatData.Guided_Menu.description}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                            // Category Menu Content - show only active tab items
                             shabbatData?.category_menu
                                 ?.find(cat => (cat.category_name || `Category ${shabbatData.category_menu.indexOf(cat) + 1}`) === activeTab)
                                 ?.option?.map((meal, localIndex) => {
@@ -895,7 +1126,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                         )}
                                     </div>
                                     );
-                                }) || []
+                                }) || [])
                         ) : (
                             // Regular events - show filtered meals
                             filteredMeals.map((meal, mealIndex) => (

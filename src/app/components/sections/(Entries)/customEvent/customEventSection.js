@@ -56,7 +56,7 @@ const SingleReservationsSkeleton = () => (
     </div>
 );
 
-export default function CustomEventSection({ customEventsData, restaurantsData }) {
+export default function CustomEventSection({ customEventsData, restaurantsData, globalDeliveryZones }) {
 
     const searchParams = useSearchParams();
     const [modalOpen, setModalOpen] = useState(false);
@@ -317,6 +317,9 @@ export default function CustomEventSection({ customEventsData, restaurantsData }
                     isCustomEvent={true}
                     eventType={selectedEventData?.event_type}
                     pwywSiteConfigData={selectedEventData?.pay_wy_want_custom_event === true}
+                    globalDeliveryZones={globalDeliveryZones}
+                    customDeliveryZones={selectedEventData?.custom_delivery_zones}
+                    customDeliveryIsActive={selectedEventData?.custom_delivery_is_Active === true}
                 />
             </Suspense>
         </Fragment>

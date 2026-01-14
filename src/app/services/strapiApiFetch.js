@@ -146,14 +146,16 @@ export const api = {
 
     // Version antes del update de Korea, no incluye el menu global.    
 
-// Tarea: Funcion single para los custom events.
+    // Tarea: Funcion single para los custom events.
 
 
     // shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[announce][populate]=*"),
 
-    shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[Guided_Menu][populate][steps][populate]=*&populate[announce][populate]=*"),
+    shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[Guided_Menu][populate][steps][populate]=*&populate[announce][populate]=*&populate[custom_delivery_zones][populate]=*"),
 
 
+    // Para el menu global de delivery zones    
+    getGlobalDeliveryZones: () => strapiFetch("/delivery-zone?populate=*"),
 
     pwywSiteConfig: () => strapiFetch("/platform-setting?fields=pay_wy_want_reservations,pay_wy_want_shabbat_box"),
 

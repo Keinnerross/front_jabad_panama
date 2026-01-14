@@ -20,9 +20,10 @@ const PageSkeleton = () => (
 
 export default async function CustomEvent() {
     // Fetch API data in parallel for better performance
-    const [customEventsData, restaurantsData] = await Promise.all([
+    const [customEventsData, restaurantsData, globalDeliveryZones] = await Promise.all([
         api.shabbatsAndHolidays(),
-        api.restaurants()
+        api.restaurants(),
+        api.getGlobalDeliveryZones()
     ]);
 
     return (
@@ -31,6 +32,7 @@ export default async function CustomEvent() {
                 <CustomEventSection
                     customEventsData={customEventsData}
                     restaurantsData={restaurantsData}
+                    globalDeliveryZones={globalDeliveryZones}
                 />
             </Suspense>
         </Fragment>

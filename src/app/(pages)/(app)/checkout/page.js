@@ -29,6 +29,15 @@ export default function Checkout() {
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [expandedItems, setExpandedItems] = useState({});
+
+    // Toggle item expansion for showing order details
+    const toggleItemExpand = (index) => {
+        setExpandedItems(prev => ({
+            ...prev,
+            [index]: !prev[index]
+        }));
+    };
 
     // Calculate transaction fee (5%)
     const calculateTransactionFee = (subtotal) => {
@@ -205,6 +214,11 @@ export default function Checkout() {
                         isCustomEvent: true, // Marcador específico para Custom Events
                         deliveryType: cartItems[0].deliveryType || 'pickup',
                         deliveryAddress: cartItems[0].deliveryAddress?.substring(0, 200), // Limitar a 200 chars
+                        deliveryFee: cartItems[0].deliveryFee?.toString() || '0', // Delivery fee como string
+                        deliveryZone: cartItems[0].deliveryZone ? JSON.stringify({
+                            id: cartItems[0].deliveryZone.id,
+                            zone_name: cartItems[0].deliveryZone.zone_name
+                        }) : null, // Delivery zone info
                         customEventType: cartItems[0].eventType || 'reservation',
                         eventName: cartItems[0].shabbatName?.substring(0, 50),
                         eventDate: cartItems[0].shabbatDate
@@ -358,40 +372,83 @@ export default function Checkout() {
 
                                 {/* Order Details */}
                                 <div className="flex flex-col justify-between">
-                                    <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+                                    <div className="space-y-0">
                                         {!mounted ? (
                                             <div className="text-center text-gray-500 py-4 xs:py-6 sm:py-8 text-sm">
                                                 Loading...
                                             </div>
                                         ) : (cartItems || []).length > 0 ? (
-                                            (cartItems || []).map((item, index) => (
-                                                <div key={index} className="flex justify-between items-start p-2 xs:p-3 bg-gray-50 rounded-lg">
-                                                    <div className="flex flex-col flex-1 min-w-0 pr-2">
-                                                        <span className="text-gray-text font-medium truncate text-xs xs:text-sm sm:text-base">{item.meal}</span>
-                                                        <span className="text-gray-400 text-xs truncate">{item.priceType} × {item.quantity}</span>
-                                                        <div className="text-xs text-gray-500 mt-1">
-                                                            <div className="truncate">
-                                                                <span className="font-medium">{item.shabbatName}</span>
-                                                                {item.shabbatDate && <span className="hidden xs:inline"> - {item.shabbatDate}</span>}
-                                                            </div>
-                                                            {item.productType && (
-                                                                <div className="mt-1">
-                                                                    <span className="inline-block px-1.5 xs:px-2 py-0.5 xs:py-1 bg-primary/10 text-primary rounded text-xs">
-                                                                        {item.productType === 'shabbatBox' ? 'Shabbat Box' : 
-                                                                         item.productType === 'customEventDelivery' ? 'Custom Event' : 'Meal'}
-                                                                    </span>
-                                                                    {item.productType === 'customEventDelivery' && item.deliveryType && (
-                                                                        <span className="inline-block ml-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                                                                            {item.deliveryType === 'delivery' ? 'Delivery' : 'Pickup'}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
+                                            <>
+                                                {/* Event Header - shown once */}
+                                                {cartItems[0]?.shabbatName && (
+                                                    <div className="bg-gray-50 -mx-3 xs:-mx-4 sm:-mx-6 px-3 xs:px-4 sm:px-6 py-3 mb-3">
+                                                        <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Order for</p>
+                                                        <p className="text-gray-900 font-medium text-sm">
+                                                            {cartItems[0].shabbatName}
+                                                            {cartItems[0].shabbatDate && (
+                                                                <span className="text-gray-500 font-normal"> · {cartItems[0].shabbatDate}</span>
                                                             )}
-                                                        </div>
+                                                        </p>
                                                     </div>
-                                                    <span className="text-gray-text font-medium flex-shrink-0 text-xs xs:text-sm sm:text-base">${item.totalPrice.toFixed(2)}</span>
-                                                </div>
-                                            ))
+                                                )}
+
+                                                {/* Items List */}
+                                                {(cartItems || []).map((item, index) => (
+                                                    <div key={index} className="py-3 border-b border-gray-200 last:border-b-0">
+                                                        {/* Row: Name + Price */}
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <span className="text-gray-900 font-medium text-sm">{item.meal}</span>
+                                                            <span className="text-gray-900 font-medium text-sm">${item.totalPrice.toFixed(2)}</span>
+                                                        </div>
+
+                                                        {/* Quantity */}
+                                                        <p className="text-gray-500 text-xs">
+                                                            {item.quantity} × ${(item.unitPrice || item.totalPrice / item.quantity).toFixed(2)} each
+                                                        </p>
+
+                                                        {/* Dropdown for selections (only if guidedMenuSelections exists) */}
+                                                        {item.guidedMenuSelections && Object.keys(item.guidedMenuSelections).length > 0 && (
+                                                            <div className="mt-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => toggleItemExpand(index)}
+                                                                    className="text-primary text-xs font-medium flex items-center gap-1 hover:underline cursor-pointer"
+                                                                >
+                                                                    <span className="text-[10px]">{expandedItems[index] ? '▾' : '▸'}</span>
+                                                                    {expandedItems[index] ? 'Hide selections' : 'View selections'}
+                                                                </button>
+                                                                {expandedItems[index] && (
+                                                                    <ul className="mt-2 pl-3 space-y-1 text-xs border-l-2 border-gray-200">
+                                                                        {Object.entries(item.guidedMenuSelections).map(([step, option]) => (
+                                                                            <li key={step}>
+                                                                                <span className="text-gray-500">{step}:</span>{' '}
+                                                                                <span className="text-gray-700">{option}</span>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+
+                                                {/* Delivery Fee */}
+                                                {(() => {
+                                                    const deliveryFeeItem = cartItems?.find(item => item.deliveryFee > 0);
+                                                    if (deliveryFeeItem) {
+                                                        return (
+                                                            <div className="py-3">
+                                                                <div className="flex justify-between items-start mb-1">
+                                                                    <span className="text-gray-900 font-medium text-sm">Delivery</span>
+                                                                    <span className="text-gray-900 font-medium text-sm">${deliveryFeeItem.deliveryFee.toFixed(2)}</span>
+                                                                </div>
+                                                                <p className="text-gray-500 text-xs">Zone: {deliveryFeeItem.deliveryAddress}</p>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
+                                            </>
                                         ) : (
                                             <div className="text-center text-gray-500 py-4 xs:py-6 sm:py-8 text-sm">
                                                 No items in cart
@@ -401,7 +458,7 @@ export default function Checkout() {
 
                                     {/* Divider and Total */}
                                     <div>
-                                        <div className="border-t border-gray-200 my-3 xs:my-4"></div>
+                                        <div className="border-t border-gray-200 mt-4 pt-4"></div>
                                         
                                         {/* Subtotal */}
                                         <div className="flex justify-between items-center mb-2">
@@ -426,10 +483,10 @@ export default function Checkout() {
                                         )}
 
                                         {/* Final Total */}
-                                        <div className="border-t border-gray-200 pt-2 mt-2">
+                                        <div className="bg-gray-50 -mx-3 xs:-mx-4 sm:-mx-6 px-3 xs:px-4 sm:px-6 py-3 mt-4 rounded-b-lg xs:rounded-b-xl">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">Total:</span>
-                                                <span className="text-darkBlue font-medium text-sm xs:text-base sm:text-lg">${mounted ? calculateGrandTotal().toFixed(2) : '0.00'}</span>
+                                                <span className="text-darkBlue font-bold text-base xs:text-lg sm:text-xl">Total:</span>
+                                                <span className="text-darkBlue font-bold text-base xs:text-lg sm:text-xl">${mounted ? calculateGrandTotal().toFixed(2) : '0.00'}</span>
                                             </div>
                                         </div>
                                     </div>

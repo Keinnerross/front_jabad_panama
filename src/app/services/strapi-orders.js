@@ -392,19 +392,31 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
     const eventName = metadata.eventName || firstItem.shabbatName || 'Custom Event';
     const eventDate = metadata.eventDate || firstItem.shabbatDate || null;
     const customEventType = metadata.customEventType || firstItem.eventType || 'delivery';
-    
+
+    // Extraer delivery fee y zone name
+    const deliveryFee = parseFloat(metadata.deliveryFee) || 0;
+    let deliveryZoneName = null;
+    if (metadata.deliveryZone) {
+      try {
+        const zoneData = JSON.parse(metadata.deliveryZone);
+        deliveryZoneName = zoneData?.zone_name || null;
+      } catch (e) {
+        console.log('Could not parse deliveryZone:', metadata.deliveryZone);
+      }
+    }
+
     // Convertir fecha de DD/MM/YYYY o DD-DD/MM/YYYY a YYYY-MM-DD para serviceDate
     let serviceDateISO = null;
     if (eventDate) {
       // Usar extractDateRange que maneja correctamente el cruce de meses
       const { start } = extractDateRange(eventDate);
-      
+
       if (start) {
         // La fecha ya viene en formato ISO (YYYY-MM-DD)
         serviceDateISO = start;
       }
     }
-    
+
     const orderData = {
       data: {
         orderId: metadata.orderId || `CE-${Date.now()}`,
@@ -415,7 +427,7 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
         customerEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
         customerPhone: metadata.customer_phone || null,
         customerNationality: metadata.customer_nationality || null,
-        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100),
+        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100, deliveryFee, deliveryZoneName),
         orderStatus: 'paid',
         isDelivery: deliveryType === 'delivery',
         delivery_addres: deliveryAddress,
@@ -539,9 +551,9 @@ export function detectOrderType(metadata, parsedItems) {
 /**
  * Formatea la descripción de una orden
  */
-export function formatOrderDescription(parsedItems, totalAmount) {
+export function formatOrderDescription(parsedItems, totalAmount, deliveryFee = 0, deliveryZoneName = null) {
   const lines = [];
-  
+
   parsedItems.forEach(item => {
     if (item.productType !== 'fee' && item.productType !== 'donation') {
       const unitPrice = item.price.toFixed(2);
@@ -549,6 +561,11 @@ export function formatOrderDescription(parsedItems, totalAmount) {
       lines.push(`${item.name} x${item.quantity} - $${unitPrice} cada - $${totalPrice}`);
     }
   });
+
+  // Agregar delivery fee si existe
+  if (deliveryFee > 0) {
+    lines.push(`Delivery Fee (${deliveryZoneName || 'Delivery'}) - $${deliveryFee.toFixed(2)}`);
+  }
 
   // Agregar donación si existe
   const donation = parsedItems.find(item => item.productType === 'donation');

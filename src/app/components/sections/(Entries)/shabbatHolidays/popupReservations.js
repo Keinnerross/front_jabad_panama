@@ -8,7 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { getAssetPath } from "@/app/utils/assetPath";
 
-export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false }) => {
+export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false, globalDeliveryZones = null, customDeliveryZones = [], customDeliveryIsActive = false }) => {
     const router = useRouter();
     const [quantities, setQuantities] = useState({});
     const [total, setTotal] = useState(0);
@@ -19,6 +19,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [deliveryType, setDeliveryType] = useState('pickup'); // 'pickup' o 'delivery'
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [showDeliveryError, setShowDeliveryError] = useState(false);
+    const [selectedDeliveryZone, setSelectedDeliveryZone] = useState(null);
+    const [deliveryFee, setDeliveryFee] = useState(0);
     const [pricingCategory, setPricingCategory] = useState(null); // 'local' or 'tourist'
     const [showPricingSelector, setShowPricingSelector] = useState(false);
     const [loadingCategory, setLoadingCategory] = useState(null); // 'local' or 'tourist' while loading
@@ -33,7 +35,51 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     
     // Determinar si se debe mostrar opciones de delivery
     const isDeliveryEvent = eventType === 'delivery';
-    
+
+    // Determinar qué zonas de delivery usar (custom del evento vs globales vs ninguna)
+    const getActiveDeliveryZones = () => {
+        // Si el evento tiene delivery zones custom activas, usarlas
+        if (customDeliveryIsActive && customDeliveryZones?.length > 0) {
+            return {
+                zones: customDeliveryZones.filter(z => z.zone_name),
+                useZones: true,
+                source: 'custom'
+            };
+        }
+
+        // Si hay zonas globales activas, usarlas
+        if (globalDeliveryZones?.delivery_zones_is_active &&
+            globalDeliveryZones?.delivery_zone?.length > 0) {
+            return {
+                zones: globalDeliveryZones.delivery_zone.filter(z => z.zone_name),
+                useZones: true,
+                source: 'global'
+            };
+        }
+
+        // No hay zonas activas - usar campo de texto libre
+        return { zones: [], useZones: false, source: 'none' };
+    };
+
+    const deliveryZonesConfig = getActiveDeliveryZones();
+
+    // Handler para cambio de zona de delivery
+    const handleDeliveryZoneChange = (e) => {
+        const zoneId = parseInt(e.target.value);
+        if (!zoneId) {
+            setSelectedDeliveryZone(null);
+            setDeliveryFee(0);
+            return;
+        }
+
+        const zone = deliveryZonesConfig.zones.find(z => z.id === zoneId);
+        if (zone) {
+            setSelectedDeliveryZone(zone);
+            // Si delivery_fee es null o undefined, tratarlo como gratis (0)
+            setDeliveryFee(zone.delivery_fee > 0 ? parseFloat(zone.delivery_fee) : 0);
+            setShowDeliveryError(false);
+        }
+    };
 
     // Bloquear scroll del body cuando el popup está abierto
     useEffect(() => {
@@ -63,6 +109,11 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             setGuidedMenuQuantity(1);
             setGuidedMenuSelections({});
             setShowGuidedMenuError(false);
+            // Reset Delivery Zone states
+            setSelectedDeliveryZone(null);
+            setDeliveryFee(0);
+            setDeliveryType('pickup');
+            setDeliveryAddress('');
         }
 
         // Cleanup al desmontar
@@ -252,8 +303,10 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             }
         }, 0);
 
-        setTotal(guidedMenuTotal + extrasTotal);
-    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, guidedMenuQuantity, shabbatData?.base_meal_options_active, shabbatData?.Guided_Menu?.price]);
+        // Include delivery fee if delivery is selected
+        const currentDeliveryFee = (isDeliveryEvent && deliveryType === 'delivery') ? deliveryFee : 0;
+        setTotal(guidedMenuTotal + extrasTotal + currentDeliveryFee);
+    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, guidedMenuQuantity, shabbatData?.base_meal_options_active, shabbatData?.Guided_Menu?.price, isDeliveryEvent, deliveryType, deliveryFee]);
 
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
@@ -306,10 +359,21 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             return;
         }
 
-        // Validar dirección si es evento de delivery
-        if (isDeliveryEvent && deliveryType === 'delivery' && !deliveryAddress.trim()) {
-            setShowDeliveryError(true);
-            return;
+        // Validar delivery: zona si hay zonas activas, o dirección si es campo de texto
+        if (isDeliveryEvent && deliveryType === 'delivery') {
+            if (deliveryZonesConfig.useZones) {
+                // Validar que se haya seleccionado una zona
+                if (!selectedDeliveryZone) {
+                    setShowDeliveryError(true);
+                    return;
+                }
+            } else {
+                // Validar que se haya ingresado una dirección
+                if (!deliveryAddress.trim()) {
+                    setShowDeliveryError(true);
+                    return;
+                }
+            }
         }
 
         // Validar selecciones del Guided Menu si está activo
@@ -400,7 +464,11 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                 customAmount: isPWYWActive ? finalAmount : undefined,
                 ...(isDeliveryEvent && {
                     deliveryType: deliveryType,
-                    deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                    deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
+                    deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
+                    deliveryAddress: deliveryType === 'delivery'
+                        ? (deliveryZonesConfig.useZones ? selectedDeliveryZone?.zone_name : deliveryAddress)
+                        : null,
                     eventType: eventType
                 })
             });
@@ -461,7 +529,11 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 customAmount: isPWYWActive ? finalAmount : undefined, // Store total custom amount for PWYW
                                 ...(isDeliveryEvent && {
                                     deliveryType: deliveryType,
-                                    deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                                    deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
+                                    deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
+                                    deliveryAddress: deliveryType === 'delivery'
+                                        ? (deliveryZonesConfig.useZones ? selectedDeliveryZone?.zone_name : deliveryAddress)
+                                        : null,
                                     eventType: eventType
                                 })
                             });
@@ -514,7 +586,11 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             customAmount: isPWYWActive ? finalAmount : undefined, // Store total custom amount for PWYW
                             ...(isDeliveryEvent && {
                                 deliveryType: deliveryType,
-                                deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                                deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
+                                deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
+                                deliveryAddress: deliveryType === 'delivery'
+                                    ? (deliveryZonesConfig.useZones ? selectedDeliveryZone?.zone_name : deliveryAddress)
+                                    : null,
                                 eventType: eventType
                             })
                         });
@@ -590,13 +666,13 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         >
             <div
                 onClick={(e) => e.stopPropagation(e)}
-                className={`w-full max-w-4xl lg:max-w-5xl h-[85vh] sm:h-[82vh] md:h-[78vh] lg:h-[80vh] xl:h-[80vh] max-h-[700px] lg:max-h-[800px] xl:max-h-[900px] min-h-[400px] flex flex-col lg:flex-row rounded-xl overflow-hidden my-auto shadow-2xl transition-all duration-300 transform ${
+                className={`w-full max-w-4xl md:max-w-5xl lg:max-w-6xl h-[90vh] sm:h-[88vh] md:h-[88vh] lg:h-[90vh] xl:h-[88vh] max-h-[800px] md:max-h-[850px] lg:max-h-none xl:max-h-none min-h-[500px] flex flex-col lg:flex-row rounded-xl overflow-hidden my-auto shadow-2xl transition-all duration-300 transform ${
                     isOpen
                         ? 'scale-100 opacity-100 translate-y-0'
                         : 'scale-95 opacity-0 translate-y-4'
                 }`}>
                 {/* Image Section */}
-                <div className="w-full lg:w-2/5 h-40 sm:h-48 md:h-56 lg:h-full relative flex-shrink-0 hidden lg:block overflow-hidden rounded-l-xl">
+                <div className="w-full lg:w-1/3 xl:w-2/5 h-40 sm:h-48 md:h-56 lg:h-full relative flex-shrink-0 hidden lg:block overflow-hidden rounded-l-xl">
                     <Image 
                         src={getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png")} 
                         alt="reservation for shabbat" 
@@ -610,15 +686,15 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                 </div>
 
                 {/* Form Section */}
-                <div className="w-full lg:w-3/5 bg-white flex flex-col h-full overflow-hidden">
+                <div className="w-full lg:w-2/3 xl:w-3/5 bg-white flex flex-col h-full overflow-hidden">
                     {/* Fixed Header */}
-                    <div className="p-3 sm:p-4 md:p-6 border-b border-gray-100 flex-shrink-0">
+                    <div className="p-3 sm:p-3 md:p-3 lg:p-4 xl:p-4 border-b border-gray-100 flex-shrink-0">
                         <div className="flex justify-between items-start mb-2">
                             <div className="flex-1 pr-2">
-                                <h2 className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-darkBlue mb-1">
+                                <h2 className="text-sm sm:text-sm md:text-base lg:text-base xl:text-lg font-bold text-darkBlue mb-1">
                                     {isCustomEvent ? shabbatData?.name || "Custom Event" : "Shabbat Meals"}
                                 </h2>
-                                <p className="text-gray-text text-[10px] sm:text-xs md:text-sm lg:text-base">
+                                <p className="text-gray-text text-[10px] sm:text-xs md:text-xs lg:text-xs xl:text-sm">
                                     {isCustomEvent ? (
                                         selectedDate ? `Selected Date: ${selectedDate.toLocaleDateString()}` : "Please select a date"
                                     ) : (
@@ -744,11 +820,11 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         
                         {/* Delivery Options for Delivery Events */}
                         {isDeliveryEvent && (
-                            <div className="mb-3">
-                                <h3 className="text-sm font-semibold text-gray-700 mb-3">Delivery Options *</h3>
-                                
+                            <div className="mb-2 md:mb-1.5 lg:mb-2">
+                                <h3 className="text-xs md:text-xs lg:text-xs font-semibold text-gray-700 mb-2 md:mb-1.5 lg:mb-2">Delivery Options *</h3>
+
                                 {/* Radio buttons */}
-                                <div className="flex gap-4 mb-3">
+                                <div className="flex gap-3 md:gap-2 lg:gap-1.5 mb-2 md:mb-1.5 lg:mb-2">
                                     <label className="flex items-center cursor-pointer">
                                         <input
                                             type="radio"
@@ -759,9 +835,9 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                 setDeliveryType(e.target.value);
                                                 setShowDeliveryError(false);
                                             }}
-                                            className="mr-2"
+                                            className="mr-1.5 w-3.5 h-3.5 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5"
                                         />
-                                        <span className="text-sm text-gray-700">Pickup</span>
+                                        <span className="text-xs md:text-xs lg:text-xs text-gray-700">Pickup</span>
                                     </label>
                                     <label className="flex items-center cursor-pointer">
                                         <input
@@ -773,46 +849,78 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                 setDeliveryType(e.target.value);
                                                 setShowDeliveryError(false);
                                             }}
-                                            className="mr-2"
+                                            className="mr-1.5 w-3.5 h-3.5 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5"
                                         />
-                                        <span className="text-sm text-gray-700">Delivery</span>
+                                        <span className="text-xs md:text-xs lg:text-xs text-gray-700">Delivery</span>
                                     </label>
                                 </div>
                                 
-                                {/* Conditional address field */}
+                                {/* Conditional delivery zone selector or address field */}
                                 {deliveryType === 'delivery' && (
-                                    <div>
-                                        <input
-                                            type="text"
-                                            placeholder="Enter delivery address *"
-                                            value={deliveryAddress}
-                                            onChange={(e) => {
-                                                setDeliveryAddress(e.target.value);
-                                                setShowDeliveryError(false);
-                                            }}
-                                            className={`w-full p-3 border rounded-lg text-gray-700 text-sm ${
-                                                showDeliveryError && !deliveryAddress.trim() 
-                                                    ? 'border-red-500 bg-red-50' 
-                                                    : 'border-gray-300'
-                                            }`}
-                                            required
-                                        />
-                                        {showDeliveryError && !deliveryAddress.trim() && (
-                                            <p className="text-red-500 text-sm mt-1">Please enter a delivery address</p>
-                                        )}
-                                    </div>
+                                    deliveryZonesConfig.useZones ? (
+                                        // Show dropdown of delivery zones
+                                        <div>
+                                            <select
+                                                value={selectedDeliveryZone?.id || ''}
+                                                onChange={handleDeliveryZoneChange}
+                                                className={`w-full p-2 md:p-1.5 lg:p-3 border rounded-lg text-gray-700 cursor-pointer text-xs md:text-xs lg:text-xs ${
+                                                    showDeliveryError && !selectedDeliveryZone
+                                                        ? 'border-red-500 bg-red-50'
+                                                        : 'border-gray-300'
+                                                }`}
+                                                required
+                                            >
+                                                <option value="">Select delivery zone *</option>
+                                                {deliveryZonesConfig.zones.map(zone => (
+                                                    <option key={zone.id} value={zone.id}>
+                                                        {zone.zone_name} {zone.delivery_fee > 0 ? `(+$${zone.delivery_fee})` : '(Free)'}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {showDeliveryError && !selectedDeliveryZone && (
+                                                <p className="text-red-500 text-sm mt-1">Please select a delivery zone</p>
+                                            )}
+                                            {selectedDeliveryZone && deliveryFee > 0 && (
+                                                <p className="text-primary text-sm mt-1 font-medium">
+                                                    Delivery fee: +${deliveryFee.toFixed(2)}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        // Show text input for address (original behavior)
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter delivery address *"
+                                                value={deliveryAddress}
+                                                onChange={(e) => {
+                                                    setDeliveryAddress(e.target.value);
+                                                    setShowDeliveryError(false);
+                                                }}
+                                                className={`w-full p-2 md:p-1.5 lg:p-3 border rounded-lg text-gray-700 text-xs md:text-xs lg:text-xs ${
+                                                    showDeliveryError && !deliveryAddress.trim()
+                                                        ? 'border-red-500 bg-red-50'
+                                                        : 'border-gray-300'
+                                                }`}
+                                                required
+                                            />
+                                            {showDeliveryError && !deliveryAddress.trim() && (
+                                                <p className="text-red-500 text-sm mt-1">Please enter a delivery address</p>
+                                            )}
+                                        </div>
+                                    )
                                 )}
                             </div>
                         )}
                         
                         {/* Tabs for Custom Events */}
                         {isCustomEvent && (shabbatData?.base_meal_options_active || shabbatData?.category_menu?.length > 0) && (
-                            <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide pb-2">
+                            <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide pb-1 md:pb-1 lg:pb-1">
                                 {/* Guided Menu Tab (first if active) */}
                                 {shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.name && (
                                     <button
                                         onClick={() => setActiveTab(shabbatData.Guided_Menu.name)}
-                                        className={`px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap cursor-pointer flex-shrink-0 ${
+                                        className={`px-2 py-1.5 md:px-2 md:py-1 lg:px-2 lg:py-1 text-[11px] md:text-[11px] lg:text-xs font-medium whitespace-nowrap cursor-pointer flex-shrink-0 ${
                                             activeTab === shabbatData.Guided_Menu.name
                                                 ? 'text-primary border-b-2 border-primary'
                                                 : 'text-gray-500 hover:text-gray-700'
@@ -826,7 +934,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                     <button
                                         key={index}
                                         onClick={() => setActiveTab(category.category_name || `Category ${index + 1}`)}
-                                        className={`px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap cursor-pointer flex-shrink-0 ${
+                                        className={`px-2 py-1.5 md:px-2 md:py-1 lg:px-2 lg:py-1 text-[11px] md:text-[11px] lg:text-xs font-medium whitespace-nowrap cursor-pointer flex-shrink-0 ${
                                             activeTab === (category.category_name || `Category ${index + 1}`)
                                                 ? 'text-primary border-b-2 border-primary'
                                                 : 'text-gray-500 hover:text-gray-700'
@@ -839,7 +947,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         )}
                     </div>
                     {/* Scrollable Content Area */}
-                    <div className="flex-1 overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 min-h-0">
+                    <div className="flex-1 overflow-y-auto p-2 sm:p-2 md:p-2 lg:p-4 xl:p-4 min-h-0">
                         {/* Local/Tourist Selector for Traditional Shabbat */}
                         {!isCustomEvent && showPricingSelector && (
                             <div className="flex flex-col items-center justify-center py-8">
@@ -921,12 +1029,12 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             // Custom events - check if we're on Guided Menu tab or category_menu tab
                             isGuidedMenuTab ? (
                                 // Guided Menu Content
-                                <div className="space-y-6">
+                                <div className="space-y-3 md:space-y-2 lg:space-y-3">
                                     {/* Quantity Selector */}
-                                    <div className="border border-gray-200 rounded-lg p-4">
+                                    <div className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h3 className="text-base sm:text-lg font-semibold text-darkBlue">
+                                                <h3 className="text-sm md:text-sm lg:text-xs font-semibold text-darkBlue">
                                                     Number of Plates
                                                 </h3>
                                                 {!isPWYWActive && shabbatData?.Guided_Menu?.price && (
@@ -935,21 +1043,21 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                     </p>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2 md:gap-1 lg:gap-1.5">
                                                 <button
                                                     onClick={() => updateGuidedMenuQuantity(-1)}
-                                                    className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                    className="w-8 h-8 md:w-7 md:h-7 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                 >
-                                                    <FaMinus size={12} />
+                                                    <FaMinus size={10} />
                                                 </button>
-                                                <span className="text-lg font-semibold text-darkBlue min-w-8 text-center">
+                                                <span className="text-base md:text-sm lg:text-xs font-semibold text-darkBlue min-w-6 text-center">
                                                     {guidedMenuQuantity}
                                                 </span>
                                                 <button
                                                     onClick={() => updateGuidedMenuQuantity(1)}
-                                                    className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                    className="w-8 h-8 md:w-7 md:h-7 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                 >
-                                                    <FaPlus size={12} />
+                                                    <FaPlus size={10} />
                                                 </button>
                                             </div>
                                         </div>
@@ -957,19 +1065,19 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
 
                                     {/* Steps with Radio Options */}
                                     {shabbatData?.Guided_Menu?.steps?.map((step) => (
-                                        <div key={step.id} className={`border rounded-lg p-4 ${
+                                        <div key={step.id} className={`border rounded-lg p-2 md:p-2 lg:p-3 ${
                                             showGuidedMenuError && !guidedMenuSelections[step.id]
                                                 ? 'border-red-500 bg-red-50'
                                                 : 'border-gray-200'
                                         }`}>
-                                            <h3 className="text-base sm:text-lg font-semibold text-darkBlue mb-4">
+                                            <h3 className="text-sm md:text-sm lg:text-xs font-semibold text-darkBlue mb-2 md:mb-2 lg:mb-2">
                                                 {step.title} <span className="text-red-500">*</span>
                                             </h3>
-                                            <div className="space-y-3">
+                                            <div className="space-y-1.5 md:space-y-1 lg:space-y-3">
                                                 {step.options?.map((option) => (
                                                     <label
                                                         key={option.id}
-                                                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                                                        className={`flex items-start gap-2 p-2 md:p-1.5 lg:p-3 rounded-lg cursor-pointer transition-colors ${
                                                             guidedMenuSelections[step.id] === option.id
                                                                 ? 'bg-primary/10 border border-primary'
                                                                 : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
@@ -980,14 +1088,14 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                             name={`step-${step.id}`}
                                                             checked={guidedMenuSelections[step.id] === option.id}
                                                             onChange={() => handleGuidedMenuSelection(step.id, option.id)}
-                                                            className="mt-1 w-4 h-4 text-primary cursor-pointer"
+                                                            className="mt-0.5 w-3.5 h-3.5 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5 text-primary cursor-pointer"
                                                         />
                                                         <div className="flex-1">
-                                                            <span className="text-sm sm:text-base font-medium text-darkBlue">
+                                                            <span className="text-xs md:text-xs lg:text-xs font-medium text-darkBlue">
                                                                 {option.name}
                                                             </span>
                                                             {option.description && (
-                                                                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                                                                <p className="text-[10px] md:text-[10px] lg:text-xs text-gray-500 mt-0.5">
                                                                     {option.description}
                                                                 </p>
                                                             )}
@@ -1026,15 +1134,15 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                         .reduce((sum, cat) => sum + (cat.option?.length || 0), 0) + localIndex;
                                     
                                     return (
-                                    <div key={mealIndex} className="border border-gray-200 rounded-lg p-2 sm:p-3 md:p-4">
-                                        <h3 className="text-base sm:text-lg font-semibold text-darkBlue mb-3 sm:mb-4">{meal.name}</h3>
+                                    <div key={mealIndex} className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
+                                        <h3 className="text-sm md:text-sm lg:text-xs font-semibold text-darkBlue mb-2 md:mb-1.5 lg:mb-2">{meal.name}</h3>
                                         
                                         {meal.description && (
-                                            <p className="text-gray-600 text-sm mb-3">{meal.description}</p>
+                                            <p className="text-gray-600 text-xs md:text-xs lg:text-xs mb-2 md:mb-1.5 lg:mb-2">{meal.description}</p>
                                         )}
                                         
                                         {meal.includes && (
-                                            <div className="text-xs text-gray-600 mb-3">
+                                            <div className="text-[10px] md:text-[10px] lg:text-xs text-gray-600 mb-2 md:mb-1.5 lg:mb-2">
                                                 <span className="font-medium">Includes: </span>
                                                 <ReactMarkdown
                                                     components={{
@@ -1051,38 +1159,38 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                         
                                         {meal.variants && meal.variants.length > 0 ? (
                                             // Render variants (like Pescados)
-                                            <div className="space-y-3">
+                                            <div className="space-y-1.5 md:space-y-1 lg:space-y-3">
                                                 {meal.variants.map((variant, variantIndex) => {
                                                     const variantKey = `${mealIndex}-variant-${variantIndex}`;
                                                     return (
-                                                        <div key={variantIndex} className="flex items-center justify-between gap-2 bg-gray-50 p-3 rounded">
+                                                        <div key={variantIndex} className="flex items-center justify-between gap-2 bg-gray-50 p-2 md:p-1.5 lg:p-3 rounded">
                                                             <div className="min-w-0 flex-1 pr-2">
-                                                                <span className="text-gray-text text-xs sm:text-sm break-words">{variant.title}</span>
+                                                                <span className="text-gray-text text-[11px] md:text-[11px] lg:text-xs break-words">{variant.title}</span>
                                                                 {variant.description && (
-                                                                    <div className="text-xs text-gray-500 mt-1">{variant.description}</div>
+                                                                    <div className="text-[10px] md:text-[10px] lg:text-xs text-gray-500 mt-0.5">{variant.description}</div>
                                                                 )}
                                                             </div>
-                                                            <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">
+                                                            <div className="flex items-center gap-2 md:gap-1.5 lg:gap-1.5 flex-shrink-0">
                                                                 {!isPWYWActive && (
-                                                                    <span className="text-sm sm:text-base font-semibold text-myBlack whitespace-nowrap">
+                                                                    <span className="text-xs md:text-xs lg:text-xs font-semibold text-myBlack whitespace-nowrap">
                                                                         ${variant.price}
                                                                     </span>
                                                                 )}
-                                                                <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-1.5 md:gap-1 lg:gap-1.5">
                                                                     <button
                                                                         onClick={() => updateQuantity(variantKey, -1)}
-                                                                        className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                                        className="w-6 h-6 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                                     >
-                                                                        <FaMinus size={10} className="sm:w-3 sm:h-3" />
+                                                                        <FaMinus size={8} />
                                                                     </button>
-                                                                    <span className="text-sm sm:text-base font-semibold text-darkBlue min-w-6 sm:min-w-8 text-center">
+                                                                    <span className="text-xs md:text-xs lg:text-xs font-semibold text-darkBlue min-w-5 md:min-w-4 lg:min-w-4 text-center">
                                                                         {quantities[variantKey] || 0}
                                                                     </span>
                                                                     <button
                                                                         onClick={() => updateQuantity(variantKey, 1)}
-                                                                        className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                                        className="w-6 h-6 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                                     >
-                                                                        <FaPlus size={10} className="sm:w-3 sm:h-3" />
+                                                                        <FaPlus size={8} />
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -1092,32 +1200,32 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                             </div>
                                         ) : (
                                             // Render regular option without variants
-                                            <div className="space-y-3 sm:space-y-4">
+                                            <div className="space-y-1.5 md:space-y-1 lg:space-y-3">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="min-w-0 flex-1 pr-2">
-                                                        <span className="text-gray-text text-xs sm:text-sm break-words">{meal.name}</span>
+                                                        <span className="text-gray-text text-[11px] md:text-[11px] lg:text-xs break-words">{meal.name}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">
+                                                    <div className="flex items-center gap-2 md:gap-1.5 lg:gap-1.5 flex-shrink-0">
                                                         {!isPWYWActive && (
-                                                            <span className="text-sm sm:text-base font-semibold text-myBlack whitespace-nowrap">
+                                                            <span className="text-xs md:text-xs lg:text-xs font-semibold text-myBlack whitespace-nowrap">
                                                                 ${meal.basePrice}
                                                             </span>
                                                         )}
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1.5 md:gap-1 lg:gap-1.5">
                                                             <button
                                                                 onClick={() => updateQuantity(`${mealIndex}-0`, -1)}
-                                                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                                className="w-6 h-6 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                             >
-                                                                <FaMinus size={10} className="sm:w-3 sm:h-3" />
+                                                                <FaMinus size={8} />
                                                             </button>
-                                                            <span className="text-sm sm:text-base font-semibold text-darkBlue min-w-6 sm:min-w-8 text-center">
+                                                            <span className="text-xs md:text-xs lg:text-xs font-semibold text-darkBlue min-w-5 md:min-w-4 lg:min-w-4 text-center">
                                                                 {quantities[`${mealIndex}-0`] || 0}
                                                             </span>
                                                             <button
                                                                 onClick={() => updateQuantity(`${mealIndex}-0`, 1)}
-                                                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                                className="w-6 h-6 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                             >
-                                                                <FaPlus size={10} className="sm:w-3 sm:h-3" />
+                                                                <FaPlus size={8} />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -1130,32 +1238,32 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         ) : (
                             // Regular events - show filtered meals
                             filteredMeals.map((meal, mealIndex) => (
-                            <div key={mealIndex} className="border border-gray-200 rounded-lg p-2 sm:p-3 md:p-4">
-                                <h3 className="text-base sm:text-lg font-semibold text-darkBlue mb-3 sm:mb-4">{meal.product}</h3>
-                                <div className="space-y-3 sm:space-y-4">
+                            <div key={mealIndex} className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
+                                <h3 className="text-sm md:text-sm lg:text-xs font-semibold text-darkBlue mb-2 md:mb-1.5 lg:mb-2">{meal.product}</h3>
+                                <div className="space-y-1.5 md:space-y-1 lg:space-y-3">
                                     {meal.prices.map((priceOption, priceIndex) => {
                                         const key = `${mealIndex}-${priceIndex}`;
                                         return (
-                                            <div key={priceIndex} className="flex items-center justify-between gap-2">
-                                                <span className="text-gray-text text-xs sm:text-sm md:text-base break-words min-w-0 flex-1 pr-2">{priceOption.name}</span>
-                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                            <div key={priceIndex} className="flex items-center justify-between gap-1.5 md:gap-1 lg:gap-1.5">
+                                                <span className="text-gray-text text-[11px] md:text-[11px] lg:text-xs break-words min-w-0 flex-1 pr-1">{priceOption.name}</span>
+                                                <div className="flex items-center gap-1.5 md:gap-1 lg:gap-1.5 flex-shrink-0">
                                                     <button
                                                         onClick={() => updateQuantity(key, -1)}
-                                                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                        className="w-6 h-6 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                     >
-                                                        <FaMinus className="text-gray-text text-xs sm:text-sm"  />
+                                                        <FaMinus size={8} />
                                                     </button>
-                                                    <span className="w-8 sm:w-10 text-center text-gray-text text-xs sm:text-sm md:text-base">
+                                                    <span className="w-5 md:w-4 lg:w-5 text-center text-gray-text text-xs md:text-[11px] lg:text-xs">
                                                         {quantities[key] || 0}
                                                     </span>
                                                     <button
                                                         onClick={() => updateQuantity(key, 1)}
-                                                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
+                                                        className="w-6 h-6 md:w-5 md:h-5 lg:w-5 lg:h-5 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
                                                     >
-                                                        <FaPlus className="text-gray-text text-xs sm:text-sm"  />
+                                                        <FaPlus size={8} />
                                                     </button>
                                                     {!isPWYWActive && (
-                                                        <span className="w-16 sm:w-20 text-right text-gray-text text-xs sm:text-sm md:text-base whitespace-nowrap">
+                                                        <span className="w-12 md:w-10 lg:w-14 text-right text-gray-text text-xs md:text-[11px] lg:text-xs whitespace-nowrap">
                                                             ${parseFloat(priceOption.price).toFixed(2)}
                                                         </span>
                                                     )}
@@ -1171,7 +1279,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                     </div>
 
                     {/* Fixed Footer */}
-                    <div className="border-t border-gray-200 p-3 sm:p-4 md:p-5 flex-shrink-0 bg-white">
+                    <div className="border-t border-gray-200 p-2 sm:p-2 md:p-2 lg:p-3 xl:p-3 flex-shrink-0 bg-white">
                         {isPWYWActive ? (
                             // Pay What You Want UI
                             <>

@@ -46,16 +46,12 @@ export const MegaMenu = ({
     return (
         <div
             style={{ top: `${topPosition}px` }}
-            className={`fixed left-1/2 -translate-x-1/2 min-w-[320px] max-w-[90vw] w-max bg-white rounded-xl shadow-lg z-50 transition-all duration-300 ${isVisible
+            className={`fixed left-1/2 -translate-x-1/2 min-w-[320px] max-w-[90vw] w-max bg-white rounded-b-xl shadow-lg z-50 transition-all duration-300 ${isVisible
                 ? 'opacity-100 visible'
                 : 'opacity-0 invisible'
                 }`}
-        >
+        >   
             <div className="p-4">
-                <p className="px-3 pb-3 font-bold text-myBlack border-b border-gray-100 mb-3">
-                    {menuTitle}
-                </p>
-
                 <div className={`grid ${gridClasses[columnCount]} gap-x-4 gap-y-1`}>
                     {columns.map((columnItems, colIndex) => (
                         <MegaMenuColumn

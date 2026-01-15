@@ -121,22 +121,24 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                 <div className="w-full max-w-7xl px-4 md:px-0">
                     {/* Hero Section */}
                     <section className="mb-16">
-                        <div className="flex flex-col md:flex-row justify-between items-start mb-6">
+                        <div className="flex flex-col md:flex-row justify-between items-start">
                             <div className="md:w-[60%] mb-4 md:mb-0">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-darkBlue md:max-w-[80%]">
+                                    <h1 className="text-3xl font-bold text-darkBlue md:max-w-[80%]">
                                         {`Registration for ${selectedEventData?.name || 'Event'}`}
                                     </h1>
                                 </div>
                             </div>
+
+
                             <div className="hidden md:block">
                                 <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} />
                             </div>
-                            <div className="flex w-full md:hidden">
+                            <div className="flex w-full md:hidden mb-6">
                                 <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
                             </div>
                         </div>
-                        <div className="flex justify-center md:justify-start items-center gap-4 mb-8">
+                        <div className="hidden md:flex justify-center md:justify-start items-center gap-4 mb-8">
                             {selectedEventData?.category_menu?.slice(0, 3).map((category, index) => (
                                 <CategoryTag key={index} categoryTitle={category.category_name || `Category ${index + 1}`} />
                             ))}
@@ -157,9 +159,9 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                     </section>
                     {/* Main Content Section */}
                     <div className="flex flex-col lg:flex-row md:gap-12">
-                        {/* About Section */}
+                        {/* Content Section */}
                         <div className="lg:w-[70%]">
-                            <section className="mb-12">
+                            <section className="">
                                 {false ? (
                                     <>
                                         <h2 className="text-3xl font-bold text-darkBlue mb-6">
@@ -234,11 +236,11 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                                     </>
                                 ) : (
                                     <>
-                                        <h2 className="text-3xl font-bold text-darkBlue mb-6">
+                                        <h2 className="text-2xl font-bold text-darkBlue mb-4">
                                             Event Details:
                                         </h2>
                                         <div className="text-gray-text text-sm leading-relaxed space-y-4">
-                                            <div className="border border-gray-200 p-4 rounded-2xl">
+                                            <div className="border border-gray-200 p-4 rounded-2xl p-6">
                                                 <div className="text-gray-600">
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}

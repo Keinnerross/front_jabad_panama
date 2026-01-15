@@ -7,6 +7,7 @@ import { useCart } from "@/app/context/CartContext";
 import ReactMarkdown from 'react-markdown';
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { getAssetPath } from "@/app/utils/assetPath";
+import { getOptimizedImageUrl } from "@/app/utils/imagesArrayValidation";
 
 // Modular components
 import { DateSelector } from './popupReservations/DateSelector';
@@ -38,6 +39,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [guidedMenuQuantity, setGuidedMenuQuantity] = useState(1);
     const [guidedMenuSelections, setGuidedMenuSelections] = useState({}); // { stepId: optionId }
     const [showGuidedMenuError, setShowGuidedMenuError] = useState(false);
+    const [selectedPlatePrice, setSelectedPlatePrice] = useState(null); // Selected price option from plates_prices
 
     // Delivery sub-modal state
     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
@@ -82,6 +84,14 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     };
 
     const deliveryZonesConfig = getActiveDeliveryZones();
+
+    // Helper to get current plate price (from plates_prices or fallback to free)
+    const getSelectedPlatePrice = () => {
+        const platesPrices = shabbatData?.Guided_Menu?.plates_prices;
+        if (!platesPrices || platesPrices.length === 0) return 0; // Fallback: free
+        if (selectedPlatePrice) return parseFloat(selectedPlatePrice.price || 0);
+        return parseFloat(platesPrices[0]?.price || 0); // Default: first option
+    };
 
     // Handler para cambio de zona de delivery
     const handleDeliveryZoneChange = (e) => {
@@ -129,6 +139,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             setGuidedMenuQuantity(1);
             setGuidedMenuSelections({});
             setShowGuidedMenuError(false);
+            setSelectedPlatePrice(null); // Reset plate price selection
             // Reset Delivery Zone states
             setSelectedDeliveryZone(null);
             setDeliveryFee(0);
@@ -219,6 +230,15 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         }
     }, [isCustomEvent, isOpen, shabbatData?.date_event?.repeat_mode, shabbatData?.date_event?.date]); // More specific dependencies
 
+    // Auto-select first plate price option when popup opens
+    useEffect(() => {
+        if (isCustomEvent && isOpen && shabbatData?.Guided_Menu?.plates_prices?.length > 0) {
+            if (!selectedPlatePrice) {
+                setSelectedPlatePrice(shabbatData.Guided_Menu.plates_prices[0]);
+            }
+        }
+    }, [isCustomEvent, isOpen, shabbatData?.Guided_Menu?.plates_prices]);
+
     // Generate available dates based on date_event
     const getAvailableDates = () => {
         if (!isCustomEvent || !shabbatData?.date_event) return [];
@@ -289,8 +309,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
 
         // Calculate Guided Menu total if active
         let guidedMenuTotal = 0;
-        if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.price) {
-            guidedMenuTotal = parseFloat(shabbatData.Guided_Menu.price) * guidedMenuQuantity;
+        if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu) {
+            guidedMenuTotal = getSelectedPlatePrice() * guidedMenuQuantity;
         }
 
         const mealsToUse = isCustomEvent ? allMeals : filteredMeals;
@@ -326,7 +346,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // Include delivery fee if delivery is selected
         const currentDeliveryFee = (isDeliveryEvent && deliveryType === 'delivery') ? deliveryFee : 0;
         setTotal(guidedMenuTotal + extrasTotal + currentDeliveryFee);
-    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, guidedMenuQuantity, shabbatData?.base_meal_options_active, shabbatData?.Guided_Menu?.price, isDeliveryEvent, deliveryType, deliveryFee]);
+    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, guidedMenuQuantity, shabbatData?.base_meal_options_active, selectedPlatePrice, isDeliveryEvent, deliveryType, deliveryFee]);
 
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
@@ -450,7 +470,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                 adjustedUnitPrice = pricePerUnit;
                 adjustedTotalPrice = guidedMenuQuantity * pricePerUnit;
             } else {
-                adjustedUnitPrice = parseFloat(guidedMenu.price || 0);
+                adjustedUnitPrice = getSelectedPlatePrice();
                 adjustedTotalPrice = guidedMenuQuantity * adjustedUnitPrice;
             }
 
@@ -697,15 +717,19 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                 }`}>
                 {/* Image Section */}
                 <div className="w-full lg:w-1/3 xl:w-2/5 h-40 sm:h-48 md:h-56 lg:h-full relative flex-shrink-0 hidden lg:block overflow-hidden rounded-l-xl">
-                    <Image 
-                        src={getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png")} 
-                        alt="reservation for shabbat" 
-                        fill 
-                        className="w-full h-full object-cover" 
+                    <Image
+                        src={getOptimizedImageUrl(
+                            shabbatData?.popup_picture,
+                            'medium',
+                            getAssetPath("/assets/pictures/shabbat-meals/shabbatbox-single.png")
+                        )}
+                        alt="reservation for shabbat"
+                        fill
+                        className="w-full h-full object-cover"
                         style={{
                             borderRadius: '0',
                             border: 'none'
-                        }} 
+                        }}
                     />
                 </div>
 
@@ -836,16 +860,12 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 <div className="space-y-3 md:space-y-2 lg:space-y-3">
                                     {/* Quantity Selector */}
                                     <div className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
+                                        {/* Row: Title + Quantity buttons */}
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <h3 className="text-sm md:text-sm lg:text-sm font-semibold text-darkBlue">
                                                     Number of Plates
                                                 </h3>
-                                                {!isPWYWActive && shabbatData?.Guided_Menu?.price && (
-                                                    <p className="text-sm text-gray-500">
-                                                        ${shabbatData.Guided_Menu.price} per plate
-                                                    </p>
-                                                )}
                                             </div>
                                             <div className="flex items-center gap-2 md:gap-1.5 lg:gap-2">
                                                 <button
@@ -865,6 +885,41 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                                 </button>
                                             </div>
                                         </div>
+
+                                        {/* Price Options (plates_prices) */}
+                                        {!isPWYWActive && shabbatData?.Guided_Menu?.plates_prices?.length > 0 && (
+                                            <div className="mt-3 space-y-2">
+                                                {shabbatData.Guided_Menu.plates_prices.map((priceOption) => (
+                                                    <label
+                                                        key={priceOption.id}
+                                                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                                                            selectedPlatePrice?.id === priceOption.id
+                                                                ? 'bg-primary/10 border border-primary'
+                                                                : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            name="plate-price"
+                                                            checked={selectedPlatePrice?.id === priceOption.id}
+                                                            onChange={() => setSelectedPlatePrice(priceOption)}
+                                                            className="w-3.5 h-3.5 text-primary cursor-pointer"
+                                                        />
+                                                        <span className="text-xs font-medium text-darkBlue">
+                                                            {priceOption.Text}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 ml-auto">
+                                                            ${priceOption.price} per plate
+                                                        </span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Fallback: No prices = Free */}
+                                        {!isPWYWActive && (!shabbatData?.Guided_Menu?.plates_prices || shabbatData.Guided_Menu.plates_prices.length === 0) && (
+                                            <p className="text-sm text-gray-500 mt-1">Free</p>
+                                        )}
                                     </div>
 
                                     {/* Steps with Radio Options */}

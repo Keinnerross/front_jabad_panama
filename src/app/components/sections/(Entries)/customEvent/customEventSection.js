@@ -56,7 +56,7 @@ const SingleReservationsSkeleton = () => (
     </div>
 );
 
-export default function CustomEventSection({ customEventsData, restaurantsData, globalDeliveryZones }) {
+export default function CustomEventSection({ customEventsData, restaurantsData, globalDeliveryZones, pickupAddress = "Sinagoga Address" }) {
 
     const searchParams = useSearchParams();
     const [modalOpen, setModalOpen] = useState(false);
@@ -320,6 +320,7 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                     globalDeliveryZones={globalDeliveryZones}
                     customDeliveryZones={selectedEventData?.custom_delivery_zones}
                     customDeliveryIsActive={selectedEventData?.custom_delivery_is_Active === true}
+                    pickupAddress={pickupAddress}
                 />
             </Suspense>
         </Fragment>

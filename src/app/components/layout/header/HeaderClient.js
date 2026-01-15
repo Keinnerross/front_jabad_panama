@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { FaHome, FaBed, FaUtensils, FaMapMarkedAlt, FaGift, FaStar, FaInfoCircle, FaStarOfDavid, FaUsers, FaPizzaSlice, FaConciergeBell } from "react-icons/fa";
 import { GoTriangleRight } from "react-icons/go";
 import { MdInfo, MdContactMail } from "react-icons/md";
@@ -26,14 +26,27 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
     const [hoveredDropdown, setHoveredDropdown] = useState(null);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [headerBottom, setHeaderBottom] = useState(79);
+    const headerRef = useRef(null);
 
-    // Detectar scroll para agregar shadow
+    // Detectar scroll y calcular posición del header
     useEffect(() => {
-        const handleScroll = () => {
+        const handleScrollAndResize = () => {
             setIsScrolled(window.scrollY > 10);
+            if (headerRef.current) {
+                const rect = headerRef.current.getBoundingClientRect();
+                setHeaderBottom(rect.bottom);
+            }
         };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+
+        handleScrollAndResize();
+        window.addEventListener('scroll', handleScrollAndResize);
+        window.addEventListener('resize', handleScrollAndResize);
+
+        return () => {
+            window.removeEventListener('scroll', handleScrollAndResize);
+            window.removeEventListener('resize', handleScrollAndResize);
+        };
     }, []);
 
     const pathDonate = "/donation";
@@ -196,7 +209,7 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
     };
 
     return (
-        <header className={`w-full bg-white sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-[0_2px_8px_rgba(0,0,0,0.06)]' : ''}`}>
+        <header ref={headerRef} className={`w-full bg-white sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-[0_2px_8px_rgba(0,0,0,0.06)]' : ''}`}>
             <div className="max-w-7xl mx-auto py-2">
                 <div className="flex items-center justify-between px-4 lg:px-0">
                     {/* Logo */}
@@ -209,6 +222,7 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
                             hoveredDropdown={hoveredDropdown}
                             setHoveredDropdown={setHoveredDropdown}
                             colorTheme={colorTheme}
+                            headerBottom={headerBottom}
                         />
                         <div className="flex items-center space-x-6">
                             {/* Cart Button */}

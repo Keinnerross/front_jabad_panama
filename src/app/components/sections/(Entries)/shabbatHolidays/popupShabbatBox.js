@@ -7,6 +7,7 @@ import { useCart } from "@/app/context/CartContext";
 import ReactMarkdown from 'react-markdown';
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { getAssetPath } from "@/app/utils/assetPath";
+import { CartConflictModal } from '@/app/components/ui/cart/CartConflictModal';
 
 export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions = [], upcomingShabbatEvents = [], shabbatBoxSingleData = {}, pwywSiteConfigData = false }) => {
 
@@ -34,7 +35,13 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [showDeliveryError, setShowDeliveryError] = useState(false);
     const [customAmount, setCustomAmount] = useState(''); // For Pay What You Want
-    const { addToCart: addToCartContext } = useCart();
+    const {
+        addToCart: addToCartContext,
+        showConflictModal,
+        conflictInfo,
+        clearAndAddPending,
+        closeConflictModal
+    } = useCart();
     const scrollContainerRef = useRef(null);
 
     // PWYW is active when the site config flag is true
@@ -291,19 +298,23 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
         if (cartItems.length > 0) {
             // Agregar al carrito - verificar si fue exitoso
-            const success = addToCartContext(cartItems);
-            
-            if (success) {
+            const result = addToCartContext(cartItems);
+
+            if (result === true) {
                 // Solo redirigir si se agregó exitosamente
                 // Esperar 2 segundos antes de redirigir
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                
+
                 // Redirigir al checkout
                 setIsLoading(false);
                 handleModal(false);
                 router.push('/checkout');
+            } else if (result === 'conflict') {
+                // Conflict modal is shown - stop loading but don't close popup
+                setIsLoading(false);
+                // Modal is handled by CartConflictModal component
             } else {
-                // No redirigir si hay conflicto de tipos
+                // No redirigir si hay error
                 setIsLoading(false);
             }
         } else {
@@ -317,6 +328,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
     const currentCategory = (Array.isArray(shabbatBoxOptions) ? shabbatBoxOptions : []).find(cat => cat.category === activeTab);
 
     return (
+        <>
         <div
             className={`w-full h-full flex justify-center items-center p-4 sm:p-6 lg:p-8 fixed top-0 z-50 overflow-y-hidden transition-all duration-300 ${
                 isOpen 
@@ -719,5 +731,21 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                 </div>
             </div>
         </div>
+
+        {/* Cart Conflict Modal - Shows when trying to add incompatible items */}
+        <CartConflictModal
+            isOpen={showConflictModal}
+            onClose={closeConflictModal}
+            onClearAndAdd={() => {
+                const success = clearAndAddPending();
+                if (success) {
+                    // Close the shabbat box popup and redirect to checkout
+                    handleModal(false);
+                    router.push('/checkout');
+                }
+            }}
+            conflictInfo={conflictInfo}
+        />
+        </>
     );
 };

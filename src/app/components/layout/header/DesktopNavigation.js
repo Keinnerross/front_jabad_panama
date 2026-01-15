@@ -1,11 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { FiChevronDown } from 'react-icons/fi';
+import { MegaMenu, MEGA_MENU_THRESHOLD } from './MegaMenu';
 
 export const DesktopNavigation = ({
     menuItems,
     hoveredDropdown,
-    setHoveredDropdown
+    setHoveredDropdown,
+    headerBottom
 }) => {
     return (
         <nav className="hidden lg:flex items-center space-x-6">
@@ -52,38 +54,47 @@ export const DesktopNavigation = ({
                     )}
 
                     {item.hasDropdown && item.subItems && (
-                        <div className={`absolute left-0 w-56 bg-white rounded-xl shadow-lg z-10 transition-all duration-300 ${hoveredDropdown === index
-                            ? 'opacity-100 visible translate-y-0'
-                            : 'opacity-0 invisible -translate-y-2'
-                            }`}>
-                            <div className="pt-4 pb-4 px-4">
-                                <p className="px-4 pt-3 pb-2 font-bold text-myBlack">{item.name}</p>
-                                {item.subItems.map((sub, i) => {
-                                    const IconComponent = sub.icon;
-                                    return sub.isExternalLink ? (
-                                        <a
-                                            key={i}
-                                            href={sub.path}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
-                                        >
-                                            <IconComponent className={`${IconComponent.name === 'FaStarOfDavid' ? 'mr-3 text-sm' : 'mr-3 text-base'} flex-shrink-0 w-4 h-4`} />
-                                            <span className="flex-1">{sub.name}</span>
-                                        </a>
-                                    ) : (
-                                        <Link
-                                            key={i}
-                                            href={sub.path}
-                                            className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
-                                        >
-                                            <IconComponent className={`${IconComponent.name === 'FaStarOfDavid' ? 'mr-3 text-sm' : 'mr-3 text-base'} flex-shrink-0 w-4 h-4`} />
-                                            <span className="flex-1">{sub.name}</span>
-                                        </Link>
-                                    );
-                                })}
+                        item.subItems.length > MEGA_MENU_THRESHOLD ? (
+                            <MegaMenu
+                                menuTitle={item.name}
+                                subItems={item.subItems}
+                                isVisible={hoveredDropdown === index}
+                                topPosition={headerBottom}
+                            />
+                        ) : (
+                            <div className={`absolute left-0 w-56 bg-white rounded-xl shadow-lg z-10 transition-all duration-300 ${hoveredDropdown === index
+                                ? 'opacity-100 visible translate-y-0'
+                                : 'opacity-0 invisible -translate-y-2'
+                                }`}>
+                                <div className="pt-4 pb-4 px-4">
+                                    <p className="px-4 pt-3 pb-2 font-bold text-myBlack">{item.name}</p>
+                                    {item.subItems.map((sub, i) => {
+                                        const IconComponent = sub.icon;
+                                        return sub.isExternalLink ? (
+                                            <a
+                                                key={i}
+                                                href={sub.path}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
+                                            >
+                                                <IconComponent className={`${IconComponent.name === 'FaStarOfDavid' ? 'mr-3 text-sm' : 'mr-3 text-base'} flex-shrink-0 w-4 h-4`} />
+                                                <span className="flex-1">{sub.name}</span>
+                                            </a>
+                                        ) : (
+                                            <Link
+                                                key={i}
+                                                href={sub.path}
+                                                className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
+                                            >
+                                                <IconComponent className={`${IconComponent.name === 'FaStarOfDavid' ? 'mr-3 text-sm' : 'mr-3 text-base'} flex-shrink-0 w-4 h-4`} />
+                                                <span className="flex-1">{sub.name}</span>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )
                     )}
                 </div>
             ))}

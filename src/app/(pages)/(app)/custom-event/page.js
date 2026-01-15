@@ -20,11 +20,17 @@ const PageSkeleton = () => (
 
 export default async function CustomEvent() {
     // Fetch API data in parallel for better performance
-    const [customEventsData, restaurantsData, globalDeliveryZones] = await Promise.all([
+    const [customEventsData, restaurantsData, globalDeliveryZones, siteConfigData] = await Promise.all([
         api.shabbatsAndHolidays(),
         api.restaurants(),
-        api.getGlobalDeliveryZones()
+        api.getGlobalDeliveryZones(),
+        api.siteConfig()
     ]);
+
+    // Get pickup address from siteConfig (same structure as mapSection.js)
+    const pickupAddress = siteConfigData?.address
+        ? `${siteConfigData.address}${siteConfigData?.city ? `, ${siteConfigData.city}` : ''}`
+        : "Sinagoga Address";
 
     return (
         <Fragment>
@@ -33,6 +39,7 @@ export default async function CustomEvent() {
                     customEventsData={customEventsData}
                     restaurantsData={restaurantsData}
                     globalDeliveryZones={globalDeliveryZones}
+                    pickupAddress={pickupAddress}
                 />
             </Suspense>
         </Fragment>

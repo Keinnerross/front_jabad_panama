@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 1374",
     "build": "next build",
     "build:prod": "next build --env=production",
     "start": "next start",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.5.0",
+    "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "next": "^16.0.10",
     "nodemailer": "^7.0.5",

@@ -195,6 +195,15 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, upcomingShab
                     ))}
                 </div>
 
+                {/* Referential times warning */}
+                {shabbatTimes?.isReferential && (
+                    <div className="md:absolute md:-bottom-[140px] z-20 md:left-1/2 md:-translate-x-1/2 mt-4 md:mt-0">
+                        <p className="text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 text-center">
+                            * Referential times - Configure the city in Platform Settings
+                        </p>
+                    </div>
+                )}
+
 
             </section>
 

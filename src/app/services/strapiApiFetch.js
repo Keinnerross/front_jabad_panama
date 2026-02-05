@@ -153,7 +153,7 @@ export const api = {
 
     shabbatsAndHolidays: () => strapiFetch("/shabbat-and-holidays?populate[cover_picture]=true&populate[popup_picture]=true&populate[show_repeat_control][populate]=*&populate[date_event][populate]=*&populate[category_menu][populate][option][populate]=*&populate[Guided_Menu][populate][steps][populate]=*&populate[Guided_Menu][populate][plates_prices][populate]=*&populate[announce][populate]=*&populate[custom_delivery_zones][populate]=*"),
 
-    
+    checkoutSetting:  () => strapiFetch("/checkout-setting?populate=*"),
 
     // Para el menu global de delivery zones    
     getGlobalDeliveryZones: () => strapiFetch("/delivery-zone?populate=*"),

@@ -128,9 +128,9 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
             ],
             path: "/about"
         },
-        // 2. Visiting [Ciudad]
+        // 2. Visiting [Pais]
         {
-            name: `Visiting ${platformSettings?.ciudad || 'Panama'}`,
+            name: `Visiting ${platformSettings?.pais || 'Chabad'}`,
             hasDropdown: true,
             subItems: [
                 { name: "Activities", path: "/activities", icon: FaMapMarkedAlt },

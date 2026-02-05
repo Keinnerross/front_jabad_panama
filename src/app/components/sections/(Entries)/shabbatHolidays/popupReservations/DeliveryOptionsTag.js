@@ -1,5 +1,5 @@
 'use client'
-import { FaChevronDown, FaTruck, FaMapMarkerAlt } from "react-icons/fa";
+import { FaChevronDown, FaTruck, FaMapMarkerAlt, FaUtensils } from "react-icons/fa";
 
 export const DeliveryOptionsTag = ({
     deliveryType,
@@ -12,6 +12,9 @@ export const DeliveryOptionsTag = ({
 }) => {
     // Get display text for delivery options tag
     const getDeliveryDisplayText = () => {
+        if (deliveryType === 'dine_in') {
+            return `Dine In - ${pickupAddress}`;
+        }
         if (deliveryType === 'pickup') {
             return `Pickup - ${pickupAddress}`;
         }
@@ -22,6 +25,7 @@ export const DeliveryOptionsTag = ({
             if (deliveryAddress) {
                 return `Delivery - ${deliveryAddress}`;
             }
+            return "Delivery - Select details";
         }
         return "Select delivery option";
     };
@@ -39,13 +43,15 @@ export const DeliveryOptionsTag = ({
                         : 'border-gray-300 bg-white hover:bg-gray-50'
                 }`}
             >
-                <div className="flex items-center gap-2">
-                    {deliveryType === 'pickup' ? (
-                        <FaMapMarkerAlt className="text-primary text-sm" />
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {deliveryType === 'dine_in' ? (
+                        <FaUtensils className="text-primary text-sm flex-shrink-0" />
+                    ) : deliveryType === 'pickup' ? (
+                        <FaMapMarkerAlt className="text-primary text-sm flex-shrink-0" />
                     ) : (
-                        <FaTruck className="text-primary text-sm" />
+                        <FaTruck className="text-primary text-sm flex-shrink-0" />
                     )}
-                    <span className="text-sm text-gray-700 truncate max-w-[180px] sm:max-w-[220px]">
+                    <span className="text-sm text-gray-700 truncate flex-1 min-w-0" title={getDeliveryDisplayText()}>
                         {getDeliveryDisplayText()}
                     </span>
                 </div>

@@ -12,9 +12,12 @@ import { getOptimizedImageUrl } from "@/app/utils/imagesArrayValidation";
 // Modular components
 import { DateSelector } from './popupReservations/DateSelector';
 import { DateSelectorModal } from './popupReservations/DateSelectorModal';
+import { TimeSelectorTag } from './popupReservations/TimeSelectorTag';
+import { TimeSelectorModal } from './popupReservations/TimeSelectorModal';
 import { DeliveryOptionsTag } from './popupReservations/DeliveryOptionsTag';
 import { DeliveryModal } from './popupReservations/DeliveryModal';
 import { PricingSelector } from './popupReservations/PricingSelector';
+import { MultiPlateGuidedMenu } from './popupReservations/MultiPlateGuidedMenu';
 import { CartConflictModal } from '@/app/components/ui/cart/CartConflictModal';
 
 export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false, globalDeliveryZones = null, customDeliveryZones = [], customDeliveryIsActive = false, pickupAddress = "Sinagoga Address" }) => {
@@ -25,8 +28,9 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [activeTab, setActiveTab] = useState("");
     const [selectedDate, setSelectedDate] = useState(null);
     const [showDateError, setShowDateError] = useState(false);
-    const [deliveryType, setDeliveryType] = useState('pickup'); // 'pickup' o 'delivery'
+    const [deliveryType, setDeliveryType] = useState('dine_in'); // 'dine_in', 'pickup', or 'delivery'
     const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [reservationName, setReservationName] = useState('');
     const [showDeliveryError, setShowDeliveryError] = useState(false);
     const [selectedDeliveryZone, setSelectedDeliveryZone] = useState(null);
     const [deliveryFee, setDeliveryFee] = useState(0);
@@ -35,17 +39,23 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [loadingCategory, setLoadingCategory] = useState(null); // 'local' or 'tourist' while loading
     const [customAmount, setCustomAmount] = useState(''); // For Pay What You Want
 
-    // Guided Menu states
-    const [guidedMenuQuantity, setGuidedMenuQuantity] = useState(1);
-    const [guidedMenuSelections, setGuidedMenuSelections] = useState({}); // { stepId: optionId }
+    // Multi-Plate Guided Menu states
+    const [configuredPlates, setConfiguredPlates] = useState([]); // Array of { id, selections, priceOption }
     const [showGuidedMenuError, setShowGuidedMenuError] = useState(false);
-    const [selectedPlatePrice, setSelectedPlatePrice] = useState(null); // Selected price option from plates_prices
 
     // Delivery sub-modal state
     const [showDeliveryModal, setShowDeliveryModal] = useState(false);
 
     // Date selector sub-modal state
     const [showDateModal, setShowDateModal] = useState(false);
+
+    // Time selector states
+    const [selectedTime, setSelectedTime] = useState(null);
+    const [showTimeError, setShowTimeError] = useState(false);
+    const [showTimeModal, setShowTimeModal] = useState(false);
+
+    // Check if event requires time selection
+    const requiresTimeSelection = shabbatData?.order_hour === true;
 
     const {
         addToCart: addToCartContext,
@@ -57,6 +67,31 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
 
     // Determinar si se debe mostrar opciones de delivery
     const isDeliveryEvent = eventType === 'delivery';
+
+    // Check if this is a rush order (within 24 hours of event date)
+    const isRushOrder = useMemo(() => {
+        if (!isCustomEvent) return false;
+        if (!selectedDate) return false;
+
+        const now = new Date();
+        const eventDateTime = new Date(selectedDate);
+
+        // If event has a specific time, use it; otherwise assume start of day
+        if (selectedTime) {
+            const [hours, minutes] = selectedTime.split(':').map(Number);
+            eventDateTime.setHours(hours, minutes, 0, 0);
+        }
+
+        const hoursUntilEvent = (eventDateTime - now) / (1000 * 60 * 60);
+        return hoursUntilEvent < 24;
+    }, [isCustomEvent, selectedDate, selectedTime]);
+
+    // Get the rush order price per plate (if applicable)
+    const rushOrderPrice = useMemo(() => {
+        if (!isRushOrder) return null;
+        const price = parseFloat(shabbatData?.same_day_price || 0);
+        return price > 0 ? price : null;
+    }, [isRushOrder, shabbatData?.same_day_price]);
 
     // Determinar qué zonas de delivery usar (custom del evento vs globales vs ninguna)
     const getActiveDeliveryZones = () => {
@@ -84,14 +119,6 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     };
 
     const deliveryZonesConfig = getActiveDeliveryZones();
-
-    // Helper to get current plate price (from plates_prices or fallback to free)
-    const getSelectedPlatePrice = () => {
-        const platesPrices = shabbatData?.Guided_Menu?.plates_prices;
-        if (!platesPrices || platesPrices.length === 0) return 0; // Fallback: free
-        if (selectedPlatePrice) return parseFloat(selectedPlatePrice.price || 0);
-        return parseFloat(platesPrices[0]?.price || 0); // Default: first option
-    };
 
     // Handler para cambio de zona de delivery
     const handleDeliveryZoneChange = (e) => {
@@ -135,16 +162,18 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             setQuantities({}); // Reset all quantities to empty
             setTotal(0); // Reset total
             setCustomAmount(''); // Reset PWYW custom amount
-            // Reset Guided Menu states
-            setGuidedMenuQuantity(1);
-            setGuidedMenuSelections({});
+            // Reset Multi-Plate Guided Menu states
+            setConfiguredPlates([]);
             setShowGuidedMenuError(false);
-            setSelectedPlatePrice(null); // Reset plate price selection
             // Reset Delivery Zone states
             setSelectedDeliveryZone(null);
             setDeliveryFee(0);
-            setDeliveryType('pickup');
+            setDeliveryType('dine_in');
             setDeliveryAddress('');
+            setReservationName('');
+            // Reset Time Selector states
+            setSelectedTime(null);
+            setShowTimeError(false);
         }
 
         // Cleanup al desmontar
@@ -230,15 +259,6 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         }
     }, [isCustomEvent, isOpen, shabbatData?.date_event?.repeat_mode, shabbatData?.date_event?.date]); // More specific dependencies
 
-    // Auto-select first plate price option when popup opens
-    useEffect(() => {
-        if (isCustomEvent && isOpen && shabbatData?.Guided_Menu?.plates_prices?.length > 0) {
-            if (!selectedPlatePrice) {
-                setSelectedPlatePrice(shabbatData.Guided_Menu.plates_prices[0]);
-            }
-        }
-    }, [isCustomEvent, isOpen, shabbatData?.Guided_Menu?.plates_prices]);
-
     // Generate available dates based on date_event
     const getAvailableDates = () => {
         if (!isCustomEvent || !shabbatData?.date_event) return [];
@@ -307,10 +327,16 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             return;
         }
 
-        // Calculate Guided Menu total if active
+        // Calculate Multi-Plate Guided Menu total if active
         let guidedMenuTotal = 0;
         if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu) {
-            guidedMenuTotal = getSelectedPlatePrice() * guidedMenuQuantity;
+            guidedMenuTotal = configuredPlates.reduce((sum, plate) => {
+                // Use rush order price if applicable, otherwise use selected price option
+                const platePrice = rushOrderPrice !== null
+                    ? rushOrderPrice
+                    : parseFloat(plate.priceOption?.price || 0);
+                return sum + platePrice;
+            }, 0);
         }
 
         const mealsToUse = isCustomEvent ? allMeals : filteredMeals;
@@ -346,7 +372,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // Include delivery fee if delivery is selected
         const currentDeliveryFee = (isDeliveryEvent && deliveryType === 'delivery') ? deliveryFee : 0;
         setTotal(guidedMenuTotal + extrasTotal + currentDeliveryFee);
-    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, guidedMenuQuantity, shabbatData?.base_meal_options_active, selectedPlatePrice, isDeliveryEvent, deliveryType, deliveryFee]);
+    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, configuredPlates, shabbatData?.base_meal_options_active, isDeliveryEvent, deliveryType, deliveryFee, rushOrderPrice]);
 
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
@@ -364,26 +390,12 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         }
     };
 
-    // Handler for Guided Menu radio selection
-    const handleGuidedMenuSelection = (stepId, optionId) => {
-        setGuidedMenuSelections(prev => ({
-            ...prev,
-            [stepId]: optionId
-        }));
-        setShowGuidedMenuError(false);
-    };
-
     // Check if currently viewing Guided Menu tab
     const isGuidedMenuTab = shabbatData?.base_meal_options_active &&
         shabbatData?.Guided_Menu?.name === activeTab;
 
-    // Helper to update Guided Menu quantity
-    const updateGuidedMenuQuantity = (change) => {
-        setGuidedMenuQuantity(prev => Math.max(1, prev + change));
-    };
-
-    // Check if there are items in cart (including Guided Menu)
-    const hasGuidedMenuItems = shabbatData?.base_meal_options_active && guidedMenuQuantity > 0;
+    // Check if there are items in cart (including Multi-Plate Guided Menu)
+    const hasGuidedMenuItems = shabbatData?.base_meal_options_active && configuredPlates.length > 0;
     const hasExtrasItems = Object.values(quantities).some(qty => qty > 0);
     const hasItems = hasGuidedMenuItems || hasExtrasItems;
 
@@ -399,32 +411,32 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             return;
         }
 
-        // Validar delivery: zona si hay zonas activas, o dirección si es campo de texto
+        // Validar hora para eventos custom con order_hour activo
+        if (isCustomEvent && requiresTimeSelection && !selectedTime) {
+            setShowTimeError(true);
+            return;
+        }
+
+        // Validar delivery: zona si hay zonas activas, y siempre dirección/detalles
         if (isDeliveryEvent && deliveryType === 'delivery') {
+            // Validate delivery address/details
+            if (!deliveryAddress.trim()) {
+                setShowDeliveryError(true);
+                return;
+            }
             if (deliveryZonesConfig.useZones) {
                 // Validar que se haya seleccionado una zona
                 if (!selectedDeliveryZone) {
                     setShowDeliveryError(true);
                     return;
                 }
-            } else {
-                // Validar que se haya ingresado una dirección
-                if (!deliveryAddress.trim()) {
-                    setShowDeliveryError(true);
-                    return;
-                }
             }
         }
 
-        // Validar selecciones del Guided Menu si está activo
-        if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.steps) {
-            const allStepsSelected = shabbatData.Guided_Menu.steps.every(
-                step => guidedMenuSelections[step.id] !== undefined
-            );
-            if (!allStepsSelected) {
-                setShowGuidedMenuError(true);
-                return;
-            }
+        // Validate at least one plate is configured for Multi-Plate Guided Menu
+        if (isCustomEvent && shabbatData?.base_meal_options_active && configuredPlates.length === 0) {
+            setShowGuidedMenuError(true);
+            return;
         }
 
         setShowDateError(false);
@@ -438,9 +450,9 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // For PWYW: Calculate total units to distribute the custom amount
         let totalUnits = 0;
         if (isPWYWActive) {
-            // Include Guided Menu quantity in total units
+            // Include number of configured plates in total units
             if (shabbatData?.base_meal_options_active) {
-                totalUnits += guidedMenuQuantity;
+                totalUnits += configuredPlates.length;
             }
             totalUnits += Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
         }
@@ -449,68 +461,75 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         const pricePerUnit = isPWYWActive && totalUnits > 0 ? finalAmount / totalUnits : 0;
         const priceRatio = !isPWYWActive && total > 0 ? finalAmount / total : 1;
 
-        // Add Guided Menu item if active
+        // Add Multi-Plate Guided Menu items - one cart item per configured plate
         if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu) {
             const guidedMenu = shabbatData.Guided_Menu;
             const itemProductType = 'customEvent';
 
-            // Build selections object with step title -> option name
-            const selectionsForCart = {};
-            guidedMenu.steps?.forEach(step => {
-                const selectedOptionId = guidedMenuSelections[step.id];
-                const selectedOption = step.options?.find(opt => opt.id === selectedOptionId);
-                if (selectedOption) {
-                    selectionsForCart[step.title] = selectedOption.name;
+            configuredPlates.forEach((plate, plateIndex) => {
+                // Build selections object with step title -> option name
+                const selectionsForCart = {};
+                guidedMenu.steps?.forEach(step => {
+                    const selectedOptionId = plate.selections[step.id];
+                    const selectedOption = step.options?.find(opt => opt.id === selectedOptionId);
+                    if (selectedOption) {
+                        selectionsForCart[step.title] = selectedOption.name;
+                    }
+                });
+
+                // Calculate prices based on PWYW or regular pricing
+                let adjustedUnitPrice, adjustedTotalPrice;
+                if (isPWYWActive) {
+                    adjustedUnitPrice = pricePerUnit;
+                    adjustedTotalPrice = pricePerUnit;
+                } else {
+                    // Use rush order price if applicable
+                    adjustedUnitPrice = rushOrderPrice !== null
+                        ? rushOrderPrice
+                        : parseFloat(plate.priceOption?.price || 0);
+                    adjustedTotalPrice = adjustedUnitPrice;
                 }
-            });
 
-            // Calculate prices based on PWYW or regular pricing
-            let adjustedUnitPrice, adjustedTotalPrice;
-            if (isPWYWActive) {
-                adjustedUnitPrice = pricePerUnit;
-                adjustedTotalPrice = guidedMenuQuantity * pricePerUnit;
-            } else {
-                adjustedUnitPrice = getSelectedPlatePrice();
-                adjustedTotalPrice = guidedMenuQuantity * adjustedUnitPrice;
-            }
+                console.log(`🍽️ Adding Guided Menu cart item (Plate ${plateIndex + 1}):`, {
+                    mealName: guidedMenu.name,
+                    plateNumber: plateIndex + 1,
+                    selections: selectionsForCart,
+                    adjustedUnitPrice,
+                    adjustedTotalPrice
+                });
 
-            console.log('🍽️ Adding Guided Menu cart item:', {
-                mealName: guidedMenu.name,
-                quantity: guidedMenuQuantity,
-                selections: selectionsForCart,
-                adjustedUnitPrice,
-                adjustedTotalPrice
-            });
+                // Build selections string for display
+                const selectionsText = Object.entries(selectionsForCart)
+                    .map(([step, option]) => `${step}: ${option}`)
+                    .join(' | ');
 
-            // Build selections string for display
-            const selectionsText = Object.entries(selectionsForCart)
-                .map(([step, option]) => `${step}: ${option}`)
-                .join(' | ');
-
-            cartItems.push({
-                meal: guidedMenu.name,
-                priceType: selectionsText || guidedMenu.name,
-                quantity: guidedMenuQuantity,
-                unitPrice: adjustedUnitPrice,
-                totalPrice: adjustedTotalPrice,
-                shabbatName: shabbatData?.name,
-                shabbatDate: selectedDate ? `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}` : shabbatData?.name,
-                productType: itemProductType,
-                isCustomEvent: true,
-                isGuidedMenu: true,
-                guidedMenuSelections: selectionsForCart,
-                pricingCategory: pricingCategory,
-                isPWYW: isPWYWActive,
-                customAmount: isPWYWActive ? finalAmount : undefined,
-                ...(isDeliveryEvent && {
-                    deliveryType: deliveryType,
-                    deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
-                    deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
-                    deliveryAddress: deliveryType === 'delivery'
-                        ? (deliveryZonesConfig.useZones ? selectedDeliveryZone?.zone_name : deliveryAddress)
-                        : null,
-                    eventType: eventType
-                })
+                cartItems.push({
+                    meal: `${guidedMenu.name} #${plateIndex + 1}`,
+                    priceType: selectionsText || guidedMenu.name,
+                    quantity: 1,
+                    unitPrice: adjustedUnitPrice,
+                    totalPrice: adjustedTotalPrice,
+                    shabbatName: shabbatData?.name,
+                    shabbatDate: selectedDate ? `${selectedDate.getDate().toString().padStart(2, '0')}/${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}/${selectedDate.getFullYear()}` : shabbatData?.name,
+                    productType: itemProductType,
+                    isCustomEvent: true,
+                    isGuidedMenu: true,
+                    guidedMenuSelections: selectionsForCart,
+                    pricingCategory: pricingCategory,
+                    isPWYW: isPWYWActive,
+                    customAmount: isPWYWActive ? finalAmount : undefined,
+                    eventTime: requiresTimeSelection ? selectedTime : null,
+                    isRushOrder: isRushOrder,
+                    rushOrderPrice: rushOrderPrice,
+                    ...(isDeliveryEvent && {
+                        deliveryType: deliveryType,
+                        deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
+                        deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
+                        deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                        reservationName: deliveryType === 'delivery' && reservationName ? reservationName : null,
+                        eventType: eventType
+                    })
+                });
             });
         }
 
@@ -567,13 +586,15 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 pricingCategory: pricingCategory, // Add pricing category
                                 isPWYW: isPWYWActive, // Mark if PWYW was used
                                 customAmount: isPWYWActive ? finalAmount : undefined, // Store total custom amount for PWYW
+                                eventTime: requiresTimeSelection ? selectedTime : null,
+                                isRushOrder: isRushOrder,
+                                rushOrderPrice: rushOrderPrice,
                                 ...(isDeliveryEvent && {
                                     deliveryType: deliveryType,
                                     deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
                                     deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
-                                    deliveryAddress: deliveryType === 'delivery'
-                                        ? (deliveryZonesConfig.useZones ? selectedDeliveryZone?.zone_name : deliveryAddress)
-                                        : null,
+                                    deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                                    reservationName: deliveryType === 'delivery' && reservationName ? reservationName : null,
                                     eventType: eventType
                                 })
                             });
@@ -624,13 +645,15 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             pricingCategory: pricingCategory, // Add pricing category
                             isPWYW: isPWYWActive, // Mark if PWYW was used
                             customAmount: isPWYWActive ? finalAmount : undefined, // Store total custom amount for PWYW
+                            eventTime: requiresTimeSelection ? selectedTime : null,
+                            isRushOrder: isRushOrder,
+                            rushOrderPrice: rushOrderPrice,
                             ...(isDeliveryEvent && {
                                 deliveryType: deliveryType,
                                 deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
                                 deliveryFee: deliveryType === 'delivery' ? deliveryFee : 0,
-                                deliveryAddress: deliveryType === 'delivery'
-                                    ? (deliveryZonesConfig.useZones ? selectedDeliveryZone?.zone_name : deliveryAddress)
-                                    : null,
+                                deliveryAddress: deliveryType === 'delivery' ? deliveryAddress : null,
+                                reservationName: deliveryType === 'delivery' && reservationName ? reservationName : null,
                                 eventType: eventType
                             })
                         });
@@ -744,7 +767,9 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 </h2>
                                 <p className="text-gray-text text-[10px] sm:text-xs md:text-xs lg:text-xs xl:text-sm">
                                     {isCustomEvent ? (
-                                        selectedDate ? `Selected Date: ${selectedDate.toLocaleDateString()}` : "Please select a date"
+                                        selectedDate
+                                            ? `Selected: ${selectedDate.toLocaleDateString()}${requiresTimeSelection && selectedTime ? ` at ${selectedTime}` : ''}`
+                                            : "Please select a date"
                                     ) : (
                                         <>
                                             Date: {formatShabbatDate(shabbatData)}<br />
@@ -762,39 +787,63 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         </div>
 
                         {/* Horizontal container for Date Selector and Delivery Options */}
-                        {(isCustomEvent || isDeliveryEvent) && (
-                            <div className="flex flex-col sm:flex-row gap-3 mb-2">
-                                {/* Date Selector for Custom Events */}
-                                {isCustomEvent && (
-                                    <DateSelector
-                                        shabbatData={shabbatData}
-                                        selectedDate={selectedDate}
-                                        setSelectedDate={setSelectedDate}
-                                        showDateError={showDateError}
-                                        setShowDateError={setShowDateError}
-                                        getAvailableDates={getAvailableDates}
-                                        onOpenModal={() => setShowDateModal(true)}
-                                    />
-                                )}
+                        {(isCustomEvent || isDeliveryEvent) && (() => {
+                            // Count visible inputs for adaptive grid
+                            const hasDate = isCustomEvent;
+                            const hasTime = isCustomEvent && requiresTimeSelection && selectedDate;
+                            const hasDelivery = isDeliveryEvent;
+                            const visibleCount = [hasDate, hasTime, hasDelivery].filter(Boolean).length;
 
-                                {/* Delivery Options Tag - Opens Sub-Modal */}
-                                {isDeliveryEvent && (
-                                    <DeliveryOptionsTag
-                                        deliveryType={deliveryType}
-                                        pickupAddress={pickupAddress}
-                                        selectedDeliveryZone={selectedDeliveryZone}
-                                        deliveryAddress={deliveryAddress}
-                                        deliveryFee={deliveryFee}
-                                        showDeliveryError={showDeliveryError}
-                                        onClick={() => setShowDeliveryModal(true)}
-                                    />
-                                )}
-                            </div>
-                        )}
+                            // Adaptive grid classes based on visible inputs
+                            const gridClasses = visibleCount === 1
+                                ? 'grid-cols-1'
+                                : visibleCount === 2
+                                    ? 'grid-cols-1 sm:grid-cols-2'
+                                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+
+                            return (
+                                <div className={`grid ${gridClasses} gap-2 mb-2`}>
+                                    {/* Date Selector for Custom Events */}
+                                    {isCustomEvent && (
+                                        <DateSelector
+                                            shabbatData={shabbatData}
+                                            selectedDate={selectedDate}
+                                            setSelectedDate={setSelectedDate}
+                                            showDateError={showDateError}
+                                            setShowDateError={setShowDateError}
+                                            getAvailableDates={getAvailableDates}
+                                            onOpenModal={() => setShowDateModal(true)}
+                                        />
+                                    )}
+
+                                    {/* Time Selector for Custom Events with order_hour */}
+                                    {isCustomEvent && requiresTimeSelection && selectedDate && (
+                                        <TimeSelectorTag
+                                            selectedTime={selectedTime}
+                                            showTimeError={showTimeError}
+                                            onClick={() => setShowTimeModal(true)}
+                                        />
+                                    )}
+
+                                    {/* Delivery Options Tag - Opens Sub-Modal */}
+                                    {isDeliveryEvent && (
+                                        <DeliveryOptionsTag
+                                            deliveryType={deliveryType}
+                                            pickupAddress={pickupAddress}
+                                            selectedDeliveryZone={selectedDeliveryZone}
+                                            deliveryAddress={deliveryAddress}
+                                            deliveryFee={deliveryFee}
+                                            showDeliveryError={showDeliveryError}
+                                            onClick={() => setShowDeliveryModal(true)}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* Tabs for Custom Events */}
                         {isCustomEvent && (shabbatData?.base_meal_options_active || shabbatData?.category_menu?.length > 0) && (
-                            <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide pb-1 md:pb-1 lg:pb-1">
+                            <div className="flex gap-2 border-b border-gray-200 overflow-x-auto scrollbar-hide">
                                 {/* Guided Menu Tab (first if active) */}
                                 {shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu?.name && (
                                     <button
@@ -856,129 +905,16 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         {isCustomEvent ? (
                             // Custom events - check if we're on Guided Menu tab or category_menu tab
                             isGuidedMenuTab ? (
-                                // Guided Menu Content
-                                <div className="space-y-3 md:space-y-2 lg:space-y-3">
-                                    {/* Quantity Selector */}
-                                    <div className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
-                                        {/* Row: Title + Quantity buttons */}
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h3 className="text-sm md:text-sm lg:text-sm font-semibold text-darkBlue">
-                                                    Number of Plates
-                                                </h3>
-                                            </div>
-                                            <div className="flex items-center gap-2 md:gap-1.5 lg:gap-2">
-                                                <button
-                                                    onClick={() => updateGuidedMenuQuantity(-1)}
-                                                    className="w-8 h-8 md:w-7 md:h-7 lg:w-7 lg:h-7 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
-                                                >
-                                                    <FaMinus size={10} />
-                                                </button>
-                                                <span className="text-base md:text-sm lg:text-sm font-semibold text-darkBlue min-w-6 text-center">
-                                                    {guidedMenuQuantity}
-                                                </span>
-                                                <button
-                                                    onClick={() => updateGuidedMenuQuantity(1)}
-                                                    className="w-8 h-8 md:w-7 md:h-7 lg:w-7 lg:h-7 flex items-center justify-center bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer touch-manipulation"
-                                                >
-                                                    <FaPlus size={10} />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Price Options (plates_prices) */}
-                                        {!isPWYWActive && shabbatData?.Guided_Menu?.plates_prices?.length > 0 && (
-                                            <div className="mt-3 space-y-2">
-                                                {shabbatData.Guided_Menu.plates_prices.map((priceOption) => (
-                                                    <label
-                                                        key={priceOption.id}
-                                                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                                                            selectedPlatePrice?.id === priceOption.id
-                                                                ? 'bg-primary/10 border border-primary'
-                                                                : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
-                                                        }`}
-                                                    >
-                                                        <input
-                                                            type="radio"
-                                                            name="plate-price"
-                                                            checked={selectedPlatePrice?.id === priceOption.id}
-                                                            onChange={() => setSelectedPlatePrice(priceOption)}
-                                                            className="w-3.5 h-3.5 text-primary cursor-pointer"
-                                                        />
-                                                        <span className="text-xs font-medium text-darkBlue">
-                                                            {priceOption.Text}
-                                                        </span>
-                                                        <span className="text-xs text-gray-500 ml-auto">
-                                                            ${priceOption.price} per plate
-                                                        </span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Fallback: No prices = Free */}
-                                        {!isPWYWActive && (!shabbatData?.Guided_Menu?.plates_prices || shabbatData.Guided_Menu.plates_prices.length === 0) && (
-                                            <p className="text-sm text-gray-500 mt-1">Free</p>
-                                        )}
-                                    </div>
-
-                                    {/* Steps with Radio Options */}
-                                    {shabbatData?.Guided_Menu?.steps?.map((step) => (
-                                        <div key={step.id} className={`border rounded-lg p-2 md:p-2 lg:p-3 ${
-                                            showGuidedMenuError && !guidedMenuSelections[step.id]
-                                                ? 'border-red-500 bg-red-50'
-                                                : 'border-gray-200'
-                                        }`}>
-                                            <h3 className="text-sm md:text-sm lg:text-sm font-semibold text-darkBlue mb-2 md:mb-2 lg:mb-2">
-                                                {step.title} <span className="text-red-500">*</span>
-                                            </h3>
-                                            <div className="space-y-1.5 md:space-y-1 lg:space-y-3">
-                                                {step.options?.map((option) => (
-                                                    <label
-                                                        key={option.id}
-                                                        className={`flex items-start gap-2 p-2 md:p-1.5 lg:p-3 rounded-lg cursor-pointer transition-colors ${
-                                                            guidedMenuSelections[step.id] === option.id
-                                                                ? 'bg-primary/10 border border-primary'
-                                                                : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
-                                                        }`}
-                                                    >
-                                                        <input
-                                                            type="radio"
-                                                            name={`step-${step.id}`}
-                                                            checked={guidedMenuSelections[step.id] === option.id}
-                                                            onChange={() => handleGuidedMenuSelection(step.id, option.id)}
-                                                            className="mt-0.5 w-3.5 h-3.5 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5 text-primary cursor-pointer"
-                                                        />
-                                                        <div className="flex-1">
-                                                            <span className="text-xs md:text-xs lg:text-xs font-medium text-darkBlue">
-                                                                {option.name}
-                                                            </span>
-                                                            {option.description && (
-                                                                <p className="text-[10px] md:text-[10px] lg:text-xs text-gray-500 mt-0.5">
-                                                                    {option.description}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                            {showGuidedMenuError && !guidedMenuSelections[step.id] && (
-                                                <p className="text-red-500 text-sm mt-2">
-                                                    Please select an option
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-
-                                    {/* Guided Menu Description */}
-                                    {shabbatData?.Guided_Menu?.description && (
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                            <p className="text-sm text-blue-800">
-                                                {shabbatData.Guided_Menu.description}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                // Multi-Plate Guided Menu Content
+                                <MultiPlateGuidedMenu
+                                    guidedMenu={shabbatData.Guided_Menu}
+                                    configuredPlates={configuredPlates}
+                                    setConfiguredPlates={setConfiguredPlates}
+                                    isPWYWActive={isPWYWActive}
+                                    showError={showGuidedMenuError}
+                                    setShowError={setShowGuidedMenuError}
+                                    rushOrderPrice={rushOrderPrice}
+                                />
                             ) : (
                             // Category Menu Content - show only active tab items
                             shabbatData?.category_menu
@@ -1198,6 +1134,13 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         ) : (
                             // Regular UI
                             <>
+                                {/* Rush Order Indicator */}
+                                {rushOrderPrice !== null && (
+                                    <div className="text-xs text-amber-600 mb-2">
+                                        Rush order pricing: ${rushOrderPrice.toFixed(2)}/plate
+                                    </div>
+                                )}
+
                                 {/* Total */}
                                 <div className="flex justify-between items-center mb-2 sm:mb-3">
                                     <span className="text-darkBlue font-bold text-xs sm:text-sm md:text-base">Total:</span>
@@ -1248,6 +1191,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             setDeliveryFee={setDeliveryFee}
             showDeliveryError={showDeliveryError}
             setShowDeliveryError={setShowDeliveryError}
+            reservationName={reservationName}
+            setReservationName={setReservationName}
         />
 
         {/* Date Selector Sub-Modal - Outside popup parent for full-screen coverage */}
@@ -1259,6 +1204,17 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             availableDates={getAvailableDates()}
             setShowDateError={setShowDateError}
         />
+
+        {/* Time Selector Sub-Modal - Outside popup parent for full-screen coverage */}
+        {requiresTimeSelection && (
+            <TimeSelectorModal
+                isOpen={showTimeModal}
+                onClose={() => setShowTimeModal(false)}
+                selectedTime={selectedTime}
+                setSelectedTime={setSelectedTime}
+                setShowTimeError={setShowTimeError}
+            />
+        )}
 
         {/* Cart Conflict Modal - Shows when trying to add incompatible items */}
         <CartConflictModal

@@ -11,6 +11,66 @@ if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
+// Sponsorship options mapping
+const SPONSORSHIP_OPTIONS = {
+  '26': 'Sponsor My Meal for a Student/Backpacker',
+  '54': 'Sponsor My Shabbat Meal',
+  '72': 'Sponsor My Shabbat Dinner and Lunch Meals',
+  '108': 'Sponsor a Student',
+  '180': 'Sponsor 2 Students',
+  '360': 'Co-Sponsor Shabbat Lunch',
+  '540': 'Co-Sponsor Shabbat Dinner',
+  '720': 'Co-Sponsor Shabbat @ Chabad',
+  '1800': 'Sponsor Shabbat @ Chabad'
+};
+
+/**
+ * Helper to get sponsorship label with full name
+ */
+function getSponsorshipLabel(value, customAmount) {
+  if (!value || value === '') return null;
+  if (value === 'other') {
+    return `Custom Sponsorship: $${customAmount}`;
+  }
+  const label = SPONSORSHIP_OPTIONS[value];
+  return label ? `${label}: $${value}` : `Sponsorship: $${value}`;
+}
+
+/**
+ * Builds customer_detail_info from Korea fields
+ */
+function buildCustomerDetailInfo(metadata) {
+  if (!metadata.koreaConnection && !metadata.judaismConnection && !metadata.sponsorship && !metadata.localPhone) {
+    return null;
+  }
+
+  const lines = [];
+
+  if (metadata.koreaConnection) {
+    const connection = metadata.koreaConnection === 'other'
+      ? metadata.koreaConnectionOther
+      : metadata.koreaConnection;
+    lines.push(`Country Connection: ${connection}`);
+  }
+
+  if (metadata.localPhone) {
+    lines.push(`Local Phone: ${metadata.localPhone}`);
+  }
+
+  if (metadata.judaismConnection) {
+    lines.push(`Judaism Connection: ${metadata.judaismConnection}`);
+  }
+
+  if (metadata.sponsorship && metadata.sponsorship !== '') {
+    const sponsorshipLabel = getSponsorshipLabel(metadata.sponsorship, metadata.sponsorshipAmount);
+    if (sponsorshipLabel) {
+      lines.push(sponsorshipLabel);
+    }
+  }
+
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
 /**
  * Guarda una donación en Strapi
  */
@@ -208,6 +268,31 @@ export async function saveShabbatOrder(session, metadata, parsedItems) {
       endDateISO = tomorrow.toISOString().split('T')[0];
     }
     
+    // Construir notas con info de Korea
+    let notes = metadata.notes || '';
+    if (metadata.koreaConnection || metadata.judaismConnection || metadata.sponsorship) {
+      if (notes) notes += '\n\n';
+      notes += '--- Guest Information ---\n';
+      if (metadata.koreaConnection) {
+        const connection = metadata.koreaConnection === 'other'
+          ? metadata.koreaConnectionOther
+          : metadata.koreaConnection;
+        notes += `Country Connection: ${connection}\n`;
+      }
+      if (metadata.localPhone) {
+        notes += `Local Phone: ${metadata.localPhone}\n`;
+      }
+      if (metadata.judaismConnection) {
+        notes += `Judaism Connection: ${metadata.judaismConnection}\n`;
+      }
+      if (metadata.sponsorship && metadata.sponsorship !== '') {
+        const sponsorshipLabel = metadata.sponsorship === 'other'
+          ? `Custom: $${metadata.sponsorshipAmount}`
+          : `$${metadata.sponsorship}`;
+        notes += `Sponsorship: ${sponsorshipLabel}`;
+      }
+    }
+
     const shabbatOrder = {
       data: {
         orderId: metadata.orderId || `SHB-${Date.now()}`,
@@ -223,10 +308,11 @@ export async function saveShabbatOrder(session, metadata, parsedItems) {
         stripeSessionId: session.id,
         friday_dinner_details: fridayDinner,
         shabbat_lunch_details: shabbatLunch,
-        notes: metadata.notes || ''
+        notes: notes,
+        customer_detail_info: buildCustomerDetailInfo(metadata)
       }
     };
-    
+
     console.log('📤 Sending Shabbat order to Strapi:', JSON.stringify(shabbatOrder, null, 2));
     
     // Usar URL interna para server-side requests
@@ -335,7 +421,7 @@ export async function saveShabbatBoxOrder(session, metadata, parsedItems) {
         customerEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
         customerPhone: metadata.customer_phone || null,
         customerNationality: metadata.customer_nationality || null,
-        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100),
+        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100, 0, null, metadata),
         orderStatus: 'paid',
         isDelivery: deliveryType === 'delivery',
         delivery_addres: deliveryAddress, // Nota: el campo en Strapi se llama 'delivery_addres' sin 's'
@@ -343,7 +429,8 @@ export async function saveShabbatBoxOrder(session, metadata, parsedItems) {
         shabbat_holiday_start: shabbatStart,
         shabbat_holiday_end: shabbatEnd,
         orderType: 'shabbatBox',
-        serviceDate: null // No usado en Shabbat Box
+        serviceDate: null, // No usado en Shabbat Box
+        customer_detail_info: buildCustomerDetailInfo(metadata)
       }
     };
 
@@ -405,6 +492,10 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
       }
     }
 
+    // Extraer nuevos campos de delivery
+    const eventTime = metadata.eventTime || null;  // Hora solicitada: "HH:MM" o "ASAP"
+    const reservationName = metadata.reservationName || null;  // Nombre para la reservación
+
     // Convertir fecha de DD/MM/YYYY o DD-DD/MM/YYYY a YYYY-MM-DD para serviceDate
     let serviceDateISO = null;
     if (eventDate) {
@@ -427,7 +518,7 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
         customerEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
         customerPhone: metadata.customer_phone || null,
         customerNationality: metadata.customer_nationality || null,
-        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100, deliveryFee, deliveryZoneName),
+        orderDescription: formatOrderDescription(parsedItems, session.amount_total / 100, deliveryFee, deliveryZoneName, metadata),
         orderStatus: 'paid',
         isDelivery: deliveryType === 'delivery',
         delivery_addres: deliveryAddress,
@@ -435,7 +526,8 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
         shabbat_holiday_start: null, // No usar para custom events
         shabbat_holiday_end: null,   // No usar para custom events
         orderType: eventName,  // Enviar el nombre real del evento (Catering Orders, Pizza & BBQ Night, etc.)
-        serviceDate: serviceDateISO  // Solo serviceDate para custom events
+        serviceDate: serviceDateISO,  // Solo serviceDate para custom events
+        customer_detail_info: buildCustomerDetailInfo(metadata)
       }
     };
 
@@ -446,7 +538,10 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
       serviceDateISO: serviceDateISO,
       isDelivery: orderData.data.isDelivery,
       deliveryType,
-      deliveryAddress
+      deliveryAddress,
+      deliveryZoneName,
+      eventTime,
+      reservationName
     });
     
     console.log('📅 Saving Custom Event Delivery order to Strapi:', JSON.stringify(orderData, null, 2));
@@ -549,38 +644,109 @@ export function detectOrderType(metadata, parsedItems) {
 }
 
 /**
- * Formatea la descripción de una orden
+ * Parsea las selecciones del nombre del item
+ * Formato esperado: "Premium meals #1 - Main Dish: Option | Carbohidrato: Option"
  */
-export function formatOrderDescription(parsedItems, totalAmount, deliveryFee = 0, deliveryZoneName = null) {
+function parseSelectionsFromName(itemName) {
+  // Buscar el patrón " - " que separa el nombre base de las selecciones
+  const dashIndex = itemName.indexOf(' - ');
+  if (dashIndex === -1) return { baseName: itemName, selections: [] };
+
+  const baseName = itemName.substring(0, dashIndex);
+  const selectionsString = itemName.substring(dashIndex + 3);
+
+  // Las selecciones están separadas por " | "
+  const selections = selectionsString.split(' | ')
+    .map(s => s.trim())
+    .filter(s => s.includes(':'));
+
+  return { baseName, selections };
+}
+
+/**
+ * Formatea la descripción de una orden con estructura clara y secciones separadas
+ */
+export function formatOrderDescription(parsedItems, totalAmount, deliveryFee = 0, deliveryZoneName = null, metadata = {}) {
   const lines = [];
 
+  // === ORDER ITEMS ===
+  lines.push('=== ORDER ITEMS ===');
   parsedItems.forEach(item => {
     if (item.productType !== 'fee' && item.productType !== 'donation') {
-      const unitPrice = item.price.toFixed(2);
-      const totalPrice = item.total.toFixed(2);
-      lines.push(`${item.name} x${item.quantity} - $${unitPrice} cada - $${totalPrice}`);
+      // Parsear selecciones del nombre si existen
+      const { baseName, selections } = parseSelectionsFromName(item.name);
+
+      lines.push(baseName);
+      lines.push(`  Quantity: ${item.quantity}`);
+      lines.push(`  Unit Price: $${item.price.toFixed(2)}`);
+      lines.push(`  Subtotal: $${item.total.toFixed(2)}`);
+
+      // Agregar selecciones si existen
+      if (selections.length > 0) {
+        lines.push('  Selections:');
+        selections.forEach(sel => {
+          lines.push(`    - ${sel}`);
+        });
+      }
+
+      lines.push('');  // línea en blanco entre items
     }
   });
 
-  // Agregar delivery fee si existe
+  // === FEES === (solo si hay fees)
+  const fees = [];
   if (deliveryFee > 0) {
-    lines.push(`Delivery Fee (${deliveryZoneName || 'Delivery'}) - $${deliveryFee.toFixed(2)}`);
+    fees.push(`Delivery Fee (${deliveryZoneName || 'Delivery'}): $${deliveryFee.toFixed(2)}`);
   }
-
-  // Agregar donación si existe
   const donation = parsedItems.find(item => item.productType === 'donation');
   if (donation) {
-    lines.push(`Donación - $${donation.total.toFixed(2)}`);
+    fees.push(`Donation: $${donation.total.toFixed(2)}`);
   }
-
-  // Agregar fee si existe
   const fee = parsedItems.find(item => item.productType === 'fee');
   if (fee) {
-    lines.push(`Cargo por procesamiento - $${fee.total.toFixed(2)}`);
+    fees.push(`Processing Fee: $${fee.total.toFixed(2)}`);
   }
 
-  lines.push('----------------------');
-  lines.push(`Total: $${totalAmount.toFixed(2)}`);
+  if (fees.length > 0) {
+    lines.push('=== FEES ===');
+    fees.forEach(f => lines.push(f));
+    lines.push('');
+  }
+
+  // === TOTAL ===
+  lines.push('=== TOTAL ===');
+  lines.push(`$${totalAmount.toFixed(2)}`);
+
+  // === DELIVERY INFO === (solo si hay delivery)
+  if (metadata.deliveryType === 'delivery' || deliveryZoneName || metadata.eventTime || metadata.reservationName) {
+    lines.push('');
+    lines.push('=== DELIVERY INFO ===');
+    if (deliveryZoneName) lines.push(`Hotel/Zone: ${deliveryZoneName}`);
+    if (deliveryFee > 0) lines.push(`Delivery Fee: $${deliveryFee.toFixed(2)}`);
+    if (metadata.deliveryAddress) lines.push(`Address: ${metadata.deliveryAddress}`);
+    if (metadata.eventTime) lines.push(`Requested Time: ${metadata.eventTime}`);
+    if (metadata.reservationName) lines.push(`Reservation Name: ${metadata.reservationName}`);
+  }
+
+  // === GUEST INFO === (solo si hay info de Korea)
+  if (metadata.koreaConnection || metadata.judaismConnection || metadata.sponsorship) {
+    lines.push('');
+    lines.push('=== GUEST INFO ===');
+    if (metadata.koreaConnection) {
+      const connection = metadata.koreaConnection === 'other'
+        ? metadata.koreaConnectionOther
+        : metadata.koreaConnection;
+      lines.push(`Country Connection: ${connection}`);
+    }
+    if (metadata.localPhone) lines.push(`Local Phone: ${metadata.localPhone}`);
+    if (metadata.judaismConnection) lines.push(`Judaism Connection: ${metadata.judaismConnection}`);
+    if (metadata.sponsorship && metadata.sponsorship !== '') {
+      const sponsorshipLabel = getSponsorshipLabel(metadata.sponsorship, metadata.sponsorshipAmount);
+      if (sponsorshipLabel) {
+        lines.push(sponsorshipLabel);
+      }
+    }
+  }
 
   return lines.join('\n');
 }

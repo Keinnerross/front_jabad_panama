@@ -1,21 +1,33 @@
 /**
  * Service for fetching Shabbat times from Hebcal.com API
- * Handles Shabbat candle lighting and havdalah times for Panama
+ * Handles Shabbat candle lighting and havdalah times based on configured location
  */
 
+import { getDefaultLocation } from './geoLocationService';
+
 const HEBCAL_BASE_URL = 'https://www.hebcal.com/shabbat';
-const PANAMA_GEONAME_ID = 3703443; // Panama City GeoNames ID
 const DEFAULT_CANDLE_LIGHTING_OFFSET = 18; // minutes before sunset
 
 /**
  * Fetches current Shabbat times from Hebcal API
- * @returns {Promise<{candleLighting: string, havdalah: string}>}
+ * @param {Object} locationConfig - Location configuration with geonameid and timezone
+ * @param {number} locationConfig.geonameid - GeoNames ID for the city
+ * @param {string} locationConfig.timezone - Timezone string (e.g., 'America/Panama')
+ * @param {boolean} locationConfig.isReferential - If true, location is not configured
+ * @returns {Promise<{candleLighting: string, havdalah: string, isReferential: boolean}>}
  */
-export async function getShabbatTimes() {
+export async function getShabbatTimes(locationConfig = null) {
+    const location = locationConfig || getDefaultLocation();
+
+    // If location is referential (not found), return fixed referential times
+    if (location.isReferential || !location.geonameid) {
+        return getReferentialShabbatTimes();
+    }
+
     try {
         const params = new URLSearchParams({
             cfg: 'json',
-            geonameid: PANAMA_GEONAME_ID,
+            geonameid: location.geonameid,
             M: 'on', // Havdalah at nightfall
             b: DEFAULT_CANDLE_LIGHTING_OFFSET,
             leyning: 'off' // Disable Torah reading details for faster response
@@ -36,26 +48,30 @@ export async function getShabbatTimes() {
         }
 
         const data = await response.json();
-        
+
         // Extract candle lighting and havdalah times from the response
-        const shabbatTimes = extractShabbatTimes(data.items);
-        
-        return shabbatTimes;
+        const shabbatTimes = extractShabbatTimes(data.items, location.timezone);
+
+        return {
+            ...shabbatTimes,
+            isReferential: false
+        };
 
     } catch (error) {
         console.error('❌ Error fetching Shabbat times:', error);
-        
-        // Return fallback times if API fails
-        return getFallbackShabbatTimes();
+
+        // Return referential times if API fails
+        return getReferentialShabbatTimes();
     }
 }
 
 /**
  * Extracts candle lighting and havdalah times from Hebcal API response
  * @param {Array} items - Array of Shabbat events from API
+ * @param {string} timezone - Timezone string for formatting times
  * @returns {Object} Object with candleLighting and havdalah times
  */
-function extractShabbatTimes(items) {
+function extractShabbatTimes(items, timezone = 'America/Panama') {
     const currentDate = new Date();
     const nextFriday = getNextFriday(currentDate);
     const nextSaturday = getNextSaturday(currentDate);
@@ -76,11 +92,11 @@ function extractShabbatTimes(items) {
     );
 
     if (candleLightingEvent) {
-        candleLighting = formatTime(candleLightingEvent.date);
+        candleLighting = formatTime(candleLightingEvent.date, timezone);
     }
 
     if (havdalahEvent) {
-        havdalah = formatTime(havdalahEvent.date);
+        havdalah = formatTime(havdalahEvent.date, timezone);
     }
 
     return {
@@ -142,36 +158,50 @@ function isSameDay(date1, date2) {
 }
 
 /**
- * Formats a date to HH:MM format in local timezone
+ * Formats a date to HH:MM format in the specified timezone
  * @param {string} dateString - ISO date string
+ * @param {string} timezone - Timezone string (e.g., 'America/Panama')
  * @returns {string} Formatted time string
  */
-function formatTime(dateString) {
+function formatTime(dateString, timezone = 'America/Panama') {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
-        timeZone: 'America/Panama'
+        timeZone: timezone
     });
 }
 
 /**
- * Returns fallback Shabbat times when API is unavailable
- * @returns {Object} Object with default candleLighting and havdalah times
+ * Returns referential Shabbat times when city is not configured or API fails
+ * These are approximate times - actual times depend on location
+ * @returns {Object} Object with referential candleLighting and havdalah times
  */
-function getFallbackShabbatTimes() {
+function getReferentialShabbatTimes() {
     return {
-        candleLighting: "18:20",
-        havdalah: "19:12"
+        candleLighting: "18:00",
+        havdalah: "19:00",
+        isReferential: true
     };
 }
 
 /**
  * Fetches upcoming Shabbat events (Parashiot and Holidays) from Hebcal API
- * @returns {Promise<Array>} Array of upcoming Shabbat events with formatted dates
+ * @param {Object} locationConfig - Location configuration with geonameid and timezone
+ * @param {number} locationConfig.geonameid - GeoNames ID for the city
+ * @param {string} locationConfig.timezone - Timezone string (e.g., 'America/Panama')
+ * @param {boolean} locationConfig.isReferential - If true, location is not configured
+ * @returns {Promise<{events: Array, isReferential: boolean}>} Array of upcoming Shabbat events with formatted dates
  */
-export async function getUpcomingShabbatEvents() {
+export async function getUpcomingShabbatEvents(locationConfig = null) {
+    const location = locationConfig || getDefaultLocation();
+    const isReferential = location.isReferential || !location.geonameid;
+
+    // For referential locations, use a default geonameid just to get parasha names
+    // (parasha names are the same regardless of location)
+    const geonameidForApi = location.geonameid || 281184; // Jerusalem as fallback for parasha names
+
     try {
         const today = new Date();
         const endDate = new Date();
@@ -183,7 +213,7 @@ export async function getUpcomingShabbatEvents() {
             s: 'on', // Include Parashat ha-Shavuah
             maj: 'on', // Include major holidays
             min: 'off', // Exclude minor holidays for simplicity
-            geonameid: PANAMA_GEONAME_ID,
+            geonameid: geonameidForApi,
             start: today.toISOString().split('T')[0],
             end: endDate.toISOString().split('T')[0],
             leyning: 'on' // Include Torah readings
@@ -204,15 +234,21 @@ export async function getUpcomingShabbatEvents() {
         }
 
         const data = await response.json();
-        
+
         // Process and format events
         const events = processShabbatEvents(data.items);
-        
-        return events;
+
+        return {
+            events,
+            isReferential
+        };
 
     } catch (error) {
         console.error('❌ Error fetching Shabbat events:', error);
-        return getFallbackShabbatEvents();
+        return {
+            events: getFallbackShabbatEvents(),
+            isReferential: true
+        };
     }
 }
 
@@ -363,13 +399,18 @@ function processShabbatEvents(items) {
 /**
  * Fetches Shabbat times for a specific date
  * @param {string} date - Date in YYYY-MM-DD format
+ * @param {Object} locationConfig - Location configuration with geonameid and timezone
+ * @param {number} locationConfig.geonameid - GeoNames ID for the city
+ * @param {string} locationConfig.timezone - Timezone string (e.g., 'America/Panama')
  * @returns {Promise<Object>} Object with candle lighting, havdalah, and other info
  */
-export async function getShabbatTimesForDate(date) {
+export async function getShabbatTimesForDate(date, locationConfig = null) {
+    const location = locationConfig || getDefaultLocation();
+
     try {
         const targetDate = new Date(date);
         const friday = new Date(targetDate);
-        
+
         // Adjust to get the Friday of that week
         const dayOfWeek = targetDate.getDay();
         if (dayOfWeek === 6) { // Saturday
@@ -378,14 +419,14 @@ export async function getShabbatTimesForDate(date) {
             const daysToFriday = (5 - dayOfWeek + 7) % 7;
             friday.setDate(friday.getDate() + daysToFriday);
         }
-        
+
         // Get Saturday (end of Shabbat)
         const saturday = new Date(friday);
         saturday.setDate(saturday.getDate() + 1);
-        
+
         const params = new URLSearchParams({
             cfg: 'json',
-            geonameid: PANAMA_GEONAME_ID,
+            geonameid: location.geonameid,
             M: 'on',
             b: DEFAULT_CANDLE_LIGHTING_OFFSET,
             s: 'on', // Include Parashat
@@ -427,10 +468,10 @@ export async function getShabbatTimesForDate(date) {
         if (data.items) {
             data.items.forEach(item => {
                 if (item.category === 'candles') {
-                    shabbatInfo.candleLighting = formatTime(item.date);
+                    shabbatInfo.candleLighting = formatTime(item.date, location.timezone);
                     shabbatInfo.memo = item.memo || null;
                 } else if (item.category === 'havdalah') {
-                    shabbatInfo.havdalah = formatTime(item.date);
+                    shabbatInfo.havdalah = formatTime(item.date, location.timezone);
                 } else if (item.category === 'parashat') {
                     shabbatInfo.parashat = item.title;
                     shabbatInfo.hebrew = item.hebrew;

@@ -1,5 +1,5 @@
 'use client'
-import { FaTimes, FaMapMarkerAlt, FaTruck } from "react-icons/fa";
+import { FaTimes, FaMapMarkerAlt, FaTruck, FaUtensils } from "react-icons/fa";
 
 export const DeliveryModal = ({
     isOpen,
@@ -13,7 +13,9 @@ export const DeliveryModal = ({
     setDeliveryFee,
     deliveryAddress,
     setDeliveryAddress,
-    setShowDeliveryError
+    setShowDeliveryError,
+    reservationName,
+    setReservationName
 }) => {
     if (!isOpen) return null;
 
@@ -32,7 +34,7 @@ export const DeliveryModal = ({
             }}
         >
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden"
+                className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -48,6 +50,20 @@ export const DeliveryModal = ({
 
                 {/* Tabs */}
                 <div className="flex border-b border-gray-200">
+                    <button
+                        onClick={() => {
+                            setDeliveryType('dine_in');
+                            setShowDeliveryError(false);
+                        }}
+                        className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                            deliveryType === 'dine_in'
+                                ? 'text-primary border-b-2 border-primary bg-primary/5'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        }`}
+                    >
+                        <FaUtensils />
+                        Dine In
+                    </button>
                     <button
                         onClick={() => {
                             setDeliveryType('pickup');
@@ -79,8 +95,20 @@ export const DeliveryModal = ({
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                    {deliveryType === 'pickup' ? (
+                <div className="p-4 overflow-y-auto max-h-[50vh]">
+                    {deliveryType === 'dine_in' ? (
+                        // Dine In Content
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-start gap-3">
+                                <FaUtensils className="text-primary text-lg mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-medium text-gray-700">Dine In</p>
+                                    <p className="text-sm text-gray-600 mt-1">Enjoy your meal at our location</p>
+                                    <p className="text-sm text-gray-500 mt-2">{pickupAddress}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : deliveryType === 'pickup' ? (
                         // Pickup Content
                         <div className="bg-gray-50 rounded-lg p-4">
                             <div className="flex items-start gap-3">
@@ -93,11 +121,14 @@ export const DeliveryModal = ({
                         </div>
                     ) : (
                         // Delivery Content
-                        <div className="space-y-3">
+                        <div className="space-y-4">
+                            {/* Delivery Address Details - Required */}
                             {deliveryZonesConfig.useZones ? (
                                 // Delivery zones selector
                                 <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-700">Select your zone</p>
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Select your zone <span className="text-red-500">*</span>
+                                    </label>
                                     <div className="space-y-2 max-h-48 overflow-y-auto">
                                         {deliveryZonesConfig.zones.map(zone => (
                                             <label
@@ -127,22 +158,38 @@ export const DeliveryModal = ({
                                         ))}
                                     </div>
                                 </div>
-                            ) : (
-                                // Address input
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-700">Enter your address</p>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter delivery address"
-                                        value={deliveryAddress}
-                                        onChange={(e) => {
-                                            setDeliveryAddress(e.target.value);
-                                            setShowDeliveryError(false);
-                                        }}
-                                        className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 text-sm focus:border-primary focus:outline-none"
-                                    />
-                                </div>
-                            )}
+                            ) : null}
+
+                            {/* Address Details Input */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Delivery Details <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    placeholder="Hotel name, room number, exact address, reference points..."
+                                    value={deliveryAddress || ''}
+                                    onChange={(e) => {
+                                        setDeliveryAddress(e.target.value);
+                                        setShowDeliveryError(false);
+                                    }}
+                                    rows={3}
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 text-sm focus:border-primary focus:outline-none resize-none"
+                                />
+                            </div>
+
+                            {/* Reservation Name - Optional */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Reservation Name <span className="text-gray-400 text-xs">(optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="If different from yours"
+                                    value={reservationName || ''}
+                                    onChange={(e) => setReservationName(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 text-sm focus:border-primary focus:outline-none"
+                                />
+                            </div>
                         </div>
                     )}
                 </div>

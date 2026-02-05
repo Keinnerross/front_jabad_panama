@@ -1,18 +1,43 @@
 'use client'
-import { FaCheck } from "react-icons/fa";
 import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
 import { useState, useEffect } from "react";
 import { loadStripe } from '@stripe/stripe-js';
 import { getAssetPath } from "@/app/utils/assetPath";
+import { api } from "@/app/services/strapiApiFetch";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
     const [mounted, setMounted] = useState(false);
+    const [checkoutSettings, setCheckoutSettings] = useState(null);
+    const [platformSettings, setPlatformSettings] = useState(null);
+
+    // Fetch checkout and platform settings
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const [checkoutData, platformData] = await Promise.all([
+                    api.checkoutSetting(),
+                    api.platformSettings()
+                ]);
+                setCheckoutSettings(checkoutData);
+                setPlatformSettings(platformData);
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Check if korea_inputs is enabled
+    const koreaInputsEnabled = checkoutSettings?.korea_inputs === true;
+
+    // Get country name from platform settings for dynamic labels
+    const countryName = platformSettings?.pais || 'the country';
 
     // Form state
     const [formData, setFormData] = useState({
@@ -24,7 +49,14 @@ export default function Checkout() {
         donation: '',
         coverFees: true,
         agreeTerms: false,
-        agreeUpdates: false
+        agreeUpdates: false,
+        // Korea fields
+        koreaConnection: '',
+        koreaConnectionOther: '',
+        judaismConnection: '',
+        sponsorship: '',
+        sponsorshipOther: '',
+        localPhone: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -39,14 +71,39 @@ export default function Checkout() {
         }));
     };
 
+    // Sponsorship options with amounts
+    const sponsorshipOptions = [
+        { value: '26', label: 'Sponsor My Meal for a Student/Backpacker', amount: 26 },
+        { value: '54', label: 'Sponsor My Shabbat Meal', amount: 54 },
+        { value: '72', label: 'Sponsor My Shabbat Dinner and Lunch Meals', amount: 72 },
+        { value: '108', label: 'Sponsor a Student', amount: 108 },
+        { value: '180', label: 'Sponsor 2 Students', amount: 180 },
+        { value: '360', label: 'Co-Sponsor Shabbat Lunch', amount: 360 },
+        { value: '540', label: 'Co-Sponsor Shabbat Dinner', amount: 540 },
+        { value: '720', label: 'Co-Sponsor Shabbat @ Chabad', amount: 720 },
+        { value: '1800', label: 'Sponsor Shabbat @ Chabad', amount: 1800 },
+        { value: 'other', label: 'Other', amount: 0 }
+    ];
+
+    // Get sponsorship amount
+    const getSponsorshipAmount = () => {
+        if (!formData.sponsorship) return 0;
+        if (formData.sponsorship === 'other') {
+            return parseFloat(formData.sponsorshipOther || 0);
+        }
+        const option = sponsorshipOptions.find(opt => opt.value === formData.sponsorship);
+        return option ? option.amount : 0;
+    };
+
     // Calculate transaction fee (5%)
     const calculateTransactionFee = (subtotal) => {
         return subtotal * 0.05;
     };
 
-    // Calculate total with fees and donations
+    // Calculate total with fees, donations and sponsorship
     const calculateGrandTotal = () => {
-        const subtotal = total + parseFloat(formData.donation || 0);
+        const sponsorshipAmount = getSponsorshipAmount();
+        const subtotal = total + parseFloat(formData.donation || 0) + sponsorshipAmount;
         const transactionFee = formData.coverFees ? calculateTransactionFee(subtotal) : 0;
         return subtotal + transactionFee;
     };
@@ -81,6 +138,18 @@ export default function Checkout() {
         }
         if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
         if (!formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
+
+        // Korea fields validation (only when korea_inputs is enabled)
+        if (koreaInputsEnabled) {
+            if (!formData.koreaConnection) {
+                newErrors.koreaConnection = 'Please select your connection to Korea';
+            } else if (formData.koreaConnection === 'other' && !formData.koreaConnectionOther.trim()) {
+                newErrors.koreaConnectionOther = 'Please specify your connection to Korea';
+            }
+            if (!formData.judaismConnection) {
+                newErrors.judaismConnection = 'Please select your connection to Judaism';
+            }
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -221,7 +290,19 @@ export default function Checkout() {
                         }) : null, // Delivery zone info
                         customEventType: cartItems[0].eventType || 'reservation',
                         eventName: cartItems[0].shabbatName?.substring(0, 50),
-                        eventDate: cartItems[0].shabbatDate
+                        eventDate: cartItems[0].shabbatDate,
+                        // Nuevos campos para delivery
+                        eventTime: cartItems[0].eventTime || null,  // Hora solicitada: "HH:MM" o "ASAP"
+                        reservationName: cartItems[0].reservationName?.substring(0, 100) || null  // Nombre para la reservación
+                    }),
+                    // Korea fields (only if korea_inputs is enabled)
+                    ...(koreaInputsEnabled && {
+                        koreaConnection: formData.koreaConnection,
+                        koreaConnectionOther: formData.koreaConnectionOther || '',
+                        judaismConnection: formData.judaismConnection,
+                        sponsorship: formData.sponsorship || '',
+                        sponsorshipAmount: getSponsorshipAmount().toString(),
+                        localPhone: formData.localPhone || ''
                     })
                 }
             };
@@ -264,9 +345,29 @@ export default function Checkout() {
                 });
             }
 
+            // 3.5. Si hay sponsorship, agregarlo como ítem adicional
+            const sponsorshipAmount = getSponsorshipAmount();
+            if (sponsorshipAmount > 0) {
+                const sponsorshipOption = sponsorshipOptions.find(opt => opt.value === formData.sponsorship);
+                const sponsorshipLabel = formData.sponsorship === 'other'
+                    ? 'Custom Sponsorship'
+                    : sponsorshipOption?.label || 'Sponsorship';
+                paymentData.line_items.push({
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: 'Sponsorship',
+                            description: sponsorshipLabel
+                        },
+                        unit_amount: Math.round(sponsorshipAmount * 100),
+                    },
+                    quantity: 1,
+                });
+            }
+
             // 4. Si el usuario eligió cubrir los fees, agregarlos como ítem adicional
             if (formData.coverFees) {
-                const subtotal = total + parseFloat(formData.donation || 0);
+                const subtotal = total + parseFloat(formData.donation || 0) + sponsorshipAmount;
                 const transactionFee = calculateTransactionFee(subtotal);
                 paymentData.line_items.push({
                     price_data: {
@@ -442,7 +543,15 @@ export default function Checkout() {
                                                                     <span className="text-gray-900 font-medium text-sm">Delivery</span>
                                                                     <span className="text-gray-900 font-medium text-sm">${deliveryFeeItem.deliveryFee.toFixed(2)}</span>
                                                                 </div>
-                                                                <p className="text-gray-500 text-xs">Zone: {deliveryFeeItem.deliveryAddress}</p>
+                                                                {deliveryFeeItem.deliveryZone?.zone_name && (
+                                                                    <p className="text-gray-500 text-xs">Zone: {deliveryFeeItem.deliveryZone.zone_name}</p>
+                                                                )}
+                                                                {deliveryFeeItem.deliveryAddress && (
+                                                                    <p className="text-gray-500 text-xs">Address: {deliveryFeeItem.deliveryAddress}</p>
+                                                                )}
+                                                                {deliveryFeeItem.reservationName && (
+                                                                    <p className="text-gray-500 text-xs">Reservation: {deliveryFeeItem.reservationName}</p>
+                                                                )}
                                                             </div>
                                                         );
                                                     }
@@ -474,11 +583,19 @@ export default function Checkout() {
                                             </div>
                                         )}
 
+                                        {/* Sponsorship if present */}
+                                        {getSponsorshipAmount() > 0 && (
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600 text-sm xs:text-base">Sponsorship:</span>
+                                                <span className="text-gray-600 text-sm xs:text-base">${getSponsorshipAmount().toFixed(2)}</span>
+                                            </div>
+                                        )}
+
                                         {/* Transaction Fee if selected */}
                                         {formData.coverFees && (
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-gray-600 text-sm xs:text-base">Transaction Fee (5%):</span>
-                                                <span className="text-gray-600 text-sm xs:text-base">${calculateTransactionFee(total + parseFloat(formData.donation || 0)).toFixed(2)}</span>
+                                                <span className="text-gray-600 text-sm xs:text-base">${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()).toFixed(2)}</span>
                                             </div>
                                         )}
 
@@ -551,7 +668,7 @@ export default function Checkout() {
                                     </div>
 
                                     {/* Phone Number */}
-                                    <div className="sm:col-span-2">
+                                    <div>
                                         <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Phone Number *</label>
                                         <input
                                             type="tel"
@@ -565,6 +682,125 @@ export default function Checkout() {
                                     </div>
                                 </div>
                             </fieldset>
+
+                            {/* Korea Fields - Conditional */}
+                            {koreaInputsEnabled && (
+                                <>
+                                    {/* My Connection to Country Section */}
+                                    <fieldset>
+                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`My Connection to ${countryName} *`}</legend>
+                                        <div className="space-y-3">
+                                            <select
+                                                name="koreaConnection"
+                                                value={formData.koreaConnection}
+                                                onChange={handleInputChange}
+                                                className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.koreaConnection ? 'border-red-500' : 'border-gray-200'}`}
+                                            >
+                                                <option value="">{`Select your connection to ${countryName}...`}</option>
+                                                <option value="live">{`I live in ${countryName}`}</option>
+                                                <option value="visiting">I am visiting</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                            {formData.koreaConnection === 'other' && (
+                                                <div className="mt-2">
+                                                    <input
+                                                        type="text"
+                                                        name="koreaConnectionOther"
+                                                        value={formData.koreaConnectionOther}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Please specify..."
+                                                        className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.koreaConnectionOther ? 'border-red-500' : 'border-gray-200'}`}
+                                                    />
+                                                    {errors.koreaConnectionOther && <p className="text-red-500 text-xs mt-1">{errors.koreaConnectionOther}</p>}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {errors.koreaConnection && <p className="text-red-500 text-xs mt-2">{errors.koreaConnection}</p>}
+                                    </fieldset>
+
+                                    {/* Local Phone Number in Country */}
+                                    <fieldset>
+                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName}`}</legend>
+                                        <p className="text-gray-500 text-xs xs:text-sm mb-2">{`Optional - Enter your local phone number in ${countryName} if available`}</p>
+                                        <input
+                                            type="tel"
+                                            name="localPhone"
+                                            value={formData.localPhone}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g., 010-1234-5678"
+                                            className="w-full bg-white border border-gray-200 rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        />
+                                    </fieldset>
+
+                                    {/* My Connection to Judaism Section */}
+                                    <fieldset>
+                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">My Connection to Judaism *</legend>
+                                        <div className="space-y-3">
+                                            <select
+                                                name="judaismConnection"
+                                                value={formData.judaismConnection}
+                                                onChange={handleInputChange}
+                                                className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.judaismConnection ? 'border-red-500' : 'border-gray-200'}`}
+                                            >
+                                                <option value="">Select your connection to Judaism...</option>
+                                                <option value="father_jewish">My father is Jewish</option>
+                                                <option value="mother_jewish">My mother is Jewish</option>
+                                                <option value="mother_converted_reform">My mother converted Reform</option>
+                                                <option value="mother_converted_conservative">My mother converted Conservative</option>
+                                                <option value="mother_converted_orthodox">My mother converted Orthodox</option>
+                                                <option value="i_converted">I converted (specify details in note)</option>
+                                                <option value="not_jewish">I am not Jewish</option>
+                                            </select>
+                                        </div>
+                                        {errors.judaismConnection && <p className="text-red-500 text-xs mt-2">{errors.judaismConnection}</p>}
+                                    </fieldset>
+
+                                    {/* Sponsorship Options Section */}
+                                    <fieldset>
+                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Sponsorship Options</legend>
+                                        <p className="text-gray-500 text-xs xs:text-sm mb-4">Support our community by sponsoring a meal or event (optional)</p>
+                                        <div className="space-y-3">
+                                            <select
+                                                name="sponsorship"
+                                                value={formData.sponsorship}
+                                                onChange={handleInputChange}
+                                                className="w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent border-gray-200"
+                                            >
+                                                <option value="">No sponsorship (optional)</option>
+                                                <option value="26">$26 - Sponsor My Meal for a Student/Backpacker</option>
+                                                <option value="54">$54 - Sponsor My Shabbat Meal</option>
+                                                <option value="72">$72 - Sponsor My Shabbat Dinner and Lunch Meals</option>
+                                                <option value="108">$108 - Sponsor a Student</option>
+                                                <option value="180">$180 - Sponsor 2 Students</option>
+                                                <option value="360">$360 - Co-Sponsor Shabbat Lunch</option>
+                                                <option value="540">$540 - Co-Sponsor Shabbat Dinner</option>
+                                                <option value="720">$720 - Co-Sponsor Shabbat @ Chabad</option>
+                                                <option value="1800">$1,800 - Sponsor Shabbat @ Chabad</option>
+                                                <option value="other">Other amount...</option>
+                                            </select>
+                                            {formData.sponsorship === 'other' && (
+                                                <div className="mt-2">
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                                        <input
+                                                            type="number"
+                                                            name="sponsorshipOther"
+                                                            value={formData.sponsorshipOther}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Enter amount"
+                                                            min="1"
+                                                            className="w-full bg-white border border-gray-200 
+                                                            rounded-lg p-2.5 xs:p-3 sm:p-4  h-10 xs:h-12 sm:h-14 
+                                                            text-gray-text font-medium text-sm xs:text-base !pl-8
+                                                            focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </fieldset>
+                                </>
+                            )}
 
                             {/* Contact Information Section */}
                             <fieldset>
@@ -621,10 +857,10 @@ export default function Checkout() {
                                                 />
                                                 <div className="flex-1">
                                                     <p className="text-gray-text text-xs xs:text-sm font-medium">
-                                                        Help us avoid credit card fees? 
-                                                        {(total + parseFloat(formData.donation || 0)) > 0 && (
+                                                        Help us avoid credit card fees?
+                                                        {(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()) > 0 && (
                                                             <span className="text-primary font-semibold">
-                                                                {" "}(+${calculateTransactionFee(total + parseFloat(formData.donation || 0)).toFixed(2)})
+                                                                {" "}(+${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()).toFixed(2)})
                                                             </span>
                                                         )}
                                                     </p>

@@ -149,6 +149,9 @@ export default function Checkout() {
             if (!formData.judaismConnection) {
                 newErrors.judaismConnection = 'Please select your connection to Judaism';
             }
+            if (!formData.localPhone.trim()) {
+                newErrors.localPhone = `Local phone number in ${countryName} is required`;
+            }
         }
 
         setErrors(newErrors);
@@ -720,16 +723,17 @@ export default function Checkout() {
 
                                     {/* Local Phone Number in Country */}
                                     <fieldset>
-                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName}`}</legend>
-                                        <p className="text-gray-500 text-xs xs:text-sm mb-2">{`Optional - Enter your local phone number in ${countryName} if available`}</p>
+                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName} *`}</legend>
+                                        <p className="text-gray-500 text-xs xs:text-sm mb-2">{`For deliveries, we must have a local phone number in ${countryName}. You may use your hotel's number.`}</p>
                                         <input
                                             type="tel"
                                             name="localPhone"
                                             value={formData.localPhone}
                                             onChange={handleInputChange}
                                             placeholder="e.g., 010-1234-5678"
-                                            className="w-full bg-white border border-gray-200 rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.localPhone ? 'border-red-500' : 'border-gray-200'}`}
                                         />
+                                        {errors.localPhone && <p className="text-red-500 text-xs mt-1">{errors.localPhone}</p>}
                                     </fieldset>
 
                                     {/* My Connection to Judaism Section */}

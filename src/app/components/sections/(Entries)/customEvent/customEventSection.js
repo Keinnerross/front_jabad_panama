@@ -125,17 +125,19 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                             <div className="md:w-[60%] mb-4 md:mb-0">
                                 <div>
                                     <h1 className="text-3xl font-bold text-darkBlue md:max-w-[80%]">
-                                        {`Registration for ${selectedEventData?.name || 'Event'}`}
+                                        {selectedEventData?.event_type === 'delivery'
+                                            ? `${selectedEventData?.name || 'Event'} Order`
+                                            : `Registration for ${selectedEventData?.name || 'Event'}`}
                                     </h1>
                                 </div>
                             </div>
 
 
                             <div className="hidden md:block">
-                                <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} />
+                                <ButtonTheme title={selectedEventData?.event_type === 'delivery' ? "Order Now" : "Register Now"} variation={2} onClick={handleGeneralRegistration} disableLink={true} />
                             </div>
                             <div className="flex w-full md:hidden mb-6">
-                                <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
+                                <ButtonTheme title={selectedEventData?.event_type === 'delivery' ? "Order Now" : "Register Now"} variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
                             </div>
                         </div>
                         <div className="hidden md:flex justify-center md:justify-start items-center gap-4 mb-8">
@@ -293,7 +295,7 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                                             }
                                         </p>
                                         <ButtonTheme
-                                            title={true ? `Register for ${selectedEventData?.name || 'Event'}` : "Register for Shabbat Meals"}
+                                            title={selectedEventData?.event_type === 'delivery' ? `Order ${selectedEventData?.name || 'Event'}` : `Register for ${selectedEventData?.name || 'Event'}`}
                                             variation={2}
                                             onClick={handleGeneralRegistration}
                                             disableLink={true}
@@ -321,7 +323,7 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                     pwywSiteConfigData={selectedEventData?.pay_wy_want_custom_event === true}
                     globalDeliveryZones={globalDeliveryZones}
                     customDeliveryZones={selectedEventData?.custom_delivery_zones}
-                    customDeliveryIsActive={selectedEventData?.custom_delivery_is_Active === true}
+                    customDeliveryIsActive={selectedEventData?.event_type === 'delivery'}
                     pickupAddress={pickupAddress}
                 />
             </Suspense>

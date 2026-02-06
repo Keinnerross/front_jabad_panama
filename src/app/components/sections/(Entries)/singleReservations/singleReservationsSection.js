@@ -176,19 +176,21 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                             <div className="md:w-[60%] mb-4 md:mb-0">
                                 <div>
                                     <h1 className="text-4xl font-bold text-darkBlue md:max-w-[80%]">
-                                        {isCustomEvent ? 
-                                            `Registration for ${selectedShabbatData?.name || 'Custom Event'}` : 
-                                            (selectedShabbatData ? 
-                                                `Registration for ${selectedShabbatData.name || selectedShabbatData.title}` : 
-                                                'Registration for Shabbat and Holiday meals')}
+                                        {isCustomEvent
+                                            ? (selectedShabbatData?.event_type === 'delivery'
+                                                ? `${selectedShabbatData?.name || 'Custom Event'} Order`
+                                                : `Registration for ${selectedShabbatData?.name || 'Custom Event'}`)
+                                            : (selectedShabbatData
+                                                ? `Registration for ${selectedShabbatData.name || selectedShabbatData.title}`
+                                                : 'Registration for Shabbat and Holiday meals')}
                                     </h1>
                                 </div>
                             </div>
                             <div className="hidden md:block">
-                                <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} />
+                                <ButtonTheme title={isCustomEvent && selectedShabbatData?.event_type === 'delivery' ? "Order Now" : "Register Now"} variation={2} onClick={handleGeneralRegistration} disableLink={true} />
                             </div>
                             <div className="flex w-full md:hidden">
-                                <ButtonTheme title="Register Now" variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
+                                <ButtonTheme title={isCustomEvent && selectedShabbatData?.event_type === 'delivery' ? "Order Now" : "Register Now"} variation={2} onClick={handleGeneralRegistration} disableLink={true} isFull />
                             </div>
                         </div>
                         
@@ -384,14 +386,16 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                             {selectedShabbatData?.name || "Error to fetch"}
                                         </h3>
                                         <p className="text-gray-text text-sm">
-                                            {pageData?.description_sidebar || 
+                                            {pageData?.description_sidebar ||
                                                 (isCustomEvent ?
-                                                    `Join us for ${selectedShabbatData?.name || 'this special event'}. Register in advance to secure your spot and enjoy a unique experience with our community.` :
-                                                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Join us for a meaningful Shabbat or holiday experience by registering in advance for our communal meals.')
+                                                    (selectedShabbatData?.event_type === 'delivery'
+                                                        ? `Order from ${selectedShabbatData?.name || 'this special event'}. Place your order in advance and enjoy a unique experience with our community.`
+                                                        : `Join us for ${selectedShabbatData?.name || 'this special event'}. Register in advance to secure your spot and enjoy a unique experience with our community.`)
+                                                    : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Join us for a meaningful Shabbat or holiday experience by registering in advance for our communal meals.')
                                             }
                                         </p>
                                         <ButtonTheme
-                                            title={pageData?.text_button_sidebar || "Register now!"}
+                                            title={pageData?.text_button_sidebar || (isCustomEvent && selectedShabbatData?.event_type === 'delivery' ? "Order now!" : "Register now!")}
                                             variation={2}
                                             onClick={handleGeneralRegistration}
                                             disableLink={true}

@@ -11,6 +11,7 @@ import SidebarMap from "@/app/components/sections/(Entries)/singleHotelsAndActiv
 import SidebarBooking from "@/app/components/sections/(Entries)/singleHotelsAndActivities/sidebarBooking";
 import { RelatedHotelCard } from "@/app/components/sections/(Entries)/singleHotelsAndActivities/relatedHotelCard";
 import { ScrollToTop } from "@/app/components/ui/common/scrollToTop";
+import { FiArrowRight, FiChevronRight } from "react-icons/fi";
 
 
 
@@ -92,18 +93,29 @@ export default async function Single({ params }) {
                 <div className="w-full max-w-7xl px-6 md:px-0">
 
 
-                {/* Galery Container */}
-                <section className="w-full ">
+                {/* Gallery Container */}
+                <section className="w-full">
+                    {/* Breadcrumb */}
+                    <nav className="pt-4 pb-2">
+                        <ol className="flex items-center gap-1 text-sm text-gray-400">
+                            <li>
+                                <Link href="/accommodations/" className="hover:text-primary transition-colors">
+                                    Hotels
+                                </Link>
+                            </li>
+                            <li><FiChevronRight size={12} /></li>
+                            <li className="text-gray-500 truncate max-w-[200px]">{pageData.title}</li>
+                        </ol>
+                    </nav>
+
                     {/* Encabezado */}
-                    <div className="flex flex-col md:flex-row justify-between items-center py-6">
-                        <div className="flex flex-col gap-2">
-                            <h1 className="text-3xl md:text-4xl font-bold text-darkBlue">
-                                {pageData.title}
-                            </h1>
-                            <p className="text-gray-text text-sm md:text-base leading-relaxed">
-                                {pageData.address}
-                            </p>
-                        </div>
+                    <div className="flex flex-col gap-1 pb-4">
+                        <h1 className="text-2xl md:text-3xl font-bold text-darkBlue">
+                            {pageData.title}
+                        </h1>
+                        <p className="text-gray-text text-sm leading-relaxed">
+                            {pageData.address}
+                        </p>
                     </div>
 
 
@@ -226,6 +238,15 @@ export default async function Single({ params }) {
                                     />
                                 </Link>
                             ))}
+                        </div>
+                        <div className="flex justify-center mt-8">
+                            <Link
+                                href="/accommodations/"
+                                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                            >
+                                <span>View All Hotels</span>
+                                <FiArrowRight size={16} />
+                            </Link>
                         </div>
                     </section>
                 )}

@@ -145,7 +145,7 @@ export default async function Single({ params }) {
                     <div className="lg:w-[65%] flex flex-col gap-12">
 
                         {pageData.highlightCard?.length > 0 && (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                                 {pageData.highlightCard
                                     .filter(card => card && (card.title || card.description)) // Filtrar cards vacías/null
                                     .map((card, index) => (

@@ -43,14 +43,14 @@ const HightlightCard = ({ title = "Kosher meals available", description = "Enjoy
     const IconComponent = iconMap[icon?.toLowerCase()] || iconMap.check;
 
     return (
-        <div className="flex w-full items-start gap-2.5 px-4 py-2 md:px-4 md:py-6 relative rounded-lg overflow-hidden border border-solid border-gray-200 hover:border-primary hover:shadow-sm transition-all duration-200 cursor-pointer">
-            <div className="items-center gap-2.5 flex-1 grow flex relative">
-                    <IconComponent className="text-text" size={20} />
-                <div className="flex-col flex-1 items-start gap-px flex relative">
-                    <div className="font-bold text-darkBlue text-base  leading-tight">
+        <div className="flex w-full items-start gap-2.5 px-4 py-3 md:px-4 md:py-6 relative rounded-lg overflow-hidden border border-solid border-gray-200 hover:border-primary hover:shadow-sm transition-all duration-200 cursor-pointer">
+            <div className="items-start gap-2.5 flex-1 grow flex relative">
+                    <IconComponent className="text-text flex-shrink-0 mt-0.5" size={20} />
+                <div className="flex-col flex-1 min-w-0 items-start gap-px flex relative">
+                    <div className="font-bold text-darkBlue text-sm md:text-base leading-tight break-words w-full">
                         {title}
                     </div>
-                    <p className="text-gray-text text-sm leading-relaxed line-clamp-2">
+                    <p className="text-gray-text text-xs md:text-sm leading-relaxed line-clamp-2 w-full">
                         {description}
                     </p>
                 </div>

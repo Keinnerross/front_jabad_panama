@@ -49,7 +49,7 @@ export default async function SingleReservations() {
                     shabbatsAndHolidaysData={shabbatsAndHolidaysData}
                     restaurantsData={restaurantsData}
                     shabbatsRegisterPricesData={shabbatsRegisterPricesData}
-                    upcomingShabbatEvents={upcomingShabbatEvents}
+                    upcomingShabbatEvents={upcomingShabbatEvents?.events || []}
                     pwywSiteConfigData={pwywSiteConfigData}
                     pageData={pageData}
                     />

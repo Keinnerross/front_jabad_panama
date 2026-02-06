@@ -406,6 +406,8 @@ function processShabbatEvents(items) {
  */
 export async function getShabbatTimesForDate(date, locationConfig = null) {
     const location = locationConfig || getDefaultLocation();
+    const geonameidForApi = location.geonameid || 281184; // Jerusalem as fallback
+    const timezoneForApi = location.timezone || 'Asia/Jerusalem';
 
     try {
         const targetDate = new Date(date);
@@ -426,7 +428,7 @@ export async function getShabbatTimesForDate(date, locationConfig = null) {
 
         const params = new URLSearchParams({
             cfg: 'json',
-            geonameid: location.geonameid,
+            geonameid: geonameidForApi,
             M: 'on',
             b: DEFAULT_CANDLE_LIGHTING_OFFSET,
             s: 'on', // Include Parashat
@@ -468,10 +470,10 @@ export async function getShabbatTimesForDate(date, locationConfig = null) {
         if (data.items) {
             data.items.forEach(item => {
                 if (item.category === 'candles') {
-                    shabbatInfo.candleLighting = formatTime(item.date, location.timezone);
+                    shabbatInfo.candleLighting = formatTime(item.date, timezoneForApi);
                     shabbatInfo.memo = item.memo || null;
                 } else if (item.category === 'havdalah') {
-                    shabbatInfo.havdalah = formatTime(item.date, location.timezone);
+                    shabbatInfo.havdalah = formatTime(item.date, timezoneForApi);
                 } else if (item.category === 'parashat') {
                     shabbatInfo.parashat = item.title;
                     shabbatInfo.hebrew = item.hebrew;

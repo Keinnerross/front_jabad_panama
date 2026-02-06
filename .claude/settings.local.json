@@ -6,7 +6,8 @@
       "Bash(curl:*)",
       "Bash(node:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

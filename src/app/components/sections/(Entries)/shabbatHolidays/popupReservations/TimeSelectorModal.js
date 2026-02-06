@@ -134,7 +134,7 @@ export const TimeSelectorModal = ({
             const [h, m] = time.split(':').map(Number);
             return { hour: h, minute: m };
         }
-        return { hour: 12, minute: 0 };
+        return { hour: 9, minute: 0 };
     };
 
     const initialTime = parseTime(selectedTime);
@@ -184,6 +184,12 @@ export const TimeSelectorModal = ({
                 const parsed = parseTime(selectedTime);
                 setSelectedHour(parsed.hour);
                 setSelectedMinute(parsed.minute);
+                // Si no hay tiempo seleccionado, commitear el default para evitar que quede en null
+                if (!selectedTime) {
+                    const defaultTime = `${parsed.hour.toString().padStart(2, '0')}:${parsed.minute.toString().padStart(2, '0')}`;
+                    setSelectedTime(defaultTime);
+                    setShowTimeError(false);
+                }
             }
         }
     }, [isOpen]);

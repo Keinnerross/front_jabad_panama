@@ -17,20 +17,29 @@ function SuccessContent() {
     
     // Get session_id from URL parameters to confirm successful payment
     const sessionId = searchParams.get('session_id');
+    const isFreeRegistration = searchParams.get('free') === 'true';
 
     // Clear cart and conditionally process payment based on environment
     useEffect(() => {
+        // Free registration - just clear cart, no need to process via Stripe
+        if (isFreeRegistration && !processed) {
+            clearCart(true);
+            setProcessed(true);
+            console.log('✅ Cart cleared for free registration');
+            return;
+        }
+
         // Only clear cart if we have a session_id (indicates successful payment from Stripe)
         if (sessionId && !processed) {
             clearCart(true); // Pass true for silent clearing (no notification)
             setProcessed(true);
             console.log('✅ Cart cleared for session:', sessionId);
-            
+
             // Always call process-success, it will decide based on USE_WEBHOOK_PROCESSING
             console.log('🔄 Processing payment in success page');
             processSuccessfulPayment(sessionId);
         }
-    }, [sessionId, processed]);
+    }, [sessionId, isFreeRegistration, processed]);
     
     // Function to handle post-payment actions when webhooks are disabled (development)
     const processSuccessfulPayment = async (sessionId) => {

@@ -1111,9 +1111,9 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 {/* Add to Cart Button */}
                                 <button
                                     onClick={addToCart}
-                                    disabled={!hasItems || isLoading || finalAmount === 0}
+                                    disabled={!hasItems || isLoading || (finalAmount === 0 && !isPWYWActive)}
                                     className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center cursor-pointer touch-manipulation text-xs sm:text-sm md:text-base ${
-                                        hasItems && !isLoading && finalAmount > 0
+                                        hasItems && !isLoading && (finalAmount > 0 || isPWYWActive)
                                             ? 'bg-primary text-white hover:bg-opacity-90'
                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     }`}

@@ -2,15 +2,21 @@
 import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { loadStripe } from '@stripe/stripe-js';
 import { getAssetPath } from "@/app/utils/assetPath";
+import { getFullUrl } from "@/app/utils/urlHelper";
 import { api } from "@/app/services/strapiApiFetch";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
+    const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const [checkoutSettings, setCheckoutSettings] = useState(null);
     const [platformSettings, setPlatformSettings] = useState(null);
+
+    // Detect if all cart items are free (PWYW with $0)
+    const isFreeRegistration = mounted && total === 0 && cartItems?.length > 0 && cartItems.some(item => item.isPWYW);
 
     // Fetch checkout and platform settings
     useEffect(() => {
@@ -167,9 +173,6 @@ export default function Checkout() {
         setIsSubmitting(true);
 
         try {
-            // 1. Cargar Stripe.js
-            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-
             // Detectar tipo de orden para metadata - SÚPER SIMPLE
             const firstItem = cartItems[0] || {};
             const orderType = firstItem.productType || 'mealReservation';
@@ -222,10 +225,15 @@ export default function Checkout() {
                         calculatedUnitAmount: unitAmount
                     });
                     
-                    // Validar que tenemos valores válidos
-                    if (!unitAmount || unitAmount <= 0 || !item.quantity || item.quantity <= 0) {
+                    // Validar que tenemos valores válidos (allow $0 for PWYW items)
+                    if ((!unitAmount && unitAmount !== 0) || unitAmount < 0 || !item.quantity || item.quantity <= 0) {
                         console.error('Invalid item values:', item);
                         alert(`Error: Invalid price or quantity for ${item.meal}`);
+                        throw new Error(`Invalid values for ${item.meal}`);
+                    }
+                    if (unitAmount === 0 && !item.isPWYW) {
+                        console.error('Zero amount for non-PWYW item:', item);
+                        alert(`Error: Invalid price for ${item.meal}`);
                         throw new Error(`Invalid values for ${item.meal}`);
                     }
                     
@@ -385,7 +393,39 @@ export default function Checkout() {
                 });
             }
 
-            // 4. Crear sesión de pago con Stripe
+            // 4. Check if this is a free registration ($0 total)
+            const grandTotal = calculateGrandTotal();
+            if (grandTotal === 0 && isFreeRegistration) {
+                // Free registration - skip Stripe
+                console.log('🆓 Free registration detected, skipping Stripe');
+                const freeApiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/free-registration/`;
+                const response = await fetch(freeApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (!response.ok) {
+                    let errorMessage = 'Registration failed';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (parseError) {
+                        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const result = await response.json();
+                console.log('✅ Free registration successful:', result.orderId);
+
+                // Redirect to success page
+                window.location.href = getFullUrl('/success?free=true');
+                return;
+            }
+
+            // 5. Cargar Stripe.js y crear sesión de pago (paid flow only)
+            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
             console.log('BASE_PATH:', process.env.NEXT_PUBLIC_BASE_PATH);
             const apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/checkout/`;
             console.log('API URL:', apiUrl);
@@ -422,7 +462,7 @@ export default function Checkout() {
 
             const { id } = responseData;
 
-            // 5. Redirigir a Stripe Checkout
+            // 6. Redirigir a Stripe Checkout
             const { error } = await stripe.redirectToCheckout({ sessionId: id });
 
             if (error) {
@@ -431,7 +471,7 @@ export default function Checkout() {
 
         } catch (error) {
             console.error('Payment Error:', error);
-            alert(`Payment failed: ${error.message}`);
+            alert(`${isFreeRegistration ? 'Registration' : 'Payment'} failed: ${error.message}`);
             setIsSubmitting(false);
         }
     };
@@ -458,8 +498,8 @@ export default function Checkout() {
             <div className="z-10 w-full">
 
                 <div className="text-center pt-6 xs:pt-8 sm:pt-12 md:pt-16 lg:pt-20 flex flex-col items-center gap-2 xs:gap-3 sm:gap-4 px-6 xs:px-6">
-                    <h2 className="text-3xl xs:text-3xl sm:text-3xl md:text-4xl font-bold">Checkout</h2>
-                    <p className="text-gray-text text-xs xs:text-sm sm:text-base w-full max-w-xs xs:max-w-sm sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] leading-relaxed" >Enter your payment method below to reserve your spot. We accept major credit cards.</p>
+                    <h2 className="text-3xl xs:text-3xl sm:text-3xl md:text-4xl font-bold">{isFreeRegistration ? 'Registration' : 'Checkout'}</h2>
+                    <p className="text-gray-text text-xs xs:text-sm sm:text-base w-full max-w-xs xs:max-w-sm sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] leading-relaxed" >{isFreeRegistration ? 'Complete the form below to confirm your free registration.' : 'Enter your payment method below to reserve your spot. We accept major credit cards.'}</p>
                 </div>
                 <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 xs:gap-6 sm:gap-8 md:gap-10 pt-6 xs:pt-8 sm:pt-10 md:pt-12 lg:pt-14 px-6 xs:px-6 pb-6 xs:pb-8 sm:pb-16 md:pb-20 lg:pb-28">
 
@@ -936,11 +976,14 @@ export default function Checkout() {
                                             <span className="text-sm xs:text-base">Processing...</span>
                                         </div>
                                     ) : (
-                                        'Pay now'
+                                        isFreeRegistration ? 'Register now' : 'Pay now'
                                     )}
                                 </button>
                                 <p className="text-gray-text text-xs text-center leading-relaxed px-2">
-                                    *The registration will not be completed without completing the payment
+                                    {isFreeRegistration
+                                        ? '*Please complete the form to confirm your registration'
+                                        : '*The registration will not be completed without completing the payment'
+                                    }
                                 </p>
                             </div>
                         </form>

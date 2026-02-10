@@ -58,15 +58,15 @@ export const FoodHomeSlider = ({ restaurantsData, siteConfig }) => {
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">
                     <p className="mb-8 md:mb-0 text-3xl md:text-3xl font-bold">
-                        Kosher Restaurants in {siteConfig?.city || "City Name"}
+                        Kosher Food in {siteConfig?.city || "City Name"}
                     </p>
 
                     <div className="inline md:hidden">
-                        <ButtonTheme title="Explore restaurants" href="/restaurants" isFull />
+                        <ButtonTheme title="Explore Kosher Food" href="/restaurants" isFull />
                     </div>
 
                     <div className="hidden md:inline">
-                        <ButtonTheme title="Explore restaurants" href="/restaurants" />
+                        <ButtonTheme title="Explore Kosher Food" href="/restaurants" />
                     </div>
                 </div>
             </div>

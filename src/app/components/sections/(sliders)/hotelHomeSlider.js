@@ -69,8 +69,8 @@ export const HotelHomeSlider = ({ hotelsData, singleHotelsActive = true }) => {
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full md:flex justify-between items-center mb-10 px-4 md:px-0 space-y-4 md:space-y-0">
-                    <p className="text-4xl font-bold">Recommended places to stay in</p>
-                    <ButtonTheme title="Browse all places" href="/accommodations" />
+                    <p className="text-4xl font-bold">Recommended Hotels</p>
+                    <ButtonTheme title="Browse all hotels" href="/accommodations" />
                 </div>
             </div>
 

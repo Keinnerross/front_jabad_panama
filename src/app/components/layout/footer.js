@@ -90,7 +90,7 @@ export const Footer = ({ platformSettings }) => {
         { name: "Home", path: "/" },
         { name: "About us", path: "/about" },
         { name: "Contact", path: "/contact" },
-        { name: "Donations", path: "/donations" }
+        { name: "Donations", path: "/donation" }
       ]
     },
     {

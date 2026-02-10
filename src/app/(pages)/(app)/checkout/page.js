@@ -41,6 +41,7 @@ export default function Checkout() {
 
     // Check if korea_inputs is enabled
     const koreaInputsEnabled = checkoutSettings?.korea_inputs === true;
+    const nationalityEnabled = checkoutSettings?.nationality === true;
 
     // Get country name from platform settings for dynamic labels
     const countryName = platformSettings?.pais || 'the country';
@@ -135,7 +136,7 @@ export default function Checkout() {
         // Campos requeridos para notificaciones completas
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (!formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
+        if (nationalityEnabled && !formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
         if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
@@ -697,6 +698,7 @@ export default function Checkout() {
                                     </div>
 
                                     {/* Nationality */}
+                                    {nationalityEnabled && (
                                     <div>
                                         <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Nationality *</label>
                                         <input
@@ -709,6 +711,7 @@ export default function Checkout() {
                                         />
                                         {errors.nationality && <p className="text-red-500 text-xs mt-1">{errors.nationality}</p>}
                                     </div>
+                                    )}
 
                                     {/* Phone Number */}
                                     <div>

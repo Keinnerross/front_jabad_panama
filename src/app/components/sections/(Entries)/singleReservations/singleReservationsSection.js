@@ -250,92 +250,110 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                         </div>
                                                     )}
 
-                                                    {/* Friday Night Section - Solo mostrar si hay datos */}
-                                                    {(shabbatTimes?.candleLighting || shabbatTimes?.parashat || shabbatTimes?.torah || shabbatTimes?.hdate || 
-                                                      (selectedShabbatData.fridayNight && selectedShabbatData.fridayNight.length > 0)) && (
+                                                    {pageData?.shabbat_description_hours_and_activities?.trim() ? (
                                                         <div className="border border-gray-200 p-4 rounded-2xl">
-                                                            <h3 className="font-semibold text-myBlack text-base mb-2">
-                                                                Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                            </h3>
-                                                            <ul className="space-y-2">
-                                                                {/* Datos de Hebcal API */}
-                                                                {shabbatTimes?.candleLighting && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Candle Lighting:</strong> {shabbatTimes.candleLighting}
-                                                                    </li>
-                                                                )}
-                                                                {shabbatTimes?.parashat && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Torah Portion:</strong> {shabbatTimes.parashat}
-                                                                        {shabbatTimes.hebrew && (
-                                                                            <span className="text-gray-500 ml-2">({shabbatTimes.hebrew})</span>
-                                                                        )}
-                                                                    </li>
-                                                                )}
-                                                                {shabbatTimes?.torah && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Torah Reading:</strong> {shabbatTimes.torah}
-                                                                    </li>
-                                                                )}
-                                                                {shabbatTimes?.hdate && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Hebrew Date:</strong> {shabbatTimes.hdate}
-                                                                    </li>
-                                                                )}
-                                                                
-                                                                {/* Datos de Strapi si existen */}
-                                                                {selectedShabbatData.fridayNight && Array.isArray(selectedShabbatData.fridayNight) && 
-                                                                 selectedShabbatData.fridayNight.map((event, index) => (
-                                                                    <li key={index}>
-                                                                        <strong className="text-myBlack">{event.hora}</strong> {event.activity}
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
+                                                            <ReactMarkdown
+                                                                components={{
+                                                                    h1: ({ children }) => <h1 className="text-2xl font-bold text-darkBlue mb-4">{children}</h1>,
+                                                                    h2: ({ children }) => <h2 className="text-xl font-bold text-darkBlue mb-3">{children}</h2>,
+                                                                    h3: ({ children }) => <h3 className="text-lg font-bold text-darkBlue mb-2">{children}</h3>,
+                                                                    h4: ({ children }) => <h4 className="text-base font-bold text-darkBlue mb-2">{children}</h4>,
+                                                                    p: ({ children }) => <p className="mb-3 text-gray-600">{children}</p>,
+                                                                    strong: ({ children }) => <strong className="font-semibold text-myBlack">{children}</strong>,
+                                                                    ul: ({ children }) => <ul className="list-disc ml-4 space-y-1">{children}</ul>,
+                                                                    ol: ({ children }) => <ol className="list-decimal ml-4 space-y-1">{children}</ol>,
+                                                                    li: ({ children }) => <li className="mb-1 text-gray-600">{children}</li>,
+                                                                    a: ({ href, children }) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
+                                                                    br: () => <br className="mb-2" />
+                                                                }}
+                                                            >
+                                                                {pageData.shabbat_description_hours_and_activities}
+                                                            </ReactMarkdown>
                                                         </div>
-                                                    )}
+                                                    ) : (
+                                                        <>
+                                                            {/* Friday Night Section - Solo mostrar si hay datos */}
+                                                            {(shabbatTimes?.candleLighting || shabbatTimes?.parashat || shabbatTimes?.torah || shabbatTimes?.hdate ||
+                                                              (selectedShabbatData.fridayNight && selectedShabbatData.fridayNight.length > 0)) && (
+                                                                <div className="border border-gray-200 p-4 rounded-2xl">
+                                                                    <h3 className="font-semibold text-myBlack text-base mb-2">
+                                                                        Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                    </h3>
+                                                                    <ul className="space-y-2">
+                                                                        {shabbatTimes?.candleLighting && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Candle Lighting:</strong> {shabbatTimes.candleLighting}
+                                                                            </li>
+                                                                        )}
+                                                                        {shabbatTimes?.parashat && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Torah Portion:</strong> {shabbatTimes.parashat}
+                                                                                {shabbatTimes.hebrew && (
+                                                                                    <span className="text-gray-500 ml-2">({shabbatTimes.hebrew})</span>
+                                                                                )}
+                                                                            </li>
+                                                                        )}
+                                                                        {shabbatTimes?.torah && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Torah Reading:</strong> {shabbatTimes.torah}
+                                                                            </li>
+                                                                        )}
+                                                                        {shabbatTimes?.hdate && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Hebrew Date:</strong> {shabbatTimes.hdate}
+                                                                            </li>
+                                                                        )}
+                                                                        {selectedShabbatData.fridayNight && Array.isArray(selectedShabbatData.fridayNight) &&
+                                                                         selectedShabbatData.fridayNight.map((event, index) => (
+                                                                            <li key={index}>
+                                                                                <strong className="text-myBlack">{event.hora}</strong> {event.activity}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
 
-                                                    {/* Shabbat Day Section - Solo mostrar si hay datos */}
-                                                    {(shabbatTimes?.haftarah || shabbatTimes?.maftir || shabbatTimes?.mevarchim || shabbatTimes?.havdalah ||
-                                                      (selectedShabbatData.shabbatDay && selectedShabbatData.shabbatDay.length > 0)) && (
-                                                        <div className="border border-gray-200 p-4 rounded-2xl">
-                                                            <h3 className="font-semibold text-myBlack text-base mb-2">
-                                                                Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                            </h3>
-                                                            <ul className="space-y-2">
-                                                                {/* Datos de Hebcal API */}
-                                                                {shabbatTimes?.haftarah && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Haftarah:</strong> {shabbatTimes.haftarah}
-                                                                    </li>
-                                                                )}
-                                                                {shabbatTimes?.maftir && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Maftir:</strong> {shabbatTimes.maftir}
-                                                                    </li>
-                                                                )}
-                                                                {shabbatTimes?.mevarchim && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Special:</strong> {shabbatTimes.mevarchim}
-                                                                        {shabbatTimes.molad && (
-                                                                            <div className="text-gray-500 text-sm mt-1">{shabbatTimes.molad}</div>
+                                                            {/* Shabbat Day Section - Solo mostrar si hay datos */}
+                                                            {(shabbatTimes?.haftarah || shabbatTimes?.maftir || shabbatTimes?.mevarchim || shabbatTimes?.havdalah ||
+                                                              (selectedShabbatData.shabbatDay && selectedShabbatData.shabbatDay.length > 0)) && (
+                                                                <div className="border border-gray-200 p-4 rounded-2xl">
+                                                                    <h3 className="font-semibold text-myBlack text-base mb-2">
+                                                                        Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                    </h3>
+                                                                    <ul className="space-y-2">
+                                                                        {shabbatTimes?.haftarah && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Haftarah:</strong> {shabbatTimes.haftarah}
+                                                                            </li>
                                                                         )}
-                                                                    </li>
-                                                                )}
-                                                                {shabbatTimes?.havdalah && (
-                                                                    <li>
-                                                                        <strong className="text-myBlack">Havdalah:</strong> {shabbatTimes.havdalah}
-                                                                    </li>
-                                                                )}
-                                                                
-                                                                {/* Datos de Strapi si existen */}
-                                                                {selectedShabbatData.shabbatDay && Array.isArray(selectedShabbatData.shabbatDay) && 
-                                                                 selectedShabbatData.shabbatDay.map((event, index) => (
-                                                                    <li key={index}>
-                                                                        <strong className="text-myBlack">{event.hora}</strong> {event.activity}
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
+                                                                        {shabbatTimes?.maftir && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Maftir:</strong> {shabbatTimes.maftir}
+                                                                            </li>
+                                                                        )}
+                                                                        {shabbatTimes?.mevarchim && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Special:</strong> {shabbatTimes.mevarchim}
+                                                                                {shabbatTimes.molad && (
+                                                                                    <div className="text-gray-500 text-sm mt-1">{shabbatTimes.molad}</div>
+                                                                                )}
+                                                                            </li>
+                                                                        )}
+                                                                        {shabbatTimes?.havdalah && (
+                                                                            <li>
+                                                                                <strong className="text-myBlack">Havdalah:</strong> {shabbatTimes.havdalah}
+                                                                            </li>
+                                                                        )}
+                                                                        {selectedShabbatData.shabbatDay && Array.isArray(selectedShabbatData.shabbatDay) &&
+                                                                         selectedShabbatData.shabbatDay.map((event, index) => (
+                                                                            <li key={index}>
+                                                                                <strong className="text-myBlack">{event.hora}</strong> {event.activity}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </>
                                             )}

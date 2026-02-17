@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FaTimes } from 'react-icons/fa';
 import { PlateConfigForm } from './PlateConfigForm';
@@ -26,6 +26,37 @@ export const PlateConfigModal = ({
     onCancel,
     rushOrderPrice = null
 }) => {
+    const [currentStep, setCurrentStep] = useState(0);
+    const [stepError, setStepError] = useState(false);
+
+    // Reset wizard when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setCurrentStep(0);
+            setStepError(false);
+        }
+    }, [isOpen]);
+
+    // Derived values
+    const totalSteps = guidedMenu?.steps?.length || 0;
+    const isFirstStep = currentStep === 0;
+    const isLastStep = currentStep >= totalSteps - 1;
+
+    const handleNext = () => {
+        const currentStepData = guidedMenu?.steps?.[currentStep];
+        if (currentStepData && !selections[currentStepData.id]) {
+            setStepError(true);
+            return;
+        }
+        setStepError(false);
+        setCurrentStep(prev => prev + 1);
+    };
+
+    const handleBack = () => {
+        setStepError(false);
+        setCurrentStep(prev => prev - 1);
+    };
+
     // Handle ESC key to close
     useEffect(() => {
         const handleEsc = (e) => {
@@ -54,16 +85,39 @@ export const PlateConfigModal = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                    <h3 className="text-lg font-bold text-darkBlue">
-                        {isEditing ? `Edit Plate ${editingIndex + 1}` : 'Configure Your Plate'}
-                    </h3>
-                    <button
-                        onClick={onCancel}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-                    >
-                        <FaTimes size={16} />
-                    </button>
+                <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-darkBlue">
+                            {isEditing ? `Edit Plate ${editingIndex + 1}` : 'Configure Your Plate'}
+                        </h3>
+                        <button
+                            onClick={onCancel}
+                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                        >
+                            <FaTimes size={16} />
+                        </button>
+                    </div>
+                    {totalSteps > 1 && (
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className="flex gap-1.5">
+                                {guidedMenu.steps.map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-2 h-2 rounded-full transition-colors ${
+                                            i === currentStep
+                                                ? 'bg-primary'
+                                                : i < currentStep
+                                                    ? 'bg-primary/40'
+                                                    : 'bg-gray-300'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                            <span className="text-xs text-gray-500">
+                                Step {currentStep + 1} of {totalSteps}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Scrollable Content */}
@@ -77,25 +131,26 @@ export const PlateConfigModal = ({
                         isPWYWActive={isPWYWActive}
                         isEditing={isEditing}
                         editingIndex={editingIndex}
-                        showError={showError}
+                        showError={stepError || showError}
                         hideHeader={true}
                         rushOrderPrice={rushOrderPrice}
+                        visibleStepIndex={totalSteps > 1 ? currentStep : null}
                     />
                 </div>
 
                 {/* Footer Actions */}
                 <div className="flex gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
                     <button
-                        onClick={onCancel}
+                        onClick={isFirstStep ? onCancel : handleBack}
                         className="flex-1 py-2.5 px-4 text-gray-700 font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                     >
-                        Cancel
+                        {isFirstStep ? 'Cancel' : 'Back'}
                     </button>
                     <button
-                        onClick={onSave}
+                        onClick={isLastStep ? onSave : handleNext}
                         className="flex-1 py-2.5 px-4 text-white font-medium bg-primary rounded-lg hover:bg-opacity-90 transition-colors cursor-pointer"
                     >
-                        {isEditing ? 'Save Changes' : 'Add Plate'}
+                        {isLastStep ? (isEditing ? 'Save Changes' : 'Add Plate') : 'Next'}
                     </button>
                 </div>
             </div>

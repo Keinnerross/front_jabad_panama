@@ -68,19 +68,16 @@ export const DateSelectorModal = ({
     // Day names - constant, no need for useMemo
     const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-    // Early return AFTER all hooks
-    if (!isOpen) return null;
-
     return (
         <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-2"
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-2 transition-all duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={(e) => {
                 e.stopPropagation();
                 onClose();
             }}
         >
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-[460px] min-h-[340px] max-h-[85vh] overflow-auto"
+                className={`bg-white rounded-xl shadow-2xl w-full max-w-[460px] min-h-[340px] max-h-[85vh] overflow-auto transition-all duration-200 transform ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header - Compact */}

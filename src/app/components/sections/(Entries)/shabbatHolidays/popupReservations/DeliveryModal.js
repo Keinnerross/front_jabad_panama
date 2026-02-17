@@ -1,4 +1,5 @@
 'use client'
+import { useEffect } from 'react';
 import { FaTimes, FaMapMarkerAlt, FaTruck, FaUtensils } from "react-icons/fa";
 
 export const DeliveryModal = ({
@@ -17,7 +18,11 @@ export const DeliveryModal = ({
     reservationName,
     setReservationName
 }) => {
-    if (!isOpen) return null;
+    useEffect(() => {
+        if (isOpen && deliveryType === null) {
+            setDeliveryType('dine_in');
+        }
+    }, [isOpen, deliveryType, setDeliveryType]);
 
     const handleZoneSelect = (zone) => {
         setSelectedDeliveryZone(zone);
@@ -27,14 +32,14 @@ export const DeliveryModal = ({
 
     return (
         <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 transition-all duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={(e) => {
                 e.stopPropagation();
                 onClose();
             }}
         >
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
+                className={`bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden transition-all duration-200 transform ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -129,7 +134,7 @@ export const DeliveryModal = ({
                                     <label className="text-sm font-medium text-gray-700">
                                         Select your zone <span className="text-red-500">*</span>
                                     </label>
-                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    <div className="space-y-2 max-h-48 overflow-y-auto p-1">
                                         {deliveryZonesConfig.zones.map(zone => (
                                             <label
                                                 key={zone.id}

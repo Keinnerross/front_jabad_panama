@@ -17,7 +17,8 @@ export const PlateConfigForm = ({
     editingIndex,
     showError,
     hideHeader = false,
-    rushOrderPrice = null
+    rushOrderPrice = null,
+    visibleStepIndex = null
 }) => {
     // Handle radio selection for a step
     const handleSelection = (stepId, optionId) => {
@@ -104,7 +105,9 @@ export const PlateConfigForm = ({
             )}
 
             {/* Steps with Radio Options */}
-            {guidedMenu?.steps?.map((step) => (
+            {guidedMenu?.steps
+                ?.filter((_, index) => visibleStepIndex === null || index === visibleStepIndex)
+                .map((step) => (
                 <div
                     key={step.id}
                     className={`border rounded-lg p-2 md:p-2 lg:p-3 ${
@@ -155,7 +158,7 @@ export const PlateConfigForm = ({
             ))}
 
             {/* Guided Menu Description */}
-            {guidedMenu?.description && (
+            {guidedMenu?.description && (visibleStepIndex === null || visibleStepIndex === (guidedMenu?.steps?.length || 1) - 1) && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <p className="text-sm text-gray-600">
                         {guidedMenu.description}

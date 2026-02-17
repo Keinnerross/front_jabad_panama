@@ -16,6 +16,36 @@ const WheelColumn = ({ items, selectedValue, onSelect, formatValue }) => {
     const visibleItems = 5;
     const containerHeight = itemHeight * visibleItems;
 
+    // Intercept wheel to scroll one item at a time
+    const isWheelScrolling = useRef(false);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const handleWheel = (e) => {
+            e.preventDefault();
+            if (isWheelScrolling.current) return;
+
+            isWheelScrolling.current = true;
+            const direction = e.deltaY > 0 ? 1 : -1;
+            const currentScroll = container.scrollTop;
+            const targetScroll = currentScroll + direction * itemHeight;
+
+            container.scrollTo({
+                top: targetScroll,
+                behavior: 'smooth'
+            });
+
+            setTimeout(() => {
+                isWheelScrolling.current = false;
+            }, 150);
+        };
+
+        container.addEventListener('wheel', handleWheel, { passive: false });
+        return () => container.removeEventListener('wheel', handleWheel);
+    }, [itemHeight]);
+
     // Scroll to selected value on mount
     useEffect(() => {
         if (containerRef.current) {
@@ -194,20 +224,18 @@ export const TimeSelectorModal = ({
         }
     }, [isOpen]);
 
-    if (!isOpen) return null;
-
     return (
         <>
         <style>{scrollbarHideStyles}</style>
         <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-2"
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-2 transition-all duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={(e) => {
                 e.stopPropagation();
                 onClose();
             }}
         >
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-[340px] sm:max-w-[380px] overflow-hidden"
+                className={`bg-white rounded-xl shadow-2xl w-full max-w-[340px] sm:max-w-[380px] overflow-hidden transition-all duration-200 transform ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}

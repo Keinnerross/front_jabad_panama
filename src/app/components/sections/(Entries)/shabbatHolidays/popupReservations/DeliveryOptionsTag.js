@@ -48,6 +48,8 @@ export const DeliveryOptionsTag = ({
                         <FaUtensils className="text-primary text-sm flex-shrink-0" />
                     ) : deliveryType === 'pickup' ? (
                         <FaMapMarkerAlt className="text-primary text-sm flex-shrink-0" />
+                    ) : deliveryType === 'delivery' ? (
+                        <FaTruck className="text-primary text-sm flex-shrink-0" />
                     ) : (
                         <FaTruck className="text-primary text-sm flex-shrink-0" />
                     )}

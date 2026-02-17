@@ -28,7 +28,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const [activeTab, setActiveTab] = useState("");
     const [selectedDate, setSelectedDate] = useState(null);
     const [showDateError, setShowDateError] = useState(false);
-    const [deliveryType, setDeliveryType] = useState('dine_in'); // 'dine_in', 'pickup', or 'delivery'
+    const [deliveryType, setDeliveryType] = useState(null); // null, 'dine_in', 'pickup', or 'delivery'
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [reservationName, setReservationName] = useState('');
     const [showDeliveryError, setShowDeliveryError] = useState(false);
@@ -168,7 +168,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             // Reset Delivery Zone states
             setSelectedDeliveryZone(null);
             setDeliveryFee(0);
-            setDeliveryType('dine_in');
+            setDeliveryType(null);
             setDeliveryAddress('');
             setReservationName('');
             // Reset Time Selector states
@@ -414,6 +414,12 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // Validar hora para eventos custom con order_hour activo
         if (isCustomEvent && requiresTimeSelection && !selectedTime) {
             setShowTimeError(true);
+            return;
+        }
+
+        // Validar que se haya elegido una opción de delivery
+        if (isDeliveryEvent && !deliveryType) {
+            setShowDeliveryError(true);
             return;
         }
 

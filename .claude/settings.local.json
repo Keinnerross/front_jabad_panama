@@ -10,7 +10,10 @@
       "Bash(ls:*)",
       "Bash(cat:*)",
       "Bash(npx next lint:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.payarc.net)",
+      "WebFetch(domain:uxdesign.cc)"
     ],
     "deny": []
   }

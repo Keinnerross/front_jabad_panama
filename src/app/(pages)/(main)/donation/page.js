@@ -22,13 +22,17 @@ export default function Donation() {
     });
     const [selectedPresetAmount, setSelectedPresetAmount] = useState(null);
 
-    const frequencyOptions = [
-        { value: 'one-time', label: 'One time' },
-        { value: '12-months', label: '12 Months' },
-        { value: '24-months', label: '24 Months' },
-        { value: 'monthly', label: 'Monthly donation' },
-        { value: 'other', label: 'Other' }
-    ];
+    const isPayarc = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'payarc';
+
+    const frequencyOptions = isPayarc
+        ? [{ value: 'one-time', label: 'One time' }]
+        : [
+            { value: 'one-time', label: 'One time' },
+            { value: '12-months', label: '12 Months' },
+            { value: '24-months', label: '24 Months' },
+            { value: 'monthly', label: 'Monthly donation' },
+            { value: 'other', label: 'Other' }
+        ];
 
     const presetAmounts = [54, 180, 360, 540, 770];
 
@@ -211,11 +215,16 @@ export default function Donation() {
                 throw new Error('No session ID received from payment processor');
             }
 
-            const { id } = responseData;
-
-            // 4. Redirigir a Stripe Checkout
-            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-            await stripe.redirectToCheckout({ sessionId: id });
+            // 4. Redirect based on payment provider
+            // Subscriptions always use Stripe (endpoint is create-subscription, not checkout)
+            if (responseData.provider === 'payarc' && responseData.redirectUrl) {
+                // PayArc: redirect to hosted checkout
+                window.location.href = responseData.redirectUrl;
+            } else {
+                // Stripe: load Stripe.js and redirect to checkout
+                const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+                await stripe.redirectToCheckout({ sessionId: responseData.id });
+            }
 
         } catch (error) {
             console.error('Error:', error);

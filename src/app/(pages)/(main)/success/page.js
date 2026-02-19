@@ -15,8 +15,9 @@ function SuccessContent() {
     const [countdown, setCountdown] = useState(5);
     const [processed, setProcessed] = useState(false);
     
-    // Get session_id from URL parameters to confirm successful payment
-    const sessionId = searchParams.get('session_id');
+    // Get session_id or order_id from URL parameters to confirm successful payment
+    // Stripe uses session_id, PayArc uses order_id
+    const sessionId = searchParams.get('session_id') || searchParams.get('order_id');
     const isFreeRegistration = searchParams.get('free') === 'true';
 
     // Clear cart and conditionally process payment based on environment

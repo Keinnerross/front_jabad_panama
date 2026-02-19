@@ -425,8 +425,7 @@ export default function Checkout() {
                 return;
             }
 
-            // 5. Cargar Stripe.js y crear sesión de pago (paid flow only)
-            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+            // 5. Crear sesión de pago (paid flow only)
             console.log('BASE_PATH:', process.env.NEXT_PUBLIC_BASE_PATH);
             const apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/checkout/`;
             console.log('API URL:', apiUrl);
@@ -440,11 +439,9 @@ export default function Checkout() {
             if (!response.ok) {
                 let errorMessage = 'Network error occurred';
                 try {
-                    // Intentar obtener el mensaje de error del JSON
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorMessage;
                 } catch (parseError) {
-                    // Si no es JSON válido, usar el status de la respuesta
                     errorMessage = `Server error: ${response.status} ${response.statusText}`;
                 }
                 throw new Error(errorMessage);
@@ -461,13 +458,17 @@ export default function Checkout() {
                 throw new Error('No session ID received from payment processor');
             }
 
-            const { id } = responseData;
-
-            // 6. Redirigir a Stripe Checkout
-            const { error } = await stripe.redirectToCheckout({ sessionId: id });
-
-            if (error) {
-                throw error;
+            // 6. Redirect based on payment provider
+            if (responseData.provider === 'payarc' && responseData.redirectUrl) {
+                // PayArc: redirect to hosted checkout
+                window.location.href = responseData.redirectUrl;
+            } else {
+                // Stripe: load Stripe.js and redirect to checkout
+                const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+                const { error } = await stripe.redirectToCheckout({ sessionId: responseData.id });
+                if (error) {
+                    throw error;
+                }
             }
 
         } catch (error) {

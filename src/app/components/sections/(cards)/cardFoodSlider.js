@@ -5,16 +5,18 @@ import Image from "next/image";
 export const CardFoodSlider = ({
     title = "La Finka",
     description = "Eros pellentesque volutpat viverra ac non vitae cursus velit at lobortis.on vitae cursus velit at lobortis.",
-    imageUrl = ""
+    imageUrl = "",
+    gridMode = false,
+    imageAspect = "aspect-[3/4]"
 
 }) => {
     return (
 
 
-        <div className="group flex flex-col min-w-[280px] max-w-[280px] h-auto md:h-[474px] rounded-xl transition-all duration-300 mr-8">
+        <div className={`group flex flex-col rounded-xl transition-all duration-300 ${gridMode ? "w-full h-auto" : "min-w-[280px] max-w-[280px] h-auto md:h-[474px] mr-8"}`}>
 
             {/* Contenedor de la imagen */}
-            <div className="relative w-full aspect-square md:h-[320px] rounded-xl overflow-hidden ">
+            <div className={`relative w-full ${gridMode ? imageAspect : "aspect-square md:h-[320px]"} rounded-xl overflow-hidden`}>
                 {imageUrl ? (
                     <Image
                         src={imageUrl}

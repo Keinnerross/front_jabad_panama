@@ -1,24 +1,27 @@
-import Stripe from 'stripe';
-
 // Fix para certificados self-signed en desarrollo
 if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
+import Stripe from 'stripe';
+import { getPaymentProvider } from '../../services/payment/index.js';
 import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../utils/siteConfigHelper.js';
 import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../services/emailService.js';
 import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../utils/siteConfigHelper.js';
-import { 
-  saveDonationToStrapi, 
-  saveShabbatOrder, 
-  saveShabbatBoxOrder, 
+import {
+  saveDonationToStrapi,
+  saveShabbatOrder,
+  saveShabbatBoxOrder,
   saveCustomEventDeliveryOrder,
   detectOrderType,
   formatOrderDescription,
   extractDateRange
 } from '../../services/strapi-orders.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Stripe instance for subscription handling (subscriptions always use Stripe)
+function getStripeForSubscriptions() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 // In-memory store to track processed sessions (in production, use Redis or database)
 const processedSessions = new Set();
@@ -54,10 +57,9 @@ export async function POST(request) {
     // Mark as processed immediately
     processedSessions.add(sessionId);
 
-    // Retrieve session from Stripe con line_items expandidos y productos
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'line_items.data.price.product']
-    });
+    // Retrieve session from payment provider
+    const provider = getPaymentProvider();
+    const session = await provider.retrieveSession(sessionId);
     
     if (!session) {
       // Remove from processed set if session not found
@@ -91,7 +93,8 @@ async function handleCheckoutSessionCompleted(session) {
     
     if (session.mode === 'subscription') {
       // Manejar suscripciones (donaciones recurrentes)
-      const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      const stripeClient = getStripeForSubscriptions();
+      const subscription = await stripeClient.subscriptions.retrieve(session.subscription);
       console.log('Subscription created:', subscription.id);
       
       // Obtener metadata de la sesión
@@ -99,7 +102,7 @@ async function handleCheckoutSessionCompleted(session) {
       
       // Si es una suscripción limitada, agregar metadata a la suscripción
       if (metadata.subscriptionType === 'limited' && metadata.maxPayments) {
-        await stripe.subscriptions.update(subscription.id, {
+        await stripeClient.subscriptions.update(subscription.id, {
           metadata: {
             ...metadata,
             paymentsCount: '0', // Inicializar contador
@@ -341,7 +344,7 @@ async function saveOrderToStrapi(session, metadata, parsedItems) {
         orderId: metadata.orderId || `ORDER-${session.id}`,
         orderType: orderType,
         totalAmount: session.amount_total / 100,
-        stripeSessionId: session.id,
+        stripeSessionId: session.id, // Also used for PayArc order ID
         customerName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim() || 'N/A',
         customerEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
         customerPhone: metadata.customer_phone || null,

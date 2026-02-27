@@ -15,7 +15,7 @@ export const PlateCard = ({
     onRemove,
     isEditing,
     isPWYWActive,
-    rushOrderPrice = null
+    isRushOrder = false
 }) => {
     // Generate compact summary: "Option1 → Option2 → Option3"
     const getSelectionsSummary = () => {
@@ -28,10 +28,11 @@ export const PlateCard = ({
         }).join(' → ');
     };
 
-    // Use rush order price if applicable
-    const price = rushOrderPrice !== null
-        ? rushOrderPrice
-        : parseFloat(plate.priceOption?.price || 0);
+    // Use per-plate rush price if applicable
+    const priceOption = plate.priceOption;
+    const price = (isRushOrder && priceOption?.active_rush && priceOption?.rush_price != null)
+        ? parseFloat(priceOption.rush_price)
+        : parseFloat(priceOption?.price || 0);
 
     return (
         <div
@@ -53,7 +54,10 @@ export const PlateCard = ({
 
             {/* Price */}
             {!isPWYWActive && (
-                <span className="flex-shrink-0 text-sm font-semibold text-darkBlue">
+                <span className={`flex-shrink-0 text-sm font-semibold ${isRushOrder && priceOption?.active_rush && priceOption?.rush_price != null ? 'text-rush' : 'text-darkBlue'}`}>
+                    {isRushOrder && priceOption?.active_rush && priceOption?.rush_price != null && (
+                        <span className="line-through text-gray-400 text-xs mr-1">${parseFloat(priceOption.price).toFixed(2)}</span>
+                    )}
                     ${price.toFixed(2)}
                 </span>
             )}

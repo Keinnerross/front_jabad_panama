@@ -24,7 +24,7 @@ export const PlateConfigModal = ({
     showError,
     onSave,
     onCancel,
-    rushOrderPrice = null
+    isRushOrder = false
 }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [stepError, setStepError] = useState(false);
@@ -133,7 +133,7 @@ export const PlateConfigModal = ({
                         editingIndex={editingIndex}
                         showError={stepError || showError}
                         hideHeader={true}
-                        rushOrderPrice={rushOrderPrice}
+                        isRushOrder={isRushOrder}
                         visibleStepIndex={totalSteps > 1 ? currentStep : null}
                     />
                 </div>

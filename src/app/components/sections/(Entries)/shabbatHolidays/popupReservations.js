@@ -57,6 +57,16 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     // Check if event requires time selection
     const requiresTimeSelection = shabbatData?.order_hour === true;
 
+    // Parse hour_start/hour_end from Strapi (format: "h08:00" -> 8)
+    const parseHourEnum = (val, fallback) => {
+        if (!val) return fallback;
+        const match = val.replace(/^h/, '').split(':')[0];
+        const num = parseInt(match, 10);
+        return isNaN(num) ? fallback : num;
+    };
+    const hourStart = parseHourEnum(shabbatData?.hour_start, 8);
+    const hourEnd = parseHourEnum(shabbatData?.hour_end, 23);
+
     const {
         addToCart: addToCartContext,
         showConflictModal,
@@ -86,12 +96,13 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         return hoursUntilEvent < 24;
     }, [isCustomEvent, selectedDate, selectedTime]);
 
-    // Get the rush order price per plate (if applicable)
-    const rushOrderPrice = useMemo(() => {
-        if (!isRushOrder) return null;
-        const price = parseFloat(shabbatData?.same_day_price || 0);
-        return price > 0 ? price : null;
-    }, [isRushOrder, shabbatData?.same_day_price]);
+    // Helper: get effective price for a plate option considering per-plate rush pricing
+    const getPlatePrice = (priceOption) => {
+        if (isRushOrder && priceOption?.active_rush && priceOption?.rush_price != null) {
+            return parseFloat(priceOption.rush_price);
+        }
+        return parseFloat(priceOption?.price || 0);
+    };
 
     // Determinar qué zonas de delivery usar (custom del evento vs globales vs ninguna)
     const getActiveDeliveryZones = () => {
@@ -331,11 +342,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         let guidedMenuTotal = 0;
         if (isCustomEvent && shabbatData?.base_meal_options_active && shabbatData?.Guided_Menu) {
             guidedMenuTotal = configuredPlates.reduce((sum, plate) => {
-                // Use rush order price if applicable, otherwise use selected price option
-                const platePrice = rushOrderPrice !== null
-                    ? rushOrderPrice
-                    : parseFloat(plate.priceOption?.price || 0);
-                return sum + platePrice;
+                return sum + getPlatePrice(plate.priceOption);
             }, 0);
         }
 
@@ -372,7 +379,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // Include delivery fee if delivery is selected
         const currentDeliveryFee = (isDeliveryEvent && deliveryType === 'delivery') ? deliveryFee : 0;
         setTotal(guidedMenuTotal + extrasTotal + currentDeliveryFee);
-    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, configuredPlates, shabbatData?.base_meal_options_active, isDeliveryEvent, deliveryType, deliveryFee, rushOrderPrice]);
+    }, [quantities, filteredMeals, allMeals, isCustomEvent, isPWYWActive, configuredPlates, shabbatData?.base_meal_options_active, isDeliveryEvent, deliveryType, deliveryFee, isRushOrder]);
 
     const updateQuantity = (key, change) => {
         setQuantities(prev => ({
@@ -489,10 +496,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                     adjustedUnitPrice = pricePerUnit;
                     adjustedTotalPrice = pricePerUnit;
                 } else {
-                    // Use rush order price if applicable
-                    adjustedUnitPrice = rushOrderPrice !== null
-                        ? rushOrderPrice
-                        : parseFloat(plate.priceOption?.price || 0);
+                    // Use per-plate rush price if applicable
+                    adjustedUnitPrice = getPlatePrice(plate.priceOption);
                     adjustedTotalPrice = adjustedUnitPrice;
                 }
 
@@ -526,7 +531,6 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                     customAmount: isPWYWActive ? finalAmount : undefined,
                     eventTime: requiresTimeSelection ? selectedTime : null,
                     isRushOrder: isRushOrder,
-                    rushOrderPrice: rushOrderPrice,
                     ...(isDeliveryEvent && {
                         deliveryType: deliveryType,
                         deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
@@ -594,7 +598,6 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 customAmount: isPWYWActive ? finalAmount : undefined, // Store total custom amount for PWYW
                                 eventTime: requiresTimeSelection ? selectedTime : null,
                                 isRushOrder: isRushOrder,
-                                rushOrderPrice: rushOrderPrice,
                                 ...(isDeliveryEvent && {
                                     deliveryType: deliveryType,
                                     deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
@@ -653,7 +656,6 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             customAmount: isPWYWActive ? finalAmount : undefined, // Store total custom amount for PWYW
                             eventTime: requiresTimeSelection ? selectedTime : null,
                             isRushOrder: isRushOrder,
-                            rushOrderPrice: rushOrderPrice,
                             ...(isDeliveryEvent && {
                                 deliveryType: deliveryType,
                                 deliveryZone: deliveryType === 'delivery' && deliveryZonesConfig.useZones ? selectedDeliveryZone : null,
@@ -919,7 +921,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                     isPWYWActive={isPWYWActive}
                                     showError={showGuidedMenuError}
                                     setShowError={setShowGuidedMenuError}
-                                    rushOrderPrice={rushOrderPrice}
+                                    isRushOrder={isRushOrder}
                                 />
                             ) : (
                             // Category Menu Content - show only active tab items
@@ -1086,8 +1088,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             <>
                                 {/* Pay What You Want Input */}
                                 {hasItems && (
-                                    <div className="mb-3">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <div className="mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Pay What You Want
                                         </label>
                                         <div className="relative">
@@ -1101,7 +1103,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                             />
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Enter the amount you wish to pay
+                                            Contribute what you'd like, no amount is too small, and free is always an option.
                                         </p>
                                     </div>
                                 )}
@@ -1141,9 +1143,9 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                             // Regular UI
                             <>
                                 {/* Rush Order Indicator */}
-                                {rushOrderPrice !== null && (
-                                    <div className="text-xs text-amber-600 mb-2">
-                                        Rush order pricing: ${rushOrderPrice.toFixed(2)}/plate
+                                {isRushOrder && shabbatData?.Guided_Menu?.plates_prices?.some(o => o.active_rush) && (
+                                    <div className="text-xs text-rush mb-2">
+                                        Rush order pricing applies for orders within 24 hours of the event.
                                     </div>
                                 )}
 
@@ -1219,6 +1221,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                 selectedTime={selectedTime}
                 setSelectedTime={setSelectedTime}
                 setShowTimeError={setShowTimeError}
+                hourStart={hourStart}
+                hourEnd={hourEnd}
             />
         )}
 

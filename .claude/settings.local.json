@@ -13,7 +13,11 @@
       "Bash(npm run lint:*)",
       "WebSearch",
       "WebFetch(domain:docs.payarc.net)",
-      "WebFetch(domain:uxdesign.cc)"
+      "WebFetch(domain:uxdesign.cc)",
+      "Bash(wc -l \"/home/chabbat/demo/front_chabad/src/app/\\(pages\\)/\\(app\\)/checkout/page.js\")",
+      "Bash(npx eslint \"src/app/\\(pages\\)/\\(app\\)/checkout/page.js\" 2>&1 | tail -20)",
+      "Bash(git -C /home/chabbat/demo/front_chabad show 0387272:src/app/services/strapiApiFetch.js | head -80)",
+      "Bash(curl -s -H \"Authorization: Bearer b67eefc50b0a1cda8be30955b82e5d1e623d11d71caebacb0dde67c217b4dcc40921d5c7b8e9d8d376c8912eda1eff8e3d9a9d7af316bca761b4b54f5bd509049da7cb3590d86829b6835747e4130335ff6d499da0080f6098d366b7bb5bd978b68dad9b3bf93150fceea8e7613b5c692dff3dcee608f19148d2e3dff71504a7\" \"http://localhost:1302/api/checkout-setting?populate=*\" 2>/dev/null | python3 -m json.tool 2>/dev/null || echo \"Failed to reach local Strapi\")"
     ],
     "deny": []
   }

@@ -17,6 +17,11 @@
   --secondary: #0A1F48;
   --accent: #F4F7FB;
   --dark: #111828;
+
+  /* Rush order semantic tokens — derived from primary */
+  --rush: color-mix(in srgb, var(--primary), black 20%);
+  --rush-bg: color-mix(in srgb, var(--primary), white 88%);
+  --rush-border: color-mix(in srgb, var(--primary), white 50%);
 }
 
 
@@ -98,6 +103,9 @@
   --color-middleBlue: var(--middleBlue);
   --color-myBlack: var(--myBlack);
   --color-colorStars: var(--colorStars);
+  --color-rush: var(--rush);
+  --color-rush-bg: var(--rush-bg);
+  --color-rush-border: var(--rush-border);
   --font-sans: var(--font-sans);
 }
 

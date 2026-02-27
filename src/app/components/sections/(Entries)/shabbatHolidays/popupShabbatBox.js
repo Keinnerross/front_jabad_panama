@@ -330,7 +330,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
     return (
         <>
         <div
-            className={`w-full h-full flex justify-center items-center p-4 sm:p-6 lg:p-8 fixed top-0 z-50 overflow-y-hidden transition-all duration-300 ${
+            className={`w-full h-full flex justify-center items-center p-4 sm:p-6 lg:p-8 fixed top-0 z-50 overflow-y-auto transition-all duration-300 ${
                 isOpen 
                     ? 'bg-black/50 backdrop-blur-sm opacity-100' 
                     : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'
@@ -351,12 +351,12 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                 </div>
 
                 {/* Form Section */}
-                <div className="w-full lg:w-[60%] bg-white flex flex-col max-h-[85vh] sm:max-h-[82vh] md:max-h-[78vh] lg:max-h-[75vh]">
+                <div className="w-full lg:w-[60%] bg-white flex flex-col max-h-[85vh] sm:max-h-[82vh] md:max-h-[80vh] lg:max-h-[85vh]">
                     {/* Fixed Header */}
-                    <div className="p-4 sm:p-6 md:p-8 pb-4 md:border-b border-gray-100">
-                        <div className="mb-4">
+                    <div className="p-3 sm:p-4 lg:p-5 pb-3 md:border-b border-gray-100">
+                        <div className="mb-2 md:mb-3">
                             <div className="flex items-start justify-between">
-                                <h2 className="text-2xl md:text-3xl font-bold text-darkBlue mb-4">
+                                <h2 className="text-xl md:text-2xl font-bold text-darkBlue mb-2 md:mb-3">
                                     Order for Shabbat:
                                 </h2>
 
@@ -369,9 +369,9 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                 {/* Shabbat Selector */}
 
                             </div>
-                            <div className="md:mb-6 ">
+                            <div className="mb-2 md:mb-4 ">
                                 <select
-                                    className={`w-full p-3 border rounded-lg text-gray-700 cursor-pointer ${showDateError ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                    className={`w-full p-2 md:p-3 border rounded-lg text-gray-700 cursor-pointer ${showDateError ? 'border-red-500 bg-red-50' : 'border-gray-300'
                                         }`}
                                     value={selectedShabbat ? upcomingShabbatEvents.findIndex(s => s.id === selectedShabbat.id) : ''}
                                     onChange={(e) => {
@@ -498,8 +498,8 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                     </div>
 
                     {/* Scrollable Options */}
-                    <div ref={scrollContainerRef} className="flex-1 p-4 sm:p-6 md:p-8 pt-4 overflow-y-auto">
-                        <div className="space-y-6">
+                    <div ref={scrollContainerRef} className="flex-1 p-3 sm:p-4 lg:p-5 pt-3 overflow-y-auto">
+                        <div className="space-y-4 md:space-y-5">
                             {currentCategory?.options.map((option) => (
                                 <div key={option.id} className="border border-gray-200 rounded-lg p-4">
                                     <h3 className="text-lg font-semibold text-darkBlue mb-2">
@@ -640,14 +640,14 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                     </div>
 
                     {/* Fixed Total and Add to Cart */}
-                    <div className="bg-white border-t border-gray-200 p-4 sm:p-6">
+                    <div className="bg-white border-t border-gray-200 p-3 sm:p-4">
                         {isPWYWActive ? (
                             // Pay What You Want UI
                             <>
                                 {/* Pay What You Want Input */}
                                 {hasItems && (
-                                    <div className="mb-3">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <div className="mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Pay What You Want
                                         </label>
                                         <div className="relative">
@@ -661,15 +661,15 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                             />
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Enter the amount you wish to pay
+                                            Contribute what you'd like, no amount is too small, and free is always an option.
                                         </p>
                                     </div>
                                 )}
 
                                 {/* You Pay */}
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-darkBlue font-bold text-lg">You Pay:</span>
-                                    <span className="text-darkBlue font-bold text-xl whitespace-nowrap">
+                                <div className="flex justify-between items-center mb-2 sm:mb-3">
+                                    <span className="text-darkBlue font-bold text-sm sm:text-base">You Pay:</span>
+                                    <span className="text-darkBlue font-bold text-base sm:text-lg whitespace-nowrap">
                                         ${finalAmount.toFixed(2)}
                                     </span>
                                 </div>
@@ -678,7 +678,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                 <button
                                     onClick={addToCart}
                                     disabled={!hasItems || isLoading || finalAmount === 0}
-                                    className={`w-full font-bold py-3 sm:py-4 rounded-lg transition flex justify-between px-4 sm:px-6 items-center ${
+                                    className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center ${
                                         hasItems && !isLoading && finalAmount > 0
                                             ? 'bg-primary text-white hover:bg-opacity-90 cursor-pointer'
                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -700,15 +700,15 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                         ) : (
                             // Regular UI
                             <>
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-darkBlue font-bold text-lg">Total:</span>
-                                    <span className="text-darkBlue font-bold text-xl whitespace-nowrap">${total.toFixed(2)}</span>
+                                <div className="flex justify-between items-center mb-2 sm:mb-3">
+                                    <span className="text-darkBlue font-bold text-sm sm:text-base">Total:</span>
+                                    <span className="text-darkBlue font-bold text-base sm:text-lg whitespace-nowrap">${total.toFixed(2)}</span>
                                 </div>
 
                                 <button
                                     onClick={addToCart}
                                     disabled={total === 0 || isLoading}
-                                    className={`w-full font-bold py-3 sm:py-4 rounded-lg transition flex justify-between px-4 sm:px-6 items-center ${total > 0 && !isLoading
+                                    className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center ${total > 0 && !isLoading
                                         ? 'bg-primary text-white hover:bg-opacity-90 cursor-pointer'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}

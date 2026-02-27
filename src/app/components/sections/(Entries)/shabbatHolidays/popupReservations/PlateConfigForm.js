@@ -17,7 +17,7 @@ export const PlateConfigForm = ({
     editingIndex,
     showError,
     hideHeader = false,
-    rushOrderPrice = null,
+    isRushOrder = false,
     visibleStepIndex = null
 }) => {
     // Handle radio selection for a step
@@ -46,55 +46,49 @@ export const PlateConfigForm = ({
                 </div>
             )}
 
-            {/* Price Options - Rush Order or Regular */}
+            {/* Price Options */}
             {!isPWYWActive && (
-                rushOrderPrice !== null ? (
-                    // Rush Order Pricing - Fixed price, no options
-                    <div className="border border-amber-300 bg-amber-50 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-sm font-semibold text-darkBlue">
-                                Price
-                            </h3>
-                            <span className="text-sm font-bold text-amber-700">
-                                ${rushOrderPrice.toFixed(2)} per plate
-                            </span>
-                        </div>
-                        <p className="text-xs text-amber-600">
-                            Rush order pricing applies for orders placed within 24 hours of the event.
-                        </p>
-                    </div>
-                ) : guidedMenu?.plates_prices?.length > 0 ? (
-                    // Regular Price Options
+                guidedMenu?.plates_prices?.length > 0 ? (
                     <div className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
                         <h3 className="text-sm md:text-sm lg:text-sm font-semibold text-darkBlue mb-2">
                             Plate Type
                         </h3>
                         <div className="space-y-2">
-                            {guidedMenu.plates_prices.map((option) => (
-                                <label
-                                    key={option.id}
-                                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                                        priceOption?.id === option.id
-                                            ? 'bg-primary/10 border border-primary'
-                                            : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
-                                    }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="plate-price-form"
-                                        checked={priceOption?.id === option.id}
-                                        onChange={() => setPriceOption(option)}
-                                        className="w-3.5 h-3.5 text-primary cursor-pointer"
-                                    />
-                                    <span className="text-xs font-medium text-darkBlue">
-                                        {option.Text}
-                                    </span>
-                                    <span className="text-xs text-gray-500 ml-auto">
-                                        ${option.price} per plate
-                                    </span>
-                                </label>
-                            ))}
+                            {guidedMenu.plates_prices.map((option) => {
+                                const hasRush = isRushOrder && option.active_rush && option.rush_price != null;
+                                const displayPrice = hasRush ? parseFloat(option.rush_price) : parseFloat(option.price);
+                                return (
+                                    <label
+                                        key={option.id}
+                                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                                            priceOption?.id === option.id
+                                                ? hasRush ? 'bg-rush-bg border border-rush-border' : 'bg-primary/10 border border-primary'
+                                                : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="plate-price-form"
+                                            checked={priceOption?.id === option.id}
+                                            onChange={() => setPriceOption(option)}
+                                            className="w-3.5 h-3.5 text-primary cursor-pointer"
+                                        />
+                                        <span className="text-xs font-medium text-darkBlue">
+                                            {option.Text}
+                                        </span>
+                                        <span className={`text-xs ml-auto ${hasRush ? 'font-bold text-rush' : 'text-gray-500'}`}>
+                                            {hasRush && <span className="line-through text-gray-400 mr-1">${parseFloat(option.price).toFixed(2)}</span>}
+                                            ${displayPrice.toFixed(2)} per plate
+                                        </span>
+                                    </label>
+                                );
+                            })}
                         </div>
+                        {isRushOrder && guidedMenu.plates_prices.some(o => o.active_rush) && (
+                            <p className="text-xs text-rush mt-2">
+                                Rush order pricing applies for orders placed within 24 hours of the event.
+                            </p>
+                        )}
                     </div>
                 ) : (
                     // Fallback: No prices = Free

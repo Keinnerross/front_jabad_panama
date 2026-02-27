@@ -153,29 +153,31 @@ export const TimeSelectorModal = ({
     onClose,
     selectedTime,
     setSelectedTime,
-    setShowTimeError
+    setShowTimeError,
+    hourStart = 8,
+    hourEnd = 23
 }) => {
     // Check if current selection is ASAP
     const [isASAP, setIsASAP] = useState(selectedTime === 'ASAP');
 
-    // Parse initial time or default to 12:00
+    // Parse initial time, default to hourStart
     const parseTime = (time) => {
         if (time && time !== 'ASAP') {
             const [h, m] = time.split(':').map(Number);
             return { hour: h, minute: m };
         }
-        return { hour: 9, minute: 0 };
+        return { hour: hourStart, minute: 0 };
     };
 
     const initialTime = parseTime(selectedTime);
     const [selectedHour, setSelectedHour] = useState(initialTime.hour);
     const [selectedMinute, setSelectedMinute] = useState(initialTime.minute);
 
-    // Hours: 8-23
-    const hours = Array.from({ length: 16 }, (_, i) => 8 + i);
+    // Hours: dynamic range from hourStart to hourEnd
+    const hours = Array.from({ length: hourEnd - hourStart + 1 }, (_, i) => hourStart + i);
 
-    // Minutes: 00, 15, 30, 45
-    const minutes = [0, 15, 30, 45];
+    // Minutes: 00, 30
+    const minutes = [0, 30];
 
     // Handle ASAP selection
     const handleASAPSelect = () => {

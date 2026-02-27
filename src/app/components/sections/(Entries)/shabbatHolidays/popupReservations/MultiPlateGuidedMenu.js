@@ -16,7 +16,7 @@ export const MultiPlateGuidedMenu = ({
     isPWYWActive,
     showError,
     setShowError,
-    rushOrderPrice = null
+    isRushOrder = false
 }) => {
     // Modal state
     const [showModal, setShowModal] = useState(false);
@@ -120,12 +120,17 @@ export const MultiPlateGuidedMenu = ({
         setConfiguredPlates(prev => prev.filter((_, idx) => idx !== index));
     };
 
+    // Helper: get effective price for a plate option considering per-plate rush pricing
+    const getPlatePrice = (priceOption) => {
+        if (isRushOrder && priceOption?.active_rush && priceOption?.rush_price != null) {
+            return parseFloat(priceOption.rush_price);
+        }
+        return parseFloat(priceOption?.price || 0);
+    };
+
     // Calculate total price of all plates
     const totalPrice = configuredPlates.reduce((sum, plate) => {
-        const platePrice = rushOrderPrice !== null
-            ? rushOrderPrice
-            : parseFloat(plate.priceOption?.price || 0);
-        return sum + platePrice;
+        return sum + getPlatePrice(plate.priceOption);
     }, 0);
 
     return (
@@ -162,7 +167,7 @@ export const MultiPlateGuidedMenu = ({
                             onRemove={() => removePlate(index)}
                             isEditing={false}
                             isPWYWActive={isPWYWActive}
-                            rushOrderPrice={rushOrderPrice}
+                            isRushOrder={isRushOrder}
                         />
                     ))}
                 </div>
@@ -205,7 +210,7 @@ export const MultiPlateGuidedMenu = ({
                 showError={formError}
                 onSave={handleSave}
                 onCancel={handleCancel}
-                rushOrderPrice={rushOrderPrice}
+                isRushOrder={isRushOrder}
             />
         </div>
     );

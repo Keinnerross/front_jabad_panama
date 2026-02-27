@@ -1,7 +1,7 @@
 'use client'
 import Image from "next/image";
 import { useCart } from "../../../context/CartContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { loadStripe } from '@stripe/stripe-js';
 import { getAssetPath } from "@/app/utils/assetPath";
@@ -39,9 +39,20 @@ export default function Checkout() {
         setMounted(true);
     }, []);
 
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (judaismDropdownRef.current && !judaismDropdownRef.current.contains(e.target)) {
+                setJudaismDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     // Check if korea_inputs is enabled
     const koreaInputsEnabled = checkoutSettings?.korea_inputs === true;
-    const nationalityEnabled = checkoutSettings?.nationality === true;
+    const nationalityEnabled = checkoutSettings?.nacionality === true;
+    const hasDeliveryItem = mounted && cartItems?.some(item => item.deliveryType === 'delivery');
 
     // Get country name from platform settings for dynamic labels
     const countryName = platformSettings?.pais || 'the country';
@@ -60,7 +71,7 @@ export default function Checkout() {
         // Korea fields
         koreaConnection: '',
         koreaConnectionOther: '',
-        judaismConnection: '',
+        judaismConnection: [],
         sponsorship: '',
         sponsorshipOther: '',
         localPhone: ''
@@ -69,6 +80,8 @@ export default function Checkout() {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [expandedItems, setExpandedItems] = useState({});
+    const [judaismDropdownOpen, setJudaismDropdownOpen] = useState(false);
+    const judaismDropdownRef = useRef(null);
 
     // Toggle item expansion for showing order details
     const toggleItemExpand = (index) => {
@@ -115,6 +128,31 @@ export default function Checkout() {
         return subtotal + transactionFee;
     };
 
+    // Judaism connection options for multiselect
+    const judaismOptions = [
+        { value: 'father_jewish', label: 'My father is Jewish' },
+        { value: 'mother_jewish', label: 'My mother is Jewish' },
+        { value: 'mother_converted_reform', label: 'My mother converted Reform' },
+        { value: 'mother_converted_conservative', label: 'My mother converted Conservative' },
+        { value: 'mother_converted_orthodox', label: 'My mother converted Orthodox' },
+        { value: 'i_converted', label: 'I converted (specify details in note)' },
+        { value: 'not_jewish', label: 'I am not Jewish' },
+    ];
+
+    // Handle judaism connection checkbox toggle
+    const handleJudaismToggle = (value) => {
+        setFormData(prev => {
+            const current = prev.judaismConnection;
+            const updated = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, judaismConnection: updated };
+        });
+        if (errors.judaismConnection) {
+            setErrors(prev => ({ ...prev, judaismConnection: '' }));
+        }
+    };
+
     // Handle input changes
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -136,8 +174,8 @@ export default function Checkout() {
         // Campos requeridos para notificaciones completas
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (nationalityEnabled && !formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+        if (nationalityEnabled && !koreaInputsEnabled && !formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
+        if (!koreaInputsEnabled && !formData.phone.trim()) newErrors.phone = 'Phone number is required';
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -153,10 +191,10 @@ export default function Checkout() {
             } else if (formData.koreaConnection === 'other' && !formData.koreaConnectionOther.trim()) {
                 newErrors.koreaConnectionOther = 'Please specify your connection to Korea';
             }
-            if (!formData.judaismConnection) {
+            if (!formData.judaismConnection || formData.judaismConnection.length === 0) {
                 newErrors.judaismConnection = 'Please select your connection to Judaism';
             }
-            if (!formData.localPhone.trim()) {
+            if (hasDeliveryItem && !formData.localPhone.trim()) {
                 newErrors.localPhone = `Local phone number in ${countryName} is required`;
             }
         }
@@ -311,7 +349,7 @@ export default function Checkout() {
                     ...(koreaInputsEnabled && {
                         koreaConnection: formData.koreaConnection,
                         koreaConnectionOther: formData.koreaConnectionOther || '',
-                        judaismConnection: formData.judaismConnection,
+                        judaismConnection: Array.isArray(formData.judaismConnection) ? formData.judaismConnection.join(', ') : formData.judaismConnection,
                         sponsorship: formData.sponsorship || '',
                         sponsorshipAmount: getSponsorshipAmount().toString(),
                         localPhone: formData.localPhone || ''
@@ -701,7 +739,7 @@ export default function Checkout() {
                                     {/* Nationality */}
                                     {nationalityEnabled && (
                                     <div>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Nationality *</label>
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Nationality{!koreaInputsEnabled && ' *'}</label>
                                         <input
                                             type="text"
                                             name="nationality"
@@ -715,8 +753,8 @@ export default function Checkout() {
                                     )}
 
                                     {/* Phone Number */}
-                                    <div>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Phone Number *</label>
+                                    <div className={!nationalityEnabled ? 'sm:col-span-2' : ''}>
+                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Phone Number{!koreaInputsEnabled && ' *'}</label>
                                         <input
                                             type="tel"
                                             name="phone"
@@ -765,7 +803,8 @@ export default function Checkout() {
                                         {errors.koreaConnection && <p className="text-red-500 text-xs mt-2">{errors.koreaConnection}</p>}
                                     </fieldset>
 
-                                    {/* Local Phone Number in Country */}
+                                    {/* Local Phone Number in Country - only shown for delivery items */}
+                                    {hasDeliveryItem && (
                                     <fieldset>
                                         <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName} *`}</legend>
                                         <p className="text-gray-500 text-xs xs:text-sm mb-2">{`For deliveries, we must have a local phone number in ${countryName}. You may use your hotel's number.`}</p>
@@ -779,27 +818,61 @@ export default function Checkout() {
                                         />
                                         {errors.localPhone && <p className="text-red-500 text-xs mt-1">{errors.localPhone}</p>}
                                     </fieldset>
+                                    )}
 
-                                    {/* My Connection to Judaism Section */}
-                                    <fieldset>
+                                    {/* My Connection to Judaism Section - Multiselect Dropdown */}
+                                    <fieldset ref={judaismDropdownRef} className="relative">
                                         <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">My Connection to Judaism *</legend>
-                                        <div className="space-y-3">
-                                            <select
-                                                name="judaismConnection"
-                                                value={formData.judaismConnection}
-                                                onChange={handleInputChange}
-                                                className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.judaismConnection ? 'border-red-500' : 'border-gray-200'}`}
-                                            >
-                                                <option value="">Select your connection to Judaism...</option>
-                                                <option value="father_jewish">My father is Jewish</option>
-                                                <option value="mother_jewish">My mother is Jewish</option>
-                                                <option value="mother_converted_reform">My mother converted Reform</option>
-                                                <option value="mother_converted_conservative">My mother converted Conservative</option>
-                                                <option value="mother_converted_orthodox">My mother converted Orthodox</option>
-                                                <option value="i_converted">I converted (specify details in note)</option>
-                                                <option value="not_jewish">I am not Jewish</option>
-                                            </select>
-                                        </div>
+                                        <p className="text-gray-500 text-xs xs:text-sm mb-2">Select all that apply</p>
+
+                                        {/* Trigger button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setJudaismDropdownOpen(!judaismDropdownOpen)}
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 min-h-[2.5rem] xs:min-h-[3rem] sm:min-h-[3.5rem] text-left flex items-center justify-between transition-colors cursor-pointer ${errors.judaismConnection ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                                        >
+                                            <div className="flex flex-wrap gap-1.5 flex-1">
+                                                {formData.judaismConnection.length === 0 ? (
+                                                    <span className="text-gray-400 text-sm">Select your connection...</span>
+                                                ) : (
+                                                    formData.judaismConnection.map(val => {
+                                                        const opt = judaismOptions.find(o => o.value === val);
+                                                        return (
+                                                            <span key={val} className="bg-primary/15 text-primary text-xs px-3 py-1 rounded-full font-medium">
+                                                                {opt?.label}
+                                                            </span>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                            <svg className={`w-4 h-4 xs:w-5 xs:h-5 text-gray-400 shrink-0 ml-2 transition-transform ${judaismDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Dropdown panel */}
+                                        {judaismDropdownOpen && (
+                                            <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-2">
+                                                {judaismOptions.map((option) => (
+                                                    <label key={option.value} className="flex items-center gap-2.5 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.judaismConnection.includes(option.value)}
+                                                            onChange={() => handleJudaismToggle(option.value)}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <div className="w-4 h-4 xs:w-5 xs:h-5 rounded border-2 border-gray-300 shrink-0 flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-colors">
+                                                            {formData.judaismConnection.includes(option.value) && (
+                                                                <svg className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm xs:text-base text-gray-text">{option.label}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
                                         {errors.judaismConnection && <p className="text-red-500 text-xs mt-2">{errors.judaismConnection}</p>}
                                     </fieldset>
 

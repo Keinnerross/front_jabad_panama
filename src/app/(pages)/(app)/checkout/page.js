@@ -197,6 +197,9 @@ export default function Checkout() {
             if (hasDeliveryItem && !formData.localPhone.trim()) {
                 newErrors.localPhone = `Local phone number in ${countryName} is required`;
             }
+            if (formData.sponsorship === 'other' && (!formData.sponsorshipOther || parseFloat(formData.sponsorshipOther) <= 0)) {
+                newErrors.sponsorshipOther = 'Please enter a valid sponsorship amount';
+            }
         }
 
         setErrors(newErrors);
@@ -221,21 +224,6 @@ export default function Checkout() {
             const isShabbatBox = orderType === 'shabbatBox';         // Shabbat Box  
             const isTraditionalShabbat = orderType === 'mealReservation' && !firstItem.isCustomEvent; // Shabbat/Holiday tradicional (solo si NO es custom event)
             
-            // Logs para debugging de detección de tipo de orden
-            console.log('🛒 Checkout order detection (SIMPLIFIED):', {
-                firstItem_productType: firstItem.productType,
-                firstItem_isCustomEvent: firstItem.isCustomEvent,
-                firstItem_shabbatName: firstItem.shabbatName,
-                firstItem_eventName: firstItem.shabbatName, // DEBUG: Verificar nombre del evento
-                DETECTION_RESULTS: {
-                    isCustomEvent: isCustomEvent,        // → orders
-                    isShabbatBox: isShabbatBox,          // → orders  
-                    isTraditionalShabbat: isTraditionalShabbat  // → shabbat-orders
-                },
-                cartItemsCount: cartItems.length,
-                eventNameToSend: isCustomEvent ? firstItem.shabbatName : 'N/A' // DEBUG: Ver qué se enviará
-            });
-
             // 2. Preparar datos para el pago
             const paymentData = {
                 customer: {
@@ -254,15 +242,6 @@ export default function Checkout() {
                     } else if (item.unitPrice) {
                         unitAmount = Math.round(item.unitPrice * 100);
                     }
-                    
-                    // Log para debug
-                    console.log('Line item:', {
-                        name: item.meal,
-                        quantity: item.quantity,
-                        totalPrice: item.totalPrice,
-                        unitPrice: item.unitPrice,
-                        calculatedUnitAmount: unitAmount
-                    });
                     
                     // Validar que tenemos valores válidos (allow $0 for PWYW items)
                     if ((!unitAmount && unitAmount !== 0) || unitAmount < 0 || !item.quantity || item.quantity <= 0) {
@@ -357,29 +336,6 @@ export default function Checkout() {
                 }
             };
             
-            // Logs para debugging de metadata que se envía a Stripe
-            console.log('🛒 Checkout metadata being sent to Stripe (SIMPLIFIED):', {
-                orderType: paymentData.metadata.orderType,
-                isCustomEvent_inMetadata: paymentData.metadata.isCustomEvent,
-                eventName: firstItem.shabbatName,
-                FINAL_ROUTING: {
-                    willGoTo_orders_customEvent: isCustomEvent,
-                    willGoTo_orders_shabbatBox: isShabbatBox,
-                    willGoTo_shabbatOrders_traditional: isTraditionalShabbat
-                },
-                customEventFields: isCustomEvent ? {
-                    deliveryType: paymentData.metadata.deliveryType,
-                    deliveryAddress: paymentData.metadata.deliveryAddress,
-                    customEventType: paymentData.metadata.customEventType,
-                    eventName: paymentData.metadata.eventName,
-                    eventDate: paymentData.metadata.eventDate
-                } : 'N/A - Not custom event',
-                shabbatBoxFields: isShabbatBox ? {
-                    deliveryType: paymentData.metadata.deliveryType,
-                    shabbat_name: paymentData.metadata.shabbat_name
-                } : 'N/A - Not shabbat box'
-            });
-
             // 3. Si hay donación, agregarla como ítem adicional
             if (paymentData.donation > 0) {
                 paymentData.line_items.push({
@@ -436,7 +392,6 @@ export default function Checkout() {
             const grandTotal = calculateGrandTotal();
             if (grandTotal === 0 && isFreeRegistration) {
                 // Free registration - skip Stripe
-                console.log('🆓 Free registration detected, skipping Stripe');
                 const freeApiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/free-registration/`;
                 const response = await fetch(freeApiUrl, {
                     method: 'POST',
@@ -456,7 +411,6 @@ export default function Checkout() {
                 }
 
                 const result = await response.json();
-                console.log('✅ Free registration successful:', result.orderId);
 
                 // Redirect to success page
                 window.location.href = getFullUrl('/success?free=true');
@@ -464,9 +418,7 @@ export default function Checkout() {
             }
 
             // 5. Crear sesión de pago (paid flow only)
-            console.log('BASE_PATH:', process.env.NEXT_PUBLIC_BASE_PATH);
             const apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/checkout/`;
-            console.log('API URL:', apiUrl);
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

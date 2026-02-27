@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
@@ -74,6 +74,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         clearAndAddPending,
         closeConflictModal
     } = useCart();
+    const isSubmittingRef = useRef(false);
 
     // Determinar si se debe mostrar opciones de delivery
     const isDeliveryEvent = eventType === 'delivery';
@@ -192,6 +193,15 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             document.body.style.overflow = 'unset';
         };
     }, [isOpen, enableLocalPricing, isCustomEvent]);
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && isOpen) handleModal(false);
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, handleModal]);
 
     // Filter meals based on pricing category for traditional Shabbat
     const filteredMeals = useMemo(() => {
@@ -407,26 +417,33 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
     const hasItems = hasGuidedMenuItems || hasExtrasItems;
 
     // Calculate final amount (PWYW or regular total)
+    const parsedAmount = parseFloat(customAmount);
     const finalAmount = isPWYWActive
-        ? (customAmount !== '' && parseFloat(customAmount) > 0 ? parseFloat(customAmount) : 0)
+        ? (!isNaN(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0)
         : total;
 
     const addToCart = async () => {
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
+
         // Validar fecha para eventos custom
         if (isCustomEvent && !selectedDate) {
             setShowDateError(true);
+            isSubmittingRef.current = false;
             return;
         }
 
         // Validar hora para eventos custom con order_hour activo
         if (isCustomEvent && requiresTimeSelection && !selectedTime) {
             setShowTimeError(true);
+            isSubmittingRef.current = false;
             return;
         }
 
         // Validar que se haya elegido una opción de delivery
         if (isDeliveryEvent && !deliveryType) {
             setShowDeliveryError(true);
+            isSubmittingRef.current = false;
             return;
         }
 
@@ -435,12 +452,14 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             // Validate delivery address/details
             if (!deliveryAddress.trim()) {
                 setShowDeliveryError(true);
+                isSubmittingRef.current = false;
                 return;
             }
             if (deliveryZonesConfig.useZones) {
                 // Validar que se haya seleccionado una zona
                 if (!selectedDeliveryZone) {
                     setShowDeliveryError(true);
+                    isSubmittingRef.current = false;
                     return;
                 }
             }
@@ -449,6 +468,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
         // Validate at least one plate is configured for Multi-Plate Guided Menu
         if (isCustomEvent && shabbatData?.base_meal_options_active && configuredPlates.length === 0) {
             setShowGuidedMenuError(true);
+            isSubmittingRef.current = false;
             return;
         }
 
@@ -713,18 +733,22 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
 
                 // Redirigir al checkout
                 setIsLoading(false);
+                isSubmittingRef.current = false;
                 handleModal(false);
                 router.push('/checkout');
             } else if (result === 'conflict') {
                 // Conflict modal is shown - stop loading but don't close popup
                 setIsLoading(false);
+                isSubmittingRef.current = false;
                 // Modal is handled by CartConflictModal component
             } else {
                 // No redirigir si hay error
                 setIsLoading(false);
+                isSubmittingRef.current = false;
             }
         } else {
             setIsLoading(false);
+            isSubmittingRef.current = false;
         }
     };
 

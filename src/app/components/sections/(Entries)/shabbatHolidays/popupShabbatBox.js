@@ -43,6 +43,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
         closeConflictModal
     } = useCart();
     const scrollContainerRef = useRef(null);
+    const isSubmittingRef = useRef(false);
 
     // PWYW is active when the site config flag is true
     const isPWYWActive = pwywSiteConfigData === true;
@@ -53,7 +54,13 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
-            setCustomAmount(''); // Reset PWYW custom amount
+            setCustomAmount('');
+            setSelectedShabbat(null);
+            setShowDateError(false);
+            setShowDeliveryError(false);
+            setDeliveryType('pickup');
+            setDeliveryAddress('');
+            setActiveTab('');
         }
 
         // Cleanup al desmontar
@@ -61,6 +68,15 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
             document.body.style.overflow = 'unset';
         };
     }, [isOpen]);
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && isOpen) handleModal(false);
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, handleModal]);
 
     // No auto-initialize first Shabbat - required field for user selection
 
@@ -173,20 +189,26 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
     const hasItems = Object.values(quantities).some(qty => qty > 0);
 
     // Calculate final amount (PWYW or regular total)
+    const parsedAmount = parseFloat(customAmount);
     const finalAmount = isPWYWActive
-        ? (customAmount !== '' && parseFloat(customAmount) > 0 ? parseFloat(customAmount) : 0)
+        ? (!isNaN(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0)
         : total;
 
     const addToCart = async () => {
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
+
         // Validar que se haya seleccionado un Shabbat
         if (!selectedShabbat) {
             setShowDateError(true);
+            isSubmittingRef.current = false;
             return;
         }
 
         // Validar dirección si es delivery
         if (deliveryType === 'delivery' && !deliveryAddress.trim()) {
             setShowDeliveryError(true);
+            isSubmittingRef.current = false;
             return;
         }
 
@@ -307,18 +329,22 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
                 // Redirigir al checkout
                 setIsLoading(false);
+                isSubmittingRef.current = false;
                 handleModal(false);
                 router.push('/checkout');
             } else if (result === 'conflict') {
                 // Conflict modal is shown - stop loading but don't close popup
                 setIsLoading(false);
+                isSubmittingRef.current = false;
                 // Modal is handled by CartConflictModal component
             } else {
                 // No redirigir si hay error
                 setIsLoading(false);
+                isSubmittingRef.current = false;
             }
         } else {
             setIsLoading(false);
+            isSubmittingRef.current = false;
         }
     };
 
@@ -383,23 +409,27 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                     }}
                                 >
                                     <option value="">Select a Shabbat or Holiday</option>
-                                    {(Array.isArray(upcomingShabbatEvents) ? upcomingShabbatEvents : [])
-                                        .filter(event => {
-                                            // Verificar que tenga date válido
-                                            if (!event.date) return false;
-                                            const eventDate = new Date(event.date);
-                                            const today = new Date();
-                                            today.setHours(0, 0, 0, 0);
-                                            return eventDate >= today;
-                                        })
-                                        .sort((a, b) => new Date(a.date) - new Date(b.date))
-                                        .map((event, index) => {
-                                            return (
-                                                <option key={event.id || index} value={upcomingShabbatEvents.findIndex(s => s.id === event.id)}>
-                                                    {event.title} - {event.formattedDate || 'Date not available'}
-                                                </option>
-                                            );
-                                        })}
+                                    {(() => {
+                                        const filteredEvents = (Array.isArray(upcomingShabbatEvents) ? upcomingShabbatEvents : [])
+                                            .filter(event => {
+                                                if (!event.date) return false;
+                                                const eventDate = new Date(event.date);
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0);
+                                                return eventDate >= today;
+                                            })
+                                            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                                        if (filteredEvents.length === 0) {
+                                            return <option disabled>No upcoming events available</option>;
+                                        }
+
+                                        return filteredEvents.map((event, index) => (
+                                            <option key={event.id || index} value={upcomingShabbatEvents.findIndex(s => s.id === event.id)}>
+                                                {event.title} - {event.formattedDate || 'Date not available'}
+                                            </option>
+                                        ));
+                                    })()}
                                 </select>
                                 {showDateError && (
                                     <p className="text-red-500 text-sm mt-1">Please select a Shabbat or Holiday to continue</p>
@@ -500,6 +530,9 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                     {/* Scrollable Options */}
                     <div ref={scrollContainerRef} className="flex-1 p-3 sm:p-4 lg:p-5 pt-3 overflow-y-auto">
                         <div className="space-y-4 md:space-y-5">
+                            {(!currentCategory?.options || currentCategory.options.length === 0) && (
+                                <p className="text-gray-500 text-center py-8">No options available</p>
+                            )}
                             {currentCategory?.options.map((option) => (
                                 <div key={option.id} className="border border-gray-200 rounded-lg p-4">
                                     <h3 className="text-lg font-semibold text-darkBlue mb-2">
@@ -677,9 +710,9 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                 {/* Add to Cart Button */}
                                 <button
                                     onClick={addToCart}
-                                    disabled={!hasItems || isLoading || finalAmount === 0}
+                                    disabled={!hasItems || isLoading || (finalAmount === 0 && !isPWYWActive)}
                                     className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center ${
-                                        hasItems && !isLoading && finalAmount > 0
+                                        hasItems && !isLoading && (finalAmount > 0 || isPWYWActive)
                                             ? 'bg-primary text-white hover:bg-opacity-90 cursor-pointer'
                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     }`}
@@ -707,7 +740,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
 
                                 <button
                                     onClick={addToCart}
-                                    disabled={total === 0 || isLoading}
+                                    disabled={!hasItems || total === 0 || isLoading}
                                     className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center ${total > 0 && !isLoading
                                         ? 'bg-primary text-white hover:bg-opacity-90 cursor-pointer'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'

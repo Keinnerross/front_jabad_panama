@@ -211,8 +211,8 @@ export async function getUpcomingShabbatEvents(locationConfig = null) {
             cfg: 'json',
             v: '1',
             s: 'on', // Include Parashat ha-Shavuah
-            maj: 'on', // Include major holidays
-            min: 'off', // Exclude minor holidays for simplicity
+            maj: 'off', // Exclude major holidays
+            min: 'off', // Exclude minor holidays
             geonameid: geonameidForApi,
             start: today.toISOString().split('T')[0],
             end: endDate.toISOString().split('T')[0],

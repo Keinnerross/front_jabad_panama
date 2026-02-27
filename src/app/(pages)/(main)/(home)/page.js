@@ -72,7 +72,7 @@ export default async function Home() {
     <div className="overflow-x-hidden">
       <Hero siteConfig={siteConfig || {}} />
       <div className="w-full bg-blueBackground flex justify-center ">
-        <div className="w-full max-w-7xl px-4 sm:px-6 md:px-6 lg:px-4 z-10 -translate-y-[60px] sm:-translate-y-[40px] md:-translate-y-[50px] lg:-translate-y-[0] 2xl:-translate-y-[70px]  ">
+        <div className="w-full max-w-7xl px-4 sm:px-6 md:px-6 lg:px-4 z-10 -translate-y-[60px] sm:-translate-y-[40px] md:-translate-y-[50px] lg:-translate-y-[70px] 2xl:-translate-y-[70px]  ">
           <CardsHeroWrapper platformSettings={platformSettings} />
         </div>
       </div>

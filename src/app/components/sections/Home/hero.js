@@ -102,36 +102,19 @@ export const Hero = ({ siteConfig }) => {
                     Visitor Information
                 </Link>
             </div>
+
             <style jsx>{`
                 @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                    }
-                    to {
-                        opacity: 0.5;
-                    }
+                    from { opacity: 0; }
+                    to { opacity: 0.5; }
                 }
-
                 @keyframes fadeInZoom {
-                    from {
-                        opacity: 0;
-                        transform: scale(1.1);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
+                    from { opacity: 0; transform: scale(1.1); }
+                    to { opacity: 1; transform: scale(1); }
                 }
-
                 @keyframes slideUpFade {
-                    from {
-                        opacity: 0;
-                        transform: translateY(2rem);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    from { opacity: 0; transform: translateY(2rem); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
         </section>

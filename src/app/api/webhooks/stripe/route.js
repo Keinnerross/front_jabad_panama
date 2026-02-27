@@ -23,7 +23,8 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(request) {
   const body = await request.text();
-  const signature = headers().get('stripe-signature');
+  const headersList = await headers();
+  const signature = headersList.get('stripe-signature');
 
   let event;
 
@@ -96,53 +97,53 @@ async function handleCheckoutSessionCompleted(session) {
       // Manejar suscripciones (donaciones recurrentes)
       let subscription = await stripe.subscriptions.retrieve(session.subscription);
       console.log('Subscription created:', subscription.id);
-      
+
       // Obtener metadata de la sesión
       const metadata = session.metadata || {};
-      
+
       // Si es una suscripción limitada, programar cancelación
       if (metadata.subscriptionType === 'limited' && metadata.cancel_at_timestamp) {
         const cancelAt = parseInt(metadata.cancel_at_timestamp);
         console.log(`📅 Setting subscription to auto-cancel at timestamp: ${cancelAt}`);
-        
+
         // Actualizar la suscripción con la fecha de cancelación
         subscription = await stripe.subscriptions.update(subscription.id, {
           cancel_at: cancelAt
         });
-        
+
         const cancelDate = new Date(cancelAt * 1000);
         console.log(`✅ Subscription ${subscription.id} will auto-cancel on: ${cancelDate.toISOString()}`);
       }
-      
+
       // Log de información de cancelación si existe
       if (subscription.cancel_at) {
         const cancelDate = new Date(subscription.cancel_at * 1000);
         console.log(`📅 Subscription scheduled to auto-cancel on: ${cancelDate.toISOString()}`);
       }
 
-      // Enviar emails de confirmación de donación
+      // Construir datos del cliente y donación (siempre, independiente de email config)
+      const customerInfo = {
+        email: session.customer_email || session.customer_details?.email || 'unknown@email.com',
+        firstName: metadata.customer_firstName || '',
+        lastName: metadata.customer_lastName || '',
+        phone: metadata.customer_phone || '',
+        nationality: metadata.customer_nationality || ''
+      };
+
+      const donationData = {
+        customer: customerInfo,
+        amount: session.amount_total / 100,
+        frequency: metadata.frequency || 'monthly',
+        donationType: 'subscription',
+        metadata: {
+          ...metadata,
+          sessionId: session.id,
+          subscriptionId: subscription.id
+        }
+      };
+
+      // Enviar emails de confirmación (condicional a email config)
       if (validateEmailConfig() && notificationEmail) {
-        const customerInfo = {
-          email: session.customer_email || session.customer_details?.email || 'unknown@email.com',
-          firstName: metadata.customer_firstName || '',
-          lastName: metadata.customer_lastName || '',
-          phone: metadata.customer_phone || '',
-          nationality: metadata.customer_nationality || ''
-        };
-
-        const donationData = {
-          customer: customerInfo,
-          amount: session.amount_total / 100, // Convertir de centavos
-          frequency: metadata.frequency || 'monthly',
-          donationType: 'subscription',
-          metadata: {
-            ...metadata,
-            sessionId: session.id,
-            subscriptionId: subscription.id
-          }
-        };
-
-        // Enviar notificación al admin
         try {
           const adminResult = await sendDonationNotification(notificationEmail, donationData);
           if (adminResult.success) {
@@ -152,7 +153,6 @@ async function handleCheckoutSessionCompleted(session) {
           handleNotificationError(error, 'webhook donation notification');
         }
 
-        // Enviar confirmación al usuario
         try {
           const userResult = await sendUserDonationConfirmation(customerInfo.email, donationData);
           if (userResult.success) {
@@ -161,49 +161,49 @@ async function handleCheckoutSessionCompleted(session) {
         } catch (error) {
           handleNotificationError(error, 'webhook user donation confirmation');
         }
+      }
 
-        // Guardar donación de suscripción en Strapi después de emails exitosos
-        try {
-          const strapiResult = await saveDonationToStrapi(session, metadata, 'subscription');
-          if (strapiResult) {
-            console.log('✅ Subscription donation successfully saved to Strapi:', strapiResult.data?.documentId);
-          }
-        } catch (error) {
-          console.error('❌ Failed to save subscription donation to Strapi:', error);
+      // Guardar donación de suscripción en Strapi (siempre)
+      try {
+        const strapiResult = await saveDonationToStrapi(session, metadata, 'subscription');
+        if (strapiResult) {
+          console.log('✅ Subscription donation successfully saved to Strapi:', strapiResult.data?.documentId);
         }
+      } catch (error) {
+        console.error('❌ Failed to save subscription donation to Strapi:', error);
       }
 
     } else if (session.mode === 'payment') {
       // Manejar pagos únicos (pedidos/donaciones únicas)
       const metadata = session.metadata || {};
-      
-      if (validateEmailConfig() && notificationEmail) {
-        const customerInfo = {
-          email: session.customer_email || session.customer_details?.email || 'unknown@email.com',
-          firstName: metadata.customer_firstName || '',
-          lastName: metadata.customer_lastName || '',
-          phone: metadata.customer_phone || '',
-          nationality: metadata.customer_nationality || ''
+
+      // Construir datos del cliente (siempre, independiente de email config)
+      const customerInfo = {
+        email: session.customer_email || session.customer_details?.email || 'unknown@email.com',
+        firstName: metadata.customer_firstName || '',
+        lastName: metadata.customer_lastName || '',
+        phone: metadata.customer_phone || '',
+        nationality: metadata.customer_nationality || ''
+      };
+
+      // Verificar si es donación única o pedido regular
+      const isDonation = metadata.purpose === 'Donation' ||
+                        metadata.donationType === 'one-time';
+
+      if (isDonation) {
+        const donationData = {
+          customer: customerInfo,
+          amount: session.amount_total / 100,
+          frequency: 'one-time',
+          donationType: 'one-time',
+          metadata: {
+            ...metadata,
+            sessionId: session.id
+          }
         };
 
-        // Verificar si es donación única o pedido regular
-        const isDonation = metadata.purpose === 'Donation' || 
-                          metadata.donationType === 'one-time';
-
-        if (isDonation) {
-          // Enviar emails de donación única
-          const donationData = {
-            customer: customerInfo,
-            amount: session.amount_total / 100,
-            frequency: 'one-time',
-            donationType: 'one-time',
-            metadata: {
-              ...metadata,
-              sessionId: session.id
-            }
-          };
-
-          // Notificación al admin
+        // Enviar emails (condicional a email config)
+        if (validateEmailConfig() && notificationEmail) {
           try {
             const adminResult = await sendDonationNotification(notificationEmail, donationData);
             if (adminResult.success) {
@@ -213,7 +213,6 @@ async function handleCheckoutSessionCompleted(session) {
             handleNotificationError(error, 'webhook donation notification');
           }
 
-          // Confirmación al usuario
           try {
             const userResult = await sendUserDonationConfirmation(customerInfo.email, donationData);
             if (userResult.success) {
@@ -222,59 +221,57 @@ async function handleCheckoutSessionCompleted(session) {
           } catch (error) {
             handleNotificationError(error, 'webhook user donation confirmation');
           }
+        }
 
-          // Guardar donación en Strapi después de emails exitosos
-          try {
-            const strapiResult = await saveDonationToStrapi(session, metadata, 'one-time');
-            if (strapiResult) {
-              console.log('✅ Donation successfully saved to Strapi:', strapiResult.data?.documentId);
-            }
-          } catch (error) {
-            console.error('❌ Failed to save donation to Strapi:', error);
+        // Guardar donación en Strapi (siempre)
+        try {
+          const strapiResult = await saveDonationToStrapi(session, metadata, 'one-time');
+          if (strapiResult) {
+            console.log('✅ Donation successfully saved to Strapi:', strapiResult.data?.documentId);
+          }
+        } catch (error) {
+          console.error('❌ Failed to save donation to Strapi:', error);
+        }
+
+      } else {
+        // Pedido regular - construir items y enrichedItems (siempre)
+        const items = session.line_items?.data ?
+          parseLineItems(session.line_items.data) :
+          [{ name: 'Order', price: session.amount_total / 100, quantity: 1 }];
+
+        const enrichedItems = items.map(item => {
+          const enrichedItem = { ...item };
+
+          if (item.productType === 'mealReservation' || metadata.orderType === 'reservation') {
+            enrichedItem.shabbatName = metadata.eventName || metadata.shabbatName || extractEventNameFromDescription(item.description);
+            enrichedItem.shabbatDate = metadata.eventDate || metadata.shabbatDate || metadata.serviceDate;
+            enrichedItem.eventType = 'Shabbat Meal';
           }
 
-        } else {
-          // Enviar emails de pedido regular
-          // Usar line_items de la sesión expandida si están disponibles
-          const items = session.line_items?.data ? 
-            parseLineItems(session.line_items.data) : 
-            [{ name: 'Order', price: session.amount_total / 100, quantity: 1 }];
-          
-          // Enriquecer items con información específica por tipo de producto desde metadata
-          const enrichedItems = items.map(item => {
-            const enrichedItem = { ...item };
-            
-            // Para reservas de comidas
-            if (item.productType === 'mealReservation' || metadata.orderType === 'reservation') {
-              enrichedItem.shabbatName = metadata.eventName || metadata.shabbatName || extractEventNameFromDescription(item.description);
-              enrichedItem.shabbatDate = metadata.eventDate || metadata.shabbatDate || metadata.serviceDate;
-              enrichedItem.eventType = 'Shabbat Meal';
-            }
-            
-            // Para Shabbat Box
-            if (item.productType === 'shabbatBox' || metadata.orderType === 'shabbatBox') {
-              enrichedItem.shabbatName = metadata.parashahName || extractParashahFromDescription(item.description);
-              enrichedItem.shabbatDate = metadata.deliveryDate || metadata.shabbatDate;
-              enrichedItem.eventType = 'Shabbat Box Delivery';
-            }
-            
-            return enrichedItem;
-          });
-          
-          const total = calculateTotal(enrichedItems, metadata.donation);
-          
-          const orderData = {
-            orderId: metadata.orderId || `ORDER-${session.id}`,
-            customer: customerInfo,
-            items: enrichedItems,
-            total,
-            metadata: {
-              ...metadata,
-              sessionId: session.id
-            }
-          };
+          if (item.productType === 'shabbatBox' || metadata.orderType === 'shabbatBox') {
+            enrichedItem.shabbatName = metadata.parashahName || extractParashahFromDescription(item.description);
+            enrichedItem.shabbatDate = metadata.deliveryDate || metadata.shabbatDate;
+            enrichedItem.eventType = 'Shabbat Box Delivery';
+          }
 
-          // Notificación al admin
+          return enrichedItem;
+        });
+
+        const total = calculateTotal(enrichedItems, metadata.donation);
+
+        const orderData = {
+          orderId: metadata.orderId || `ORDER-${session.id}`,
+          customer: customerInfo,
+          items: enrichedItems,
+          total,
+          metadata: {
+            ...metadata,
+            sessionId: session.id
+          }
+        };
+
+        // Enviar emails (condicional a email config)
+        if (validateEmailConfig() && notificationEmail) {
           try {
             const adminResult = await sendOrderNotification(notificationEmail, orderData);
             if (adminResult.success) {
@@ -284,7 +281,6 @@ async function handleCheckoutSessionCompleted(session) {
             handleNotificationError(error, 'webhook order notification');
           }
 
-          // Confirmación al usuario
           try {
             const userResult = await sendUserOrderConfirmation(customerInfo.email, orderData);
             if (userResult.success) {
@@ -293,58 +289,54 @@ async function handleCheckoutSessionCompleted(session) {
           } catch (error) {
             handleNotificationError(error, 'webhook user order confirmation');
           }
+        }
 
-          // Guardar orden en Strapi después de emails exitosos
-          // Decidir si es Shabbat/Holiday o una orden regular
-          const orderType = detectOrderType(metadata, enrichedItems);
-          
-          console.log('🔍 Order type detected:', orderType);
-          console.log('🔍 Metadata orderType:', metadata.orderType);
-          console.log('🔍 EventDate from metadata:', metadata.eventDate);
-          
-          if (orderType === 'shabbat or holiday') {
-            // Guardar en shabbat-orders
-            console.log('📝 Saving to shabbat-orders collection');
-            try {
-              const result = await saveShabbatOrder(session, metadata, enrichedItems);
-              if (result) {
-                console.log('✅ Shabbat order successfully saved to Strapi:', result.data?.documentId);
-              }
-            } catch (error) {
-              console.error('❌ Failed to save Shabbat order to Strapi:', error);
+        // Guardar orden en Strapi (siempre, independiente de email config)
+        const orderType = detectOrderType(metadata, enrichedItems);
+
+        console.log('🔍 Order type detected:', orderType);
+        console.log('🔍 Metadata orderType:', metadata.orderType);
+        console.log('🔍 EventDate from metadata:', metadata.eventDate);
+
+        if (orderType === 'shabbat or holiday') {
+          console.log('📝 Saving to shabbat-orders collection');
+          try {
+            const result = await saveShabbatOrder(session, metadata, enrichedItems);
+            if (result) {
+              console.log('✅ Shabbat order successfully saved to Strapi:', result.data?.documentId);
             }
-          } else if (orderType === 'shabbatBox') {
-            // Guardar Shabbat Box usando la función específica
-            console.log('📝 Saving Shabbat Box order');
-            console.log('📝 Session ID:', session.id);
-            console.log('📝 Metadata:', JSON.stringify(metadata));
-            try {
-              const result = await saveShabbatBoxOrder(session, metadata, enrichedItems);
-              if (result) {
-                console.log('✅ Shabbat Box order successfully saved to Strapi:', result.data?.documentId);
-              } else {
-                console.log('⚠️ saveShabbatBoxOrder returned null or undefined');
-              }
-            } catch (error) {
-              console.error('❌ Failed to save Shabbat Box order to Strapi:', error);
-              console.error('❌ Full error:', JSON.stringify(error));
+          } catch (error) {
+            console.error('❌ Failed to save Shabbat order to Strapi:', error);
+          }
+        } else if (orderType === 'shabbatBox') {
+          console.log('📝 Saving Shabbat Box order');
+          console.log('📝 Session ID:', session.id);
+          console.log('📝 Metadata:', JSON.stringify(metadata));
+          try {
+            const result = await saveShabbatBoxOrder(session, metadata, enrichedItems);
+            if (result) {
+              console.log('✅ Shabbat Box order successfully saved to Strapi:', result.data?.documentId);
+            } else {
+              console.log('⚠️ saveShabbatBoxOrder returned null or undefined');
             }
-          } else if (orderType === 'customEvent') {
-            // Guardar Custom Event usando la función específica
-            console.log('📝 Saving Custom Event order');
-            console.log('📝 Session ID:', session.id);
-            console.log('📝 Metadata:', JSON.stringify(metadata));
-            try {
-              const result = await saveCustomEventDeliveryOrder(session, metadata, enrichedItems);
-              if (result) {
-                console.log('✅ Custom Event order successfully saved to Strapi:', result.data?.documentId);
-              } else {
-                console.log('⚠️ saveCustomEventDeliveryOrder returned null or undefined');
-              }
-            } catch (error) {
-              console.error('❌ Failed to save Custom Event order to Strapi:', error);
-              console.error('❌ Full error:', JSON.stringify(error));
+          } catch (error) {
+            console.error('❌ Failed to save Shabbat Box order to Strapi:', error);
+            console.error('❌ Full error:', JSON.stringify(error));
+          }
+        } else if (orderType === 'customEvent') {
+          console.log('📝 Saving Custom Event order');
+          console.log('📝 Session ID:', session.id);
+          console.log('📝 Metadata:', JSON.stringify(metadata));
+          try {
+            const result = await saveCustomEventDeliveryOrder(session, metadata, enrichedItems);
+            if (result) {
+              console.log('✅ Custom Event order successfully saved to Strapi:', result.data?.documentId);
+            } else {
+              console.log('⚠️ saveCustomEventDeliveryOrder returned null or undefined');
             }
+          } catch (error) {
+            console.error('❌ Failed to save Custom Event order to Strapi:', error);
+            console.error('❌ Full error:', JSON.stringify(error));
           }
         }
       }

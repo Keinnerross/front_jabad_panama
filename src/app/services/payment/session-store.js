@@ -1,4 +1,4 @@
-const TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 const store = new Map();
@@ -42,4 +42,21 @@ export function retrieveSession(orderId) {
 
 export function removeSession(orderId) {
   store.delete(orderId);
+}
+
+// Atomic retrieve + delete. First caller gets the data, second gets null.
+// Also removes the sibling key (if stored under two keys) to prevent duplicate processing.
+export function claimSession(orderId) {
+  const entry = store.get(orderId);
+  if (!entry) return null;
+  if (Date.now() - entry.createdAt > TTL_MS) {
+    store.delete(orderId);
+    return null;
+  }
+  store.delete(orderId);
+  // Remove sibling key so the other path (webhook or success page) can't also claim it
+  if (entry.data?._siblingKey) {
+    store.delete(entry.data._siblingKey);
+  }
+  return entry.data;
 }

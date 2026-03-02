@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FaTimes, FaMapMarkerAlt, FaTruck, FaUtensils } from "react-icons/fa";
 
 export const DeliveryModal = ({
@@ -16,13 +16,24 @@ export const DeliveryModal = ({
     setDeliveryAddress,
     setShowDeliveryError,
     reservationName,
-    setReservationName
+    setReservationName,
+    deliveryOptions = null
 }) => {
+    // Resolve which tabs are enabled from Strapi, default all true if null
+    const options = useMemo(() => ({
+        dine_in: deliveryOptions?.dine_in ?? true,
+        pickup: deliveryOptions?.pickup ?? true,
+        delivery: deliveryOptions?.delivery ?? true,
+    }), [deliveryOptions]);
+
+    // Auto-select first available option when modal opens
     useEffect(() => {
         if (isOpen && deliveryType === null) {
-            setDeliveryType('dine_in');
+            if (options.dine_in) setDeliveryType('dine_in');
+            else if (options.pickup) setDeliveryType('pickup');
+            else if (options.delivery) setDeliveryType('delivery');
         }
-    }, [isOpen, deliveryType, setDeliveryType]);
+    }, [isOpen, deliveryType, setDeliveryType, options]);
 
     const handleZoneSelect = (zone) => {
         setSelectedDeliveryZone(zone);
@@ -55,48 +66,54 @@ export const DeliveryModal = ({
 
                 {/* Tabs */}
                 <div className="flex border-b border-gray-200">
-                    <button
-                        onClick={() => {
-                            setDeliveryType('dine_in');
-                            setShowDeliveryError(false);
-                        }}
-                        className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                            deliveryType === 'dine_in'
-                                ? 'text-primary border-b-2 border-primary bg-primary/5'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                        }`}
-                    >
-                        <FaUtensils />
-                        Dine In
-                    </button>
-                    <button
-                        onClick={() => {
-                            setDeliveryType('pickup');
-                            setShowDeliveryError(false);
-                        }}
-                        className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                            deliveryType === 'pickup'
-                                ? 'text-primary border-b-2 border-primary bg-primary/5'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                        }`}
-                    >
-                        <FaMapMarkerAlt />
-                        Pickup
-                    </button>
-                    <button
-                        onClick={() => {
-                            setDeliveryType('delivery');
-                            setShowDeliveryError(false);
-                        }}
-                        className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                            deliveryType === 'delivery'
-                                ? 'text-primary border-b-2 border-primary bg-primary/5'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                        }`}
-                    >
-                        <FaTruck />
-                        Delivery
-                    </button>
+                    {options.dine_in && (
+                        <button
+                            onClick={() => {
+                                setDeliveryType('dine_in');
+                                setShowDeliveryError(false);
+                            }}
+                            className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                                deliveryType === 'dine_in'
+                                    ? 'text-primary border-b-2 border-primary bg-primary/5'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                            <FaUtensils />
+                            Dine In
+                        </button>
+                    )}
+                    {options.pickup && (
+                        <button
+                            onClick={() => {
+                                setDeliveryType('pickup');
+                                setShowDeliveryError(false);
+                            }}
+                            className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                                deliveryType === 'pickup'
+                                    ? 'text-primary border-b-2 border-primary bg-primary/5'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                            <FaMapMarkerAlt />
+                            Pickup
+                        </button>
+                    )}
+                    {options.delivery && (
+                        <button
+                            onClick={() => {
+                                setDeliveryType('delivery');
+                                setShowDeliveryError(false);
+                            }}
+                            className={`flex-1 py-3 px-4 text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                                deliveryType === 'delivery'
+                                    ? 'text-primary border-b-2 border-primary bg-primary/5'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                            <FaTruck />
+                            Delivery
+                        </button>
+                    )}
                 </div>
 
                 {/* Content */}

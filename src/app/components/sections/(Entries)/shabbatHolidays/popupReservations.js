@@ -20,7 +20,7 @@ import { PricingSelector } from './popupReservations/PricingSelector';
 import { MultiPlateGuidedMenu } from './popupReservations/MultiPlateGuidedMenu';
 import { CartConflictModal } from '@/app/components/ui/cart/CartConflictModal';
 
-export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false, globalDeliveryZones = null, customDeliveryZones = [], customDeliveryIsActive = false, pickupAddress = "Sinagoga Address" }) => {
+export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false, globalDeliveryZones = null, customDeliveryZones = [], customDeliveryIsActive = false, pickupAddress = "Sinagoga Address", deliveryOptions = null }) => {
     const router = useRouter();
     const [quantities, setQuantities] = useState({});
     const [total, setTotal] = useState(0);
@@ -1225,6 +1225,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
             setShowDeliveryError={setShowDeliveryError}
             reservationName={reservationName}
             setReservationName={setReservationName}
+            deliveryOptions={deliveryOptions}
         />
 
         {/* Date Selector Sub-Modal - Outside popup parent for full-screen coverage */}

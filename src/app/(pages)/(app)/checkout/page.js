@@ -206,6 +206,73 @@ export default function Checkout() {
         return Object.keys(newErrors).length === 0;
     };
 
+    // Build structured items JSON for unified order system
+    const buildStructuredItems = (cartItemsList, form, computedMetadata) => {
+        const firstItem = cartItemsList[0] || {};
+
+        // Items: only products (no fees, no donations, no sponsorship)
+        const items = cartItemsList
+            .filter(item => !['fee', 'donation'].includes(item.productType))
+            .map(item => {
+                // For guided menu: convert guidedMenuSelections {} to subItems []
+                let subItems = [];
+                if (item.isGuidedMenu && item.guidedMenuSelections) {
+                    subItems = Object.entries(item.guidedMenuSelections).map(([step, selection]) => ({
+                        step,
+                        selection
+                    }));
+                }
+
+                return {
+                    name: item.meal || item.name || 'Item',
+                    category: item.priceType || 'default',
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice || (item.totalPrice / item.quantity),
+                    totalPrice: item.totalPrice,
+                    productType: item.productType || 'product',
+                    isGuidedMenu: item.isGuidedMenu || false,
+                    isPWYW: item.isPWYW || false,
+                    isRushOrder: item.isRushOrder || false,
+                    subItems
+                };
+            });
+
+        // Delivery (only if delivery exists)
+        const delivery = firstItem.deliveryType ? {
+            type: firstItem.deliveryType,
+            ...(firstItem.deliveryType === 'delivery' && {
+                address: firstItem.deliveryAddress || null,
+                zoneName: firstItem.deliveryZone?.zone_name || null,
+                zoneId: firstItem.deliveryZone?.id || null,
+                fee: firstItem.deliveryFee || 0,
+            }),
+            eventTime: firstItem.eventTime || null,
+            reservationName: firstItem.reservationName || null
+        } : null;
+
+        // Event
+        const event = {
+            name: firstItem.shabbatName || computedMetadata.eventName || 'Event',
+            date: firstItem.shabbatDate || computedMetadata.eventDate || null,
+            type: computedMetadata.orderType,
+            isCustomEvent: computedMetadata.isCustomEvent || false,
+            shabbatHolidayStart: firstItem.shabbatHolidayStart || null,
+            shabbatHolidayEnd: firstItem.shabbatHolidayEnd || null
+        };
+
+        // Customer extra info (korea fields)
+        const customer = (form.koreaConnection || form.judaismConnection?.length || form.sponsorship) ? {
+            koreaConnection: form.koreaConnection || null,
+            koreaConnectionOther: form.koreaConnectionOther || null,
+            judaismConnection: Array.isArray(form.judaismConnection) ? form.judaismConnection.join(', ') : form.judaismConnection || null,
+            localPhone: form.localPhone || null,
+            sponsorship: form.sponsorship || null,
+            sponsorshipAmount: getSponsorshipAmount() || null
+        } : null;
+
+        return { items, delivery, event, customer };
+    };
+
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -336,6 +403,10 @@ export default function Checkout() {
                 }
             };
             
+            // Build structured items for unified order system
+            const structuredItems = buildStructuredItems(cartItems, formData, paymentData.metadata);
+            paymentData.structuredItems = structuredItems;
+
             // 3. Si hay donación, agregarla como ítem adicional
             if (paymentData.donation > 0) {
                 paymentData.line_items.push({

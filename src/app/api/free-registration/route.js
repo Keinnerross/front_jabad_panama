@@ -9,6 +9,7 @@ import {
   saveShabbatOrder,
   saveShabbatBoxOrder,
   saveCustomEventDeliveryOrder,
+  saveOrderWithStructuredItems,
   detectOrderType,
   formatOrderDescription
 } from '../../services/strapi-orders.js';
@@ -28,7 +29,7 @@ export async function POST(request) {
       return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
 
-    const { customer, metadata, line_items } = body;
+    const { customer, metadata, line_items, structuredItems } = body;
 
     if (!customer?.email) {
       return Response.json({ error: 'Email is required' }, { status: 400 });
@@ -64,18 +65,31 @@ export async function POST(request) {
     // Parse line items for order processing
     const parsedItems = parseLineItems(line_items);
 
-    // Detect order type and save to Strapi
-    const orderType = detectOrderType(fullMetadata, parsedItems);
-    console.log('🆓 Order type detected:', orderType);
-
+    // Save to Strapi - try structured path first
     let strapiResult = null;
 
-    if (orderType === 'customEvent' || fullMetadata.isCustomEvent === true) {
-      strapiResult = await saveCustomEventDeliveryOrder(freeSession, fullMetadata, parsedItems);
-    } else if (orderType === 'shabbatBox') {
-      strapiResult = await saveShabbatBoxOrder(freeSession, fullMetadata, parsedItems);
-    } else {
-      strapiResult = await saveShabbatOrder(freeSession, fullMetadata, parsedItems);
+    if (structuredItems) {
+      console.log('🆓 Using structured items for free registration');
+      try {
+        strapiResult = await saveOrderWithStructuredItems(freeSession, fullMetadata, structuredItems);
+      } catch (err) {
+        console.error('❌ Free registration saveOrderWithStructuredItems failed, falling back:', err);
+        strapiResult = null;
+      }
+    }
+
+    if (!strapiResult) {
+      // Legacy fallback
+      const orderType = detectOrderType(fullMetadata, parsedItems);
+      console.log('🆓 Order type detected (legacy):', orderType);
+
+      if (orderType === 'customEvent' || fullMetadata.isCustomEvent === true) {
+        strapiResult = await saveCustomEventDeliveryOrder(freeSession, fullMetadata, parsedItems);
+      } else if (orderType === 'shabbatBox') {
+        strapiResult = await saveShabbatBoxOrder(freeSession, fullMetadata, parsedItems);
+      } else {
+        strapiResult = await saveShabbatOrder(freeSession, fullMetadata, parsedItems);
+      }
     }
 
     if (strapiResult) {
@@ -101,7 +115,8 @@ export async function POST(request) {
         metadata: {
           ...fullMetadata,
           sessionId: freeSession.id
-        }
+        },
+        structuredItems: structuredItems || null,
       };
 
       // Admin notification

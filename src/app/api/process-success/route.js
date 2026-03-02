@@ -14,8 +14,7 @@ import {
   saveShabbatBoxOrder,
   saveCustomEventDeliveryOrder,
   detectOrderType,
-  formatOrderDescription,
-  extractDateRange
+  formatOrderDescription
 } from '../../services/strapi-orders.js';
 
 // Stripe instance for subscription handling (subscriptions always use Stripe)
@@ -28,55 +27,46 @@ const processedSessions = new Set();
 
 export async function POST(request) {
   try {
-    // Check if we should process payments here (only in development/non-webhook mode)
     const useWebhookProcessing = process.env.USE_WEBHOOK_PROCESSING === 'true';
-    
+
     if (useWebhookProcessing) {
       console.log('❌ Process-success API disabled - webhook processing is enabled');
-      return Response.json({ 
-        error: 'Payment processing is handled by webhook in this environment' 
+      return Response.json({
+        error: 'Payment processing is handled by webhook in this environment'
       }, { status: 400 });
     }
 
-    console.log('🔄 Process-success API enabled for development mode');
-    
     const { sessionId } = await request.json();
-    
+
     if (!sessionId) {
       return Response.json({ error: 'Session ID is required' }, { status: 400 });
     }
 
-    // Check if already processed
+    // Extra dedup: in-memory Set catches repeated calls from the same success page
     if (processedSessions.has(sessionId)) {
-      console.log('ℹ️ Session already processed:', sessionId);
+      console.log('ℹ️ Session already processed by success page:', sessionId);
       return Response.json({ success: true, message: 'Session already processed', alreadyProcessed: true });
     }
 
     console.log('🔄 Processing success for session:', sessionId);
-
-    // Mark as processed immediately
     processedSessions.add(sessionId);
 
-    // Retrieve session from payment provider
     const provider = getPaymentProvider();
     const session = await provider.retrieveSession(sessionId);
-    
+
     if (!session) {
-      // Remove from processed set if session not found
       processedSessions.delete(sessionId);
       return Response.json({ error: 'Session not found' }, { status: 404 });
     }
 
     try {
-      // Process the session the same way as webhook
       await handleCheckoutSessionCompleted(session);
       return Response.json({ success: true, message: 'Payment processed successfully' });
     } catch (processingError) {
-      // Remove from processed set if processing failed
       processedSessions.delete(sessionId);
       throw processingError;
     }
-    
+
   } catch (error) {
     console.error('Error processing success:', error);
     return Response.json({ error: 'Processing failed', details: error.message }, { status: 500 });
@@ -424,10 +414,11 @@ function extractEventNameFromDescription(description) {
   return null;
 }
 
-// Helper para extraer nombre de parashá de la descripción  
+// Helper para extraer nombre de parashá de la descripción
 function extractParashahFromDescription(description) {
   if (!description) return null;
-  
+
   const parashahMatch = description.match(/Parashat\s+(\w+)/i);
   return parashahMatch ? `Parashat ${parashahMatch[1]}` : null;
 }
+

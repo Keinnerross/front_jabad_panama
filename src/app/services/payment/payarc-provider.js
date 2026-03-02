@@ -13,7 +13,7 @@ export class PayarcProvider {
     this.provider = 'payarc';
   }
 
-  async createCheckoutSession({ lineItems, customer, metadata, successUrl, cancelUrl }) {
+  async createCheckoutSession({ lineItems, customer, metadata, successUrl, cancelUrl, structuredItems }) {
     // Calculate total amount in cents from line_items
     const totalCents = lineItems.reduce((sum, item) => {
       const unitAmount = item.price_data?.unit_amount || 0;
@@ -56,16 +56,30 @@ export class PayarcProvider {
       throw new Error('PayArc did not return a payment form URL');
     }
 
-    // Store metadata locally since PayArc doesn't support arbitrary metadata
-    storeSession(orderId, {
+    // Store metadata locally since PayArc doesn't support arbitrary metadata.
+    // Store under TWO keys so both webhook (PayArc ID) and success page (our ID) can find it.
+    // _siblingKey links them so claimSession can remove both atomically (prevents duplicates).
+    const payarcOrderId = String(orderId);
+    const internalOrderId = metadata?.orderId ? String(metadata.orderId) : null;
+
+    const sessionData = {
       lineItems,
       customer,
       metadata,
+      structuredItems: structuredItems || null,
       amount_total: totalCents,
       customer_email: customer.email,
       mode: 'payment',
       provider: 'payarc',
-    });
+    };
+
+    // Key 1: PayArc's orderId — used by webhook
+    storeSession(payarcOrderId, { ...sessionData, _siblingKey: internalOrderId });
+
+    // Key 2: Our internal orderId — used by success page (if different)
+    if (internalOrderId && internalOrderId !== payarcOrderId) {
+      storeSession(internalOrderId, { ...sessionData, _siblingKey: payarcOrderId });
+    }
 
     return {
       sessionId: orderId,

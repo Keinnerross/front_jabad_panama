@@ -8,15 +8,17 @@ if (process.env.NODE_ENV === 'development') {
 import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../../utils/siteConfigHelper.js';
 import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../../services/emailService.js';
 import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../../utils/siteConfigHelper.js';
-import { 
-  saveDonationToStrapi, 
-  saveShabbatOrder, 
-  saveShabbatBoxOrder, 
+import {
+  saveDonationToStrapi,
+  saveShabbatOrder,
+  saveShabbatBoxOrder,
   saveCustomEventDeliveryOrder,
+  saveOrderWithStructuredItems,
   detectOrderType,
   formatOrderDescription,
   extractDateRange
 } from '../../../services/strapi-orders.js';
+import { retrieveSession, removeSession } from '../../../services/payment/session-store.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -272,6 +274,12 @@ async function handleCheckoutSessionCompleted(session) {
 
         // Enviar emails (condicional a email config)
         if (validateEmailConfig() && notificationEmail) {
+          // Try to get structured items for enhanced email rendering
+          const storedData = retrieveSession(metadata.orderId);
+          if (storedData?.structuredItems) {
+            orderData.structuredItems = storedData.structuredItems;
+          }
+
           try {
             const adminResult = await sendOrderNotification(notificationEmail, orderData);
             if (adminResult.success) {
@@ -291,59 +299,69 @@ async function handleCheckoutSessionCompleted(session) {
           }
         }
 
-        // Guardar orden en Strapi (siempre, independiente de email config)
-        const orderType = detectOrderType(metadata, enrichedItems);
-
-        console.log('🔍 Order type detected:', orderType);
-        console.log('🔍 Metadata orderType:', metadata.orderType);
-        console.log('🔍 EventDate from metadata:', metadata.eventDate);
-
-        if (orderType === 'shabbat or holiday') {
-          console.log('📝 Saving to shabbat-orders collection');
+        // Guardar orden en Strapi - try structured path first, fall back to legacy
+        const storedData = retrieveSession(metadata.orderId);
+        if (storedData?.structuredItems) {
+          console.log('✅ Using structured items from session-store');
           try {
-            const result = await saveShabbatOrder(session, metadata, enrichedItems);
-            if (result) {
-              console.log('✅ Shabbat order successfully saved to Strapi:', result.data?.documentId);
-            }
-          } catch (error) {
-            console.error('❌ Failed to save Shabbat order to Strapi:', error);
+            await saveOrderWithStructuredItems(session, metadata, storedData.structuredItems);
+            removeSession(metadata.orderId);
+          } catch (err) {
+            console.error('❌ saveOrderWithStructuredItems failed, falling back to legacy:', err);
+            // FALLBACK to legacy flow
+            await saveLegacyOrder(session, metadata, enrichedItems);
           }
-        } else if (orderType === 'shabbatBox') {
-          console.log('📝 Saving Shabbat Box order');
-          console.log('📝 Session ID:', session.id);
-          console.log('📝 Metadata:', JSON.stringify(metadata));
-          try {
-            const result = await saveShabbatBoxOrder(session, metadata, enrichedItems);
-            if (result) {
-              console.log('✅ Shabbat Box order successfully saved to Strapi:', result.data?.documentId);
-            } else {
-              console.log('⚠️ saveShabbatBoxOrder returned null or undefined');
-            }
-          } catch (error) {
-            console.error('❌ Failed to save Shabbat Box order to Strapi:', error);
-            console.error('❌ Full error:', JSON.stringify(error));
-          }
-        } else if (orderType === 'customEvent') {
-          console.log('📝 Saving Custom Event order');
-          console.log('📝 Session ID:', session.id);
-          console.log('📝 Metadata:', JSON.stringify(metadata));
-          try {
-            const result = await saveCustomEventDeliveryOrder(session, metadata, enrichedItems);
-            if (result) {
-              console.log('✅ Custom Event order successfully saved to Strapi:', result.data?.documentId);
-            } else {
-              console.log('⚠️ saveCustomEventDeliveryOrder returned null or undefined');
-            }
-          } catch (error) {
-            console.error('❌ Failed to save Custom Event order to Strapi:', error);
-            console.error('❌ Full error:', JSON.stringify(error));
-          }
+        } else {
+          // FALLBACK: legacy flow without structured items
+          console.warn('⚠️ No structured items, using legacy flow:', metadata.orderId);
+          await saveLegacyOrder(session, metadata, enrichedItems);
         }
       }
     }
   } catch (error) {
     console.error('Error in handleCheckoutSessionCompleted:', error);
     handleNotificationError(error, 'checkout session completed handler');
+  }
+}
+
+// Legacy order save flow (when structured items are not available)
+async function saveLegacyOrder(session, metadata, enrichedItems) {
+  const orderType = detectOrderType(metadata, enrichedItems);
+
+  console.log('🔍 Order type detected:', orderType);
+  console.log('🔍 Metadata orderType:', metadata.orderType);
+  console.log('🔍 EventDate from metadata:', metadata.eventDate);
+
+  if (orderType === 'shabbat or holiday') {
+    console.log('📝 Saving to shabbat-orders collection');
+    try {
+      const result = await saveShabbatOrder(session, metadata, enrichedItems);
+      if (result) {
+        console.log('✅ Shabbat order successfully saved to Strapi:', result.data?.documentId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to save Shabbat order to Strapi:', error);
+    }
+  } else if (orderType === 'shabbatBox') {
+    console.log('📝 Saving Shabbat Box order');
+    try {
+      const result = await saveShabbatBoxOrder(session, metadata, enrichedItems);
+      if (result) {
+        console.log('✅ Shabbat Box order successfully saved to Strapi:', result.data?.documentId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to save Shabbat Box order to Strapi:', error);
+    }
+  } else if (orderType === 'customEvent') {
+    console.log('📝 Saving Custom Event order');
+    try {
+      const result = await saveCustomEventDeliveryOrder(session, metadata, enrichedItems);
+      if (result) {
+        console.log('✅ Custom Event order successfully saved to Strapi:', result.data?.documentId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to save Custom Event order to Strapi:', error);
+    }
   }
 }
 

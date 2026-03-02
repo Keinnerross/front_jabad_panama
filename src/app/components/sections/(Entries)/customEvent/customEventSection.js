@@ -325,6 +325,7 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                     customDeliveryZones={selectedEventData?.custom_delivery_zones}
                     customDeliveryIsActive={selectedEventData?.event_type === 'delivery'}
                     pickupAddress={pickupAddress}
+                    deliveryOptions={selectedEventData?.delivery_options}
                 />
             </Suspense>
         </Fragment>

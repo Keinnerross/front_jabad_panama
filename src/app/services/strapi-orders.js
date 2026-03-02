@@ -578,6 +578,322 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
 }
 
 /**
+ * Unified order save using structured items JSON.
+ * Determines collection and builds legacy fields FROM the structured JSON.
+ * Falls back to legacy functions if something goes wrong.
+ */
+export async function saveOrderWithStructuredItems(session, metadata, structuredItems) {
+  try {
+    const eventType = structuredItems.event?.type || metadata.orderType || 'mealReservation';
+    const isCustomEvent = structuredItems.event?.isCustomEvent || metadata.isCustomEvent === true || eventType === 'customEvent';
+    const isShabbatBox = eventType === 'shabbatBox';
+    const isMealReservation = !isCustomEvent && !isShabbatBox;
+
+    console.log('📦 saveOrderWithStructuredItems:', { eventType, isCustomEvent, isShabbatBox, isMealReservation });
+
+    const strapiUrl = process.env.STRAPI_INTERNAL_URL || process.env.STRAPI_API_URL;
+
+    if (isMealReservation) {
+      // === SHABBAT ORDERS COLLECTION ===
+      const { fridayDinner, shabbatLunch } = buildShabbatLegacyFromStructured(structuredItems);
+
+      // Process dates
+      let startDateISO, endDateISO;
+      if (structuredItems.event?.date) {
+        const { start, end } = extractDateRange(structuredItems.event.date);
+        if (start && end) {
+          startDateISO = start;
+          endDateISO = end;
+        } else if (start) {
+          startDateISO = start;
+          const endDate = new Date(start);
+          endDate.setDate(endDate.getDate() + 1);
+          endDateISO = endDate.toISOString().split('T')[0];
+        }
+      }
+      if (!startDateISO) {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        startDateISO = today.toISOString().split('T')[0];
+        endDateISO = tomorrow.toISOString().split('T')[0];
+      }
+
+      // Build notes from customer info
+      let notes = metadata.notes || '';
+      if (structuredItems.customer) {
+        if (notes) notes += '\n\n';
+        notes += '--- Guest Information ---\n';
+        if (structuredItems.customer.koreaConnection) {
+          notes += `Country Connection: ${structuredItems.customer.koreaConnection === 'other' ? (structuredItems.customer.koreaConnectionOther || structuredItems.customer.koreaConnection) : structuredItems.customer.koreaConnection}\n`;
+        }
+        if (structuredItems.customer.localPhone) {
+          notes += `Local Phone: ${structuredItems.customer.localPhone}\n`;
+        }
+        if (structuredItems.customer.judaismConnection) {
+          notes += `Judaism Connection: ${structuredItems.customer.judaismConnection}\n`;
+        }
+        if (structuredItems.customer.sponsorship) {
+          const sponsorshipLabel = getSponsorshipLabel(structuredItems.customer.sponsorship, structuredItems.customer.sponsorshipAmount);
+          if (sponsorshipLabel) notes += `${sponsorshipLabel}`;
+        }
+      }
+
+      const shabbatOrder = {
+        data: {
+          orderId: metadata.orderId || `SHB-${Date.now()}`,
+          shabbat_name: structuredItems.event?.name || metadata.shabbat_name || metadata.eventName || 'Shabbat',
+          startDate: startDateISO,
+          endDate: endDateISO,
+          customerName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim(),
+          customerEmail: session.customer_email || session.customer_details?.email,
+          customerPhone: metadata.customer_phone || session.customer_details?.phone || '',
+          customerNationality: metadata.customer_nationality || '',
+          totalAmount: session.amount_total / 100,
+          paymentStatus: 'paid',
+          stripeSessionId: session.id,
+          friday_dinner_details: fridayDinner,
+          shabbat_lunch_details: shabbatLunch,
+          notes: notes,
+          customer_detail_info: buildCustomerDetailInfo(metadata),
+          items: structuredItems
+        }
+      };
+
+      console.log('📤 Sending structured Shabbat order to Strapi:', JSON.stringify(shabbatOrder, null, 2));
+
+      const response = await fetch(`${strapiUrl}/api/shabbat-orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN}`
+        },
+        body: JSON.stringify(shabbatOrder)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Structured Shabbat order error:', errorText);
+        throw new Error(`Strapi shabbat-orders error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Structured Shabbat order saved:', result.data?.documentId);
+      return result;
+
+    } else {
+      // === ORDERS COLLECTION (Custom Events & Shabbat Box) ===
+      const orderDescription = buildOrderDescriptionFromStructured(structuredItems, session.amount_total / 100);
+
+      // Delivery info from structured items
+      const delivery = structuredItems.delivery;
+      const deliveryType = delivery?.type || 'pickup';
+      const deliveryAddress = delivery?.address || null;
+      const eventName = structuredItems.event?.name || metadata.eventName || 'Event';
+
+      // Process service date
+      let serviceDateISO = null;
+      let shabbatStart = null;
+      let shabbatEnd = null;
+
+      if (structuredItems.event?.date) {
+        const { start, end } = extractDateRange(structuredItems.event.date);
+        if (start) serviceDateISO = start;
+        if (start && end) {
+          shabbatStart = start;
+          shabbatEnd = end;
+        }
+      }
+
+      // For Shabbat Box, use shabbatHolidayStart/End if available
+      if (isShabbatBox) {
+        if (structuredItems.event?.shabbatHolidayStart && structuredItems.event?.shabbatHolidayEnd &&
+            structuredItems.event.shabbatHolidayStart !== structuredItems.event.shabbatHolidayEnd) {
+          shabbatStart = structuredItems.event.shabbatHolidayStart;
+          shabbatEnd = structuredItems.event.shabbatHolidayEnd;
+        }
+        if (!shabbatStart) {
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          shabbatStart = today.toISOString().split('T')[0];
+          shabbatEnd = tomorrow.toISOString().split('T')[0];
+        }
+      }
+
+      const orderData = {
+        data: {
+          orderId: metadata.orderId || `${isShabbatBox ? 'SB' : 'CE'}-${Date.now()}`,
+          shabbat_or_holiday: eventName,
+          totalAmount: session.amount_total / 100,
+          stripeSessionId: session.id,
+          customerName: `${metadata.customer_firstName || ''} ${metadata.customer_lastName || ''}`.trim() || 'N/A',
+          customerEmail: session.customer_email || session.customer_details?.email || 'unknown@email.com',
+          customerPhone: metadata.customer_phone || null,
+          customerNationality: metadata.customer_nationality || null,
+          orderDescription: orderDescription,
+          orderStatus: 'paid',
+          isDelivery: deliveryType === 'delivery',
+          delivery_addres: deliveryAddress,
+          typeOfDelivery: deliveryType,
+          shabbat_holiday_start: isShabbatBox ? shabbatStart : null,
+          shabbat_holiday_end: isShabbatBox ? shabbatEnd : null,
+          orderType: isShabbatBox ? 'shabbatBox' : eventName,
+          serviceDate: isCustomEvent ? serviceDateISO : null,
+          customer_detail_info: buildCustomerDetailInfo(metadata),
+          items: structuredItems
+        }
+      };
+
+      console.log('📤 Sending structured order to Strapi:', JSON.stringify(orderData, null, 2));
+
+      const response = await fetch(`${strapiUrl}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN}`
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Structured order error:', errorText);
+        throw new Error(`Strapi orders error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Structured order saved:', result.data?.documentId);
+      return result;
+    }
+  } catch (error) {
+    console.error('❌ Error in saveOrderWithStructuredItems:', error);
+    throw error; // Re-throw so callers can fall back to legacy
+  }
+}
+
+/**
+ * Build legacy shabbat meal fields from structured items using item.category (= priceType)
+ * instead of parsing product names.
+ */
+function buildShabbatLegacyFromStructured(structuredItems) {
+  const fridayDinner = {
+    supporter_quantity: 0, supporter_price: 180,
+    adult_quantity: 0, adult_price: 62,
+    kids_3_10_quantity: 0, kids_3_10_price: 42,
+    baby_1_2_quantity: 0, baby_1_2_price: 1,
+    idf_soldier_quantity: 0, idf_soldier_price: 22,
+    subtotal: 0, total_people: 0
+  };
+
+  const shabbatLunch = {
+    supporter_quantity: 0, supporter_price: 180,
+    adult_quantity: 0, adult_price: 56,
+    kids_3_10_quantity: 0, kids_3_10_price: 42,
+    baby_1_2_quantity: 0, baby_1_2_price: 1,
+    idf_soldier_quantity: 0, idf_soldier_price: 22,
+    subtotal: 0, total_people: 0
+  };
+
+  (structuredItems.items || []).forEach(item => {
+    // Determine which meal based on item name
+    const mealName = (item.name || '').toLowerCase();
+    let targetMeal;
+    if (mealName.includes('friday') || mealName.includes('dinner')) {
+      targetMeal = fridayDinner;
+    } else if (mealName.includes('lunch')) {
+      targetMeal = shabbatLunch;
+    } else {
+      targetMeal = fridayDinner; // default
+    }
+
+    // KEY CHANGE: use item.category (= priceType from cart) instead of parsing name
+    const cat = (item.category || '').toLowerCase();
+    if (cat.includes('supporter')) {
+      targetMeal.supporter_quantity += item.quantity;
+      targetMeal.supporter_price = item.unitPrice || targetMeal.supporter_price;
+    } else if (cat.includes('adult')) {
+      targetMeal.adult_quantity += item.quantity;
+      targetMeal.adult_price = item.unitPrice || targetMeal.adult_price;
+    } else if (cat.includes('teens') || cat.includes('kids')) {
+      targetMeal.kids_3_10_quantity += item.quantity;
+      targetMeal.kids_3_10_price = item.unitPrice || targetMeal.kids_3_10_price;
+    } else if (cat.includes('children') || cat.includes('baby')) {
+      targetMeal.baby_1_2_quantity += item.quantity;
+      targetMeal.baby_1_2_price = item.unitPrice || targetMeal.baby_1_2_price;
+    } else if (cat.includes('idf') || cat.includes('soldier')) {
+      targetMeal.idf_soldier_quantity += item.quantity;
+      targetMeal.idf_soldier_price = item.unitPrice || targetMeal.idf_soldier_price;
+    }
+
+    // Calculate subtotal and total people
+    const itemTotal = item.quantity * (item.unitPrice || 0);
+    targetMeal.subtotal += itemTotal;
+    targetMeal.total_people += item.quantity;
+  });
+
+  return { fridayDinner, shabbatLunch };
+}
+
+/**
+ * Build orderDescription text from structured items (for orders collection)
+ */
+function buildOrderDescriptionFromStructured(structuredItems, totalAmount) {
+  const lines = [];
+
+  lines.push('=== ORDER ITEMS ===');
+  (structuredItems.items || []).forEach(item => {
+    lines.push(item.name);
+    lines.push(`  Category: ${item.category}`);
+    lines.push(`  Quantity: ${item.quantity}`);
+    lines.push(`  Unit Price: $${(item.unitPrice || 0).toFixed(2)}`);
+    lines.push(`  Subtotal: $${(item.totalPrice || 0).toFixed(2)}`);
+
+    // Render guided menu sub-items
+    if (item.subItems && item.subItems.length > 0) {
+      lines.push('  Selections:');
+      item.subItems.forEach(sub => {
+        lines.push(`    - ${sub.step}: ${sub.selection}`);
+      });
+    }
+
+    lines.push('');
+  });
+
+  // Delivery info
+  if (structuredItems.delivery) {
+    lines.push('=== DELIVERY INFO ===');
+    if (structuredItems.delivery.type) lines.push(`Type: ${structuredItems.delivery.type}`);
+    if (structuredItems.delivery.zoneName) lines.push(`Hotel/Zone: ${structuredItems.delivery.zoneName}`);
+    if (structuredItems.delivery.fee > 0) lines.push(`Delivery Fee: $${structuredItems.delivery.fee.toFixed(2)}`);
+    if (structuredItems.delivery.address) lines.push(`Address: ${structuredItems.delivery.address}`);
+    if (structuredItems.delivery.eventTime) lines.push(`Requested Time: ${structuredItems.delivery.eventTime}`);
+    if (structuredItems.delivery.reservationName) lines.push(`Reservation Name: ${structuredItems.delivery.reservationName}`);
+    lines.push('');
+  }
+
+  // Customer info
+  if (structuredItems.customer) {
+    lines.push('=== GUEST INFO ===');
+    if (structuredItems.customer.koreaConnection) {
+      lines.push(`Country Connection: ${structuredItems.customer.koreaConnection}`);
+    }
+    if (structuredItems.customer.localPhone) lines.push(`Local Phone: ${structuredItems.customer.localPhone}`);
+    if (structuredItems.customer.judaismConnection) lines.push(`Judaism Connection: ${structuredItems.customer.judaismConnection}`);
+    if (structuredItems.customer.sponsorship) {
+      const label = getSponsorshipLabel(structuredItems.customer.sponsorship, structuredItems.customer.sponsorshipAmount);
+      if (label) lines.push(label);
+    }
+    lines.push('');
+  }
+
+  lines.push('=== TOTAL ===');
+  lines.push(`$${totalAmount.toFixed(2)}`);
+
+  return lines.join('\n');
+}
+
+/**
  * Detecta el tipo de orden basándose en metadata y items
  */
 export function detectOrderType(metadata, parsedItems) {

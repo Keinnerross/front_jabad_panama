@@ -1,6 +1,7 @@
 import { getPaymentProvider, getProviderName } from '../../services/payment/index.js';
 import { generateOrderId } from '../../utils/siteConfigHelper.js';
 import { getFullUrl } from '../../utils/urlHelper.js';
+import { storeSession } from '../../services/payment/session-store.js';
 
 // Test method para diagnosticar
 export async function GET() {
@@ -23,7 +24,7 @@ export async function POST(request) {
       return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
 
-    const { line_items, customer, metadata } = body;
+    const { line_items, customer, metadata, structuredItems } = body;
 
     // Validar que el email esté presente
     if (!customer?.email) {
@@ -91,6 +92,21 @@ export async function POST(request) {
 
     const provider = getPaymentProvider();
 
+    // Store structured items in session-store for webhook retrieval
+    if (structuredItems && providerName !== 'payarc') {
+      storeSession(orderId, {
+        structuredItems,
+        lineItems: line_items,
+        customer,
+        metadata: fullMetadata,
+        amount_total: line_items.reduce((sum, item) => {
+          return sum + (item.price_data?.unit_amount || 0) * (item.quantity || 1);
+        }, 0),
+        customer_email: customer.email,
+        provider: providerName
+      });
+    }
+
     // For PayArc, append order_id to success URL so the success page can retrieve the session
     const finalSuccessUrl = providerName === 'payarc'
       ? `${successUrlBase}?order_id=${orderId}`
@@ -102,6 +118,7 @@ export async function POST(request) {
       metadata: fullMetadata,
       successUrl: finalSuccessUrl,
       cancelUrl,
+      structuredItems,
     });
 
     // Los emails se envían desde el webhook/process-success después del pago exitoso

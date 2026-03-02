@@ -288,31 +288,152 @@ const baseTemplate = (content, title, siteConfig = {}) => {
 `;
 };
 
+// Helper to render structured items HTML (shared between admin and user templates)
+function renderStructuredItemsHtml(structuredItems) {
+  let html = '';
+
+  // Items with sub-items support
+  (structuredItems.items || []).forEach(item => {
+    html += `
+      <div class="info-row">
+        <span class="info-label">${item.name} (${item.category})</span>
+        <span class="info-value">$${(item.unitPrice || 0).toFixed(2)} x ${item.quantity}</span>
+      </div>`;
+
+    // Guided menu selections
+    if (item.subItems && item.subItems.length > 0) {
+      html += `<div style="padding-left: 20px; margin-bottom: 8px;">`;
+      item.subItems.forEach(sub => {
+        html += `<div style="font-size: 13px; color: #6b7280; padding: 2px 0;">- ${sub.step}: <strong>${sub.selection}</strong></div>`;
+      });
+      html += `</div>`;
+    }
+  });
+
+  return html;
+}
+
+// Helper to render delivery info HTML from structured items
+function renderDeliveryHtml(delivery) {
+  if (!delivery) return '';
+
+  let html = `
+    <div class="info-section">
+      <h3>Delivery Information</h3>
+      <div class="info-row">
+        <span class="info-label">Type:</span>
+        <span class="info-value">${delivery.type === 'delivery' ? 'Delivery' : 'Pickup'}</span>
+      </div>`;
+
+  if (delivery.zoneName) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Hotel/Zone:</span>
+        <span class="info-value">${delivery.zoneName}</span>
+      </div>`;
+  }
+  if (delivery.address) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Address:</span>
+        <span class="info-value">${delivery.address}</span>
+      </div>`;
+  }
+  if (delivery.fee > 0) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Delivery Fee:</span>
+        <span class="info-value">$${delivery.fee.toFixed(2)}</span>
+      </div>`;
+  }
+  if (delivery.eventTime) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Requested Time:</span>
+        <span class="info-value">${delivery.eventTime}</span>
+      </div>`;
+  }
+  if (delivery.reservationName) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Reservation Name:</span>
+        <span class="info-value">${delivery.reservationName}</span>
+      </div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+// Helper to render customer extra info (korea fields) from structured items
+function renderCustomerExtraHtml(customerExtra) {
+  if (!customerExtra) return '';
+
+  let html = `
+    <div class="info-section">
+      <h3>Guest Details</h3>`;
+
+  if (customerExtra.koreaConnection) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Country Connection:</span>
+        <span class="info-value">${customerExtra.koreaConnection === 'other' ? (customerExtra.koreaConnectionOther || customerExtra.koreaConnection) : customerExtra.koreaConnection}</span>
+      </div>`;
+  }
+  if (customerExtra.localPhone) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Local Phone:</span>
+        <span class="info-value">${customerExtra.localPhone}</span>
+      </div>`;
+  }
+  if (customerExtra.judaismConnection) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Judaism Connection:</span>
+        <span class="info-value">${customerExtra.judaismConnection}</span>
+      </div>`;
+  }
+  if (customerExtra.sponsorship) {
+    html += `
+      <div class="info-row">
+        <span class="info-label">Sponsorship:</span>
+        <span class="info-value">$${customerExtra.sponsorshipAmount || customerExtra.sponsorship}</span>
+      </div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
 // Template para notificaciones de pedidos
 export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
-  const { customer, items, total, orderId, metadata } = orderData;
-  
-  // Obtener información del evento de los items o metadata (prioridad a metadata)
+  const { customer, items, total, orderId, metadata, structuredItems } = orderData;
+
+  // Obtener información del evento de los items o metadata (prioridad a structuredItems > metadata)
   const eventInfo = {
-    shabbatName: metadata?.eventName || items[0]?.shabbatName || metadata?.shabbatName || 'Event',
-    shabbatDate: metadata?.eventDate || items[0]?.shabbatDate || metadata?.shabbatDate || metadata?.serviceDate || 'Date not available',
-    productType: metadata?.productType || items[0]?.productType || metadata?.orderType || 'reservation',
-    eventType: metadata?.eventType || 
-              (metadata?.productType === 'shabbatBox' ? 'Shabbat Box Delivery' : 
-               metadata?.productType === 'mealReservation' ? 'Shabbat or Holiday' : 
+    shabbatName: structuredItems?.event?.name || metadata?.eventName || items[0]?.shabbatName || metadata?.shabbatName || 'Event',
+    shabbatDate: structuredItems?.event?.date || metadata?.eventDate || items[0]?.shabbatDate || metadata?.shabbatDate || metadata?.serviceDate || 'Date not available',
+    productType: structuredItems?.event?.type || metadata?.productType || items[0]?.productType || metadata?.orderType || 'reservation',
+    eventType: metadata?.eventType ||
+              (metadata?.productType === 'shabbatBox' ? 'Shabbat Box Delivery' :
+               metadata?.productType === 'mealReservation' ? 'Shabbat or Holiday' :
                'Event')
   };
-  
-  const itemsHtml = items.map(item => {
-    const itemName = item.meal || item.name;
-    const priceType = item.priceType ? ` (${item.priceType})` : '';
-    return `
-      <div class="info-row">
-        <span class="info-label">${itemName}${priceType}</span>
-        <span class="info-value">$${item.unitPrice ? item.unitPrice.toFixed(2) : item.price.toFixed(2)} x ${item.quantity}</span>
-      </div>
-    `;
-  }).join('');
+
+  // Use structured items for rendering if available, otherwise fall back to legacy
+  const itemsHtml = structuredItems?.items
+    ? renderStructuredItemsHtml(structuredItems)
+    : items.map(item => {
+        const itemName = item.meal || item.name;
+        const priceType = item.priceType ? ` (${item.priceType})` : '';
+        return `
+          <div class="info-row">
+            <span class="info-label">${itemName}${priceType}</span>
+            <span class="info-value">$${item.unitPrice ? item.unitPrice.toFixed(2) : item.price.toFixed(2)} x ${item.quantity}</span>
+          </div>
+        `;
+      }).join('');
 
   const content = `
     <div class="info-section">
@@ -370,6 +491,10 @@ export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
       <h3>Items Ordered</h3>
       ${itemsHtml}
     </div>
+
+    ${structuredItems?.delivery ? renderDeliveryHtml(structuredItems.delivery) : ''}
+
+    ${structuredItems?.customer ? renderCustomerExtraHtml(structuredItems.customer) : ''}
 
     <div class="total">
       Total: $${total.toFixed(2)} USD
@@ -815,33 +940,36 @@ const userConfirmationTemplate = (content, title, siteConfig = {}) => {
 
 // Template para confirmación de compra del usuario
 export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
-  const { customer, items, total, orderId, metadata } = orderData;
+  const { customer, items, total, orderId, metadata, structuredItems } = orderData;
   const siteTitle = siteConfig.site_title || 'Website';
-  
-  // Obtener información del evento de los items o metadata (prioridad a metadata)
+
+  // Obtener información del evento (prioridad a structuredItems > metadata)
   const eventInfo = {
-    shabbatName: metadata?.eventName || items[0]?.shabbatName || metadata?.shabbatName || 'Event',
-    shabbatDate: metadata?.eventDate || items[0]?.shabbatDate || metadata?.shabbatDate || metadata?.serviceDate || 'Date not available',
-    productType: metadata?.productType || items[0]?.productType || metadata?.orderType || 'reservation',
-    eventType: metadata?.eventType || 
-              (metadata?.productType === 'shabbatBox' ? 'Shabbat Box Delivery' : 
-               metadata?.productType === 'mealReservation' ? 'Shabbat or Holiday' : 
+    shabbatName: structuredItems?.event?.name || metadata?.eventName || items[0]?.shabbatName || metadata?.shabbatName || 'Event',
+    shabbatDate: structuredItems?.event?.date || metadata?.eventDate || items[0]?.shabbatDate || metadata?.shabbatDate || metadata?.serviceDate || 'Date not available',
+    productType: structuredItems?.event?.type || metadata?.productType || items[0]?.productType || metadata?.orderType || 'reservation',
+    eventType: metadata?.eventType ||
+              (metadata?.productType === 'shabbatBox' ? 'Shabbat Box Delivery' :
+               metadata?.productType === 'mealReservation' ? 'Shabbat or Holiday' :
                'Event')
   };
-  
+
   // Obtener colores dinámicos basados en el tema
   const emailColors = getThemeColors(siteConfig);
-  
-  const itemsHtml = items.map(item => {
-    const itemName = item.meal || item.name;
-    const priceType = item.priceType ? ` (${item.priceType})` : '';
-    return `
-      <div class="info-row">
-        <span class="info-label">${itemName}${priceType}</span>
-        <span class="info-value">$${item.unitPrice ? item.unitPrice.toFixed(2) : item.price.toFixed(2)} x ${item.quantity}</span>
-      </div>
-    `;
-  }).join('');
+
+  // Use structured items for rendering if available
+  const itemsHtml = structuredItems?.items
+    ? renderStructuredItemsHtml(structuredItems)
+    : items.map(item => {
+        const itemName = item.meal || item.name;
+        const priceType = item.priceType ? ` (${item.priceType})` : '';
+        return `
+          <div class="info-row">
+            <span class="info-label">${itemName}${priceType}</span>
+            <span class="info-value">$${item.unitPrice ? item.unitPrice.toFixed(2) : item.price.toFixed(2)} x ${item.quantity}</span>
+          </div>
+        `;
+      }).join('');
 
   const content = `
     <h2 style="color: ${emailColors.primaryDark}; margin-bottom: 20px; font-size: 24px;">Your order has been confirmed!</h2>
@@ -886,6 +1014,8 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
       <h3>Items Ordered</h3>
       ${itemsHtml}
     </div>
+
+    ${structuredItems?.delivery ? renderDeliveryHtml(structuredItems.delivery) : ''}
 
     <div class="total">
       Total Paid: $${total.toFixed(2)} USD

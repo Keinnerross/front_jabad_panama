@@ -119,10 +119,18 @@ export async function saveDonationToStrapi(session, metadata, donationType) {
         donationType: finalDonationType,
         customMonths: finalCustomMonths,
         isDonationCustom: finalIsDonationCustom,
-        donationStatus: 'completed'
+        donationStatus: 'completed',
+        items: {
+          donationType: finalDonationType,
+          amount: session.amount_total / 100,
+          customMonths: finalCustomMonths,
+          isDonationCustom: finalIsDonationCustom,
+          frequency: metadata.frequency || donationType || 'one-time',
+          selectedPresetAmount: metadata.selectedPresetAmount || null
+        }
       }
     };
-    
+
     console.log('📤 Sending to Strapi:', JSON.stringify(donationData, null, 2));
 
     // Usar URL interna para server-side requests
@@ -309,7 +317,8 @@ export async function saveShabbatOrder(session, metadata, parsedItems) {
         friday_dinner_details: fridayDinner,
         shabbat_lunch_details: shabbatLunch,
         notes: notes,
-        customer_detail_info: buildCustomerDetailInfo(metadata)
+        customer_detail_info: buildCustomerDetailInfo(metadata),
+        items: parsedItems || null
       }
     };
 
@@ -430,7 +439,8 @@ export async function saveShabbatBoxOrder(session, metadata, parsedItems) {
         shabbat_holiday_end: shabbatEnd,
         orderType: 'shabbatBox',
         serviceDate: null, // No usado en Shabbat Box
-        customer_detail_info: buildCustomerDetailInfo(metadata)
+        customer_detail_info: buildCustomerDetailInfo(metadata),
+        items: parsedItems || null
       }
     };
 
@@ -527,7 +537,8 @@ export async function saveCustomEventDeliveryOrder(session, metadata, parsedItem
         shabbat_holiday_end: null,   // No usar para custom events
         orderType: eventName,  // Enviar el nombre real del evento (Catering Orders, Pizza & BBQ Night, etc.)
         serviceDate: serviceDateISO,  // Solo serviceDate para custom events
-        customer_detail_info: buildCustomerDetailInfo(metadata)
+        customer_detail_info: buildCustomerDetailInfo(metadata),
+        items: parsedItems || null
       }
     };
 

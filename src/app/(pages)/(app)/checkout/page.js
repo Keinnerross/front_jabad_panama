@@ -223,9 +223,27 @@ export default function Checkout() {
                     }));
                 }
 
+                // Separate name from category/variant cleanly:
+                // - Guided menu: category=null (subItems has the details)
+                // - Variant items: "Fish Plates - Teriyaki Salmon" → name="Fish Plates", category="Teriyaki Salmon"
+                // - Regular items (no variant): name="Agua", category=null
+                // - Shabbat meals: name="Friday Dinner", category="Adult" (already clean)
+                const fullName = item.meal || item.name || 'Item';
+                const variant = item.priceType || null;
+                let cleanName = fullName;
+                let category = variant;
+
+                if (item.isGuidedMenu) {
+                    category = null;
+                } else if (variant && fullName === variant) {
+                    category = null;
+                } else if (variant && fullName.endsWith(` - ${variant}`)) {
+                    cleanName = fullName.slice(0, -(` - ${variant}`).length);
+                }
+
                 return {
-                    name: item.meal || item.name || 'Item',
-                    category: item.priceType || 'default',
+                    name: cleanName,
+                    category: category,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice || (item.totalPrice / item.quantity),
                     totalPrice: item.totalPrice,
@@ -233,6 +251,8 @@ export default function Checkout() {
                     isGuidedMenu: item.isGuidedMenu || false,
                     isPWYW: item.isPWYW || false,
                     isRushOrder: item.isRushOrder || false,
+                    pricingCategory: item.pricingCategory || null,
+                    customAmount: item.isPWYW ? (item.customAmount || null) : null,
                     subItems
                 };
             });
@@ -256,6 +276,7 @@ export default function Checkout() {
             date: firstItem.shabbatDate || computedMetadata.eventDate || null,
             type: computedMetadata.orderType,
             isCustomEvent: computedMetadata.isCustomEvent || false,
+            eventTime: firstItem.eventTime || null,
             shabbatHolidayStart: firstItem.shabbatHolidayStart || null,
             shabbatHolidayEnd: firstItem.shabbatHolidayEnd || null
         };
@@ -270,7 +291,19 @@ export default function Checkout() {
             sponsorshipAmount: getSponsorshipAmount() || null
         } : null;
 
-        return { items, delivery, event, customer };
+        // Extras: donation, fees
+        const sponsorshipAmount = getSponsorshipAmount();
+        const donationAmount = parseFloat(form.donation || 0);
+        const subtotalForFees = total + donationAmount + sponsorshipAmount;
+        const transactionFee = form.coverFees ? calculateTransactionFee(subtotalForFees) : 0;
+
+        const extras = {
+            donation: donationAmount,
+            coverFees: form.coverFees || false,
+            transactionFee: Math.round(transactionFee * 100) / 100
+        };
+
+        return { items, delivery, event, customer, extras };
     };
 
     // Handle form submission

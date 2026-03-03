@@ -85,11 +85,11 @@ export const PackagesHome = ({ href, packagesData }) => {
   return (
     <div className="w-full bg-blueBackground">
       {/* Hero Section */}
-      <section className={`max-w-7xl mx-auto px-6 md:px-0 pt-16 md:pt-24 lg:pt-28 pb-14 md:pb-20 lg:pb-24`}>
+      <section className={`max-w-7xl mx-auto px-6 md:px-0 py-8 md:py-10 lg:py-12`}>
         <div className="flex flex-col lg:flex-row gap-12 ">
           {/* Text Content */}
           <div className="w-full lg:w-5/12 flex flex-col">
-            <h1 className="text-4xl md:text-4xl font-bold text-myBlack mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-myBlack mb-6">
               {pageData.title}
 
             </h1>

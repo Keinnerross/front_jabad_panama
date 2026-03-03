@@ -181,8 +181,10 @@ export default function Checkout() {
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             newErrors.email = 'Email is invalid';
         }
-        if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
-        if (!formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
+        if (!koreaInputsEnabled) {
+            if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
+            if (!formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
+        }
 
         // Korea fields validation (only when korea_inputs is enabled)
         if (koreaInputsEnabled) {
@@ -594,18 +596,18 @@ export default function Checkout() {
             <div className="z-10 w-full">
 
                 <div className="text-center pt-6 xs:pt-8 sm:pt-12 md:pt-16 lg:pt-20 flex flex-col items-center gap-2 xs:gap-3 sm:gap-4 px-6 xs:px-6">
-                    <h2 className="text-3xl xs:text-3xl sm:text-3xl md:text-4xl font-bold">{isFreeRegistration ? 'Registration' : 'Checkout'}</h2>
-                    <p className="text-gray-text text-xs xs:text-sm sm:text-base w-full max-w-xs xs:max-w-sm sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] leading-relaxed" >{isFreeRegistration ? 'Complete the form below to confirm your free registration.' : 'Enter your payment method below to reserve your spot. We accept major credit cards.'}</p>
+                    <h2 className="text-2xl xs:text-2xl sm:text-2xl md:text-3xl font-bold">{isFreeRegistration ? 'Registration' : 'Checkout'}</h2>
+                    <p className="text-gray-text text-xs xs:text-xs sm:text-sm w-full max-w-xs xs:max-w-sm sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] leading-relaxed" >{isFreeRegistration ? 'Complete the form below to confirm your free registration.' : 'Enter your payment method below to reserve your spot. We accept major credit cards.'}</p>
                 </div>
                 <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 xs:gap-6 sm:gap-8 md:gap-10 pt-6 xs:pt-8 sm:pt-10 md:pt-12 lg:pt-14 px-6 xs:px-6 pb-6 xs:pb-8 sm:pb-16 md:pb-20 lg:pb-28">
 
                     {/* Order Summary Section */}
-                    <div className="w-full lg:w-[40%] order-2 lg:order-1">
-                        <div className="bg-white rounded-lg xs:rounded-xl border border-gray-200 overflow-hidden p-3 xs:p-4 sm:p-6">
+                    <div className="w-full lg:w-[40%] order-2 lg:order-1 lg:sticky lg:top-[88px] lg:self-start">
+                        <div className="bg-white rounded-xl shadow-sm overflow-hidden p-3 xs:p-4 sm:p-6">
                             <div className="flex flex-col">
                                 {/* Header */}
                                 <div className="flex items-center gap-2 xs:gap-4 mb-4 xs:mb-6 sm:mb-8">
-                                    <h3 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-darkBlue">
+                                    <h3 className="text-sm xs:text-base sm:text-lg font-bold text-darkBlue">
                                         Final order review
                                     </h3>
                                 </div>
@@ -710,39 +712,39 @@ export default function Checkout() {
                                         
                                         {/* Subtotal */}
                                         <div className="flex justify-between items-center mb-2">
-                                            <span className="text-gray-600 text-sm xs:text-base">Subtotal:</span>
-                                            <span className="text-gray-600 text-sm xs:text-base">${mounted ? total.toFixed(2) : '0.00'}</span>
+                                            <span className="text-gray-600 text-xs xs:text-sm">Subtotal:</span>
+                                            <span className="text-gray-600 text-xs xs:text-sm">${mounted ? total.toFixed(2) : '0.00'}</span>
                                         </div>
 
                                         {/* Donation if present */}
                                         {parseFloat(formData.donation || 0) > 0 && (
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="text-gray-600 text-sm xs:text-base">Donation:</span>
-                                                <span className="text-gray-600 text-sm xs:text-base">${parseFloat(formData.donation).toFixed(2)}</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">Donation:</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">${parseFloat(formData.donation).toFixed(2)}</span>
                                             </div>
                                         )}
 
                                         {/* Sponsorship if present */}
                                         {getSponsorshipAmount() > 0 && (
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="text-gray-600 text-sm xs:text-base">Sponsorship:</span>
-                                                <span className="text-gray-600 text-sm xs:text-base">${getSponsorshipAmount().toFixed(2)}</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">Sponsorship:</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">${getSponsorshipAmount().toFixed(2)}</span>
                                             </div>
                                         )}
 
                                         {/* Transaction Fee if selected */}
                                         {formData.coverFees && (
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="text-gray-600 text-sm xs:text-base">Transaction Fee (5%):</span>
-                                                <span className="text-gray-600 text-sm xs:text-base">${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()).toFixed(2)}</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">Transaction Fee (5%):</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()).toFixed(2)}</span>
                                             </div>
                                         )}
 
                                         {/* Final Total */}
                                         <div className="bg-gray-50 -mx-3 xs:-mx-4 sm:-mx-6 px-3 xs:px-4 sm:px-6 py-3 mt-4 rounded-b-lg xs:rounded-b-xl">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-darkBlue font-bold text-base xs:text-lg sm:text-xl">Total:</span>
-                                                <span className="text-darkBlue font-bold text-base xs:text-lg sm:text-xl">${mounted ? calculateGrandTotal().toFixed(2) : '0.00'}</span>
+                                                <span className="text-darkBlue font-bold text-sm xs:text-base sm:text-lg">Total:</span>
+                                                <span className="text-darkBlue font-bold text-sm xs:text-base sm:text-lg">${mounted ? calculateGrandTotal().toFixed(2) : '0.00'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -752,7 +754,7 @@ export default function Checkout() {
                     </div>
 
                     {/* Checkout Form Section */}
-                    <div className="w-full lg:w-[60%] bg-white rounded-lg xs:rounded-xl border border-gray-200 p-3 xs:p-4 sm:p-6 md:p-8 order-1 lg:order-2">
+                    <div className="w-full lg:w-[60%] bg-white rounded-xl shadow-sm p-3 xs:p-4 sm:p-6 md:p-8 order-1 lg:order-2">
                         <form
                             onSubmit={handleSubmit}
                             className="space-y-4 xs:space-y-6 sm:space-y-8"
@@ -761,33 +763,33 @@ export default function Checkout() {
                         >
                             {/* Personal Information Section */}
                             <fieldset>
-                                <legend className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Personal Information</legend>
+                                <legend className="text-sm xs:text-base sm:text-lg font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Personal Information</legend>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4 md:gap-6">
                                     {/* First Name */}
                                     <div>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">First Name *</label>
+                                        <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">First Name *</label>
                                         <input
                                             type="text"
                                             name="firstName"
                                             value={formData.firstName}
                                             onChange={handleInputChange}
                                             placeholder="Matt"
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-200'}`}
+                                            className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-200'}`}
                                         />
                                         {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
                                     </div>
 
                                     {/* Last Name */}
                                     <div>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Last Name *</label>
+                                        <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Last Name *</label>
                                         <input
                                             type="text"
                                             name="lastName"
                                             value={formData.lastName}
                                             onChange={handleInputChange}
                                             placeholder="Cannon"
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.lastName ? 'border-red-500' : 'border-gray-200'}`}
+                                            className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.lastName ? 'border-red-500' : 'border-gray-200'}`}
                                         />
                                         {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
                                     </div>
@@ -795,14 +797,14 @@ export default function Checkout() {
                                     {/* Nationality */}
                                     {nationalityEnabled && (
                                     <div>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Nationality{!koreaInputsEnabled && ' *'}</label>
+                                        <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Nationality{!koreaInputsEnabled && ' *'}</label>
                                         <input
                                             type="text"
                                             name="nationality"
                                             value={formData.nationality}
                                             onChange={handleInputChange}
                                             placeholder="e.g. Israeli"
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.nationality ? 'border-red-500' : 'border-gray-200'}`}
+                                            className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.nationality ? 'border-red-500' : 'border-gray-200'}`}
                                         />
                                         {errors.nationality && <p className="text-red-500 text-xs mt-1">{errors.nationality}</p>}
                                     </div>
@@ -810,14 +812,14 @@ export default function Checkout() {
 
                                     {/* Phone Number */}
                                     <div className={!nationalityEnabled ? 'sm:col-span-2' : ''}>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Phone Number{!koreaInputsEnabled && ' *'}</label>
+                                        <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Phone Number{!koreaInputsEnabled && ' *'}</label>
                                         <input
                                             type="tel"
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleInputChange}
                                             placeholder="(123) 456-7890"
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}
+                                            className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}
                                         />
                                         {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                                     </div>
@@ -829,13 +831,13 @@ export default function Checkout() {
                                 <>
                                     {/* My Connection to Country Section */}
                                     <fieldset>
-                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`My Connection to ${countryName} *`}</legend>
+                                        <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">{`My Connection to ${countryName} *`}</legend>
                                         <div className="space-y-3">
                                             <select
                                                 name="koreaConnection"
                                                 value={formData.koreaConnection}
                                                 onChange={handleInputChange}
-                                                className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.koreaConnection ? 'border-red-500' : 'border-gray-200'}`}
+                                                className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.koreaConnection ? 'border-red-500' : 'border-gray-200'}`}
                                             >
                                                 <option value="">{`Select your connection to ${countryName}...`}</option>
                                                 <option value="live">{`I live in ${countryName}`}</option>
@@ -850,7 +852,7 @@ export default function Checkout() {
                                                         value={formData.koreaConnectionOther}
                                                         onChange={handleInputChange}
                                                         placeholder="Please specify..."
-                                                        className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.koreaConnectionOther ? 'border-red-500' : 'border-gray-200'}`}
+                                                        className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.koreaConnectionOther ? 'border-red-500' : 'border-gray-200'}`}
                                                     />
                                                     {errors.koreaConnectionOther && <p className="text-red-500 text-xs mt-1">{errors.koreaConnectionOther}</p>}
                                                 </div>
@@ -862,15 +864,15 @@ export default function Checkout() {
                                     {/* Local Phone Number in Country - only shown for delivery items */}
                                     {hasDeliveryItem && (
                                     <fieldset>
-                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName} *`}</legend>
-                                        <p className="text-gray-500 text-xs xs:text-sm mb-2">{`For deliveries, we must have a local phone number in ${countryName}. You may use your hotel's number.`}</p>
+                                        <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName} *`}</legend>
+                                        <p className="text-gray-500 text-xs mb-2">{`For deliveries, we must have a local phone number in ${countryName}. You may use your hotel's number.`}</p>
                                         <input
                                             type="tel"
                                             name="localPhone"
                                             value={formData.localPhone}
                                             onChange={handleInputChange}
                                             placeholder="e.g., 010-1234-5678"
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.localPhone ? 'border-red-500' : 'border-gray-200'}`}
+                                            className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.localPhone ? 'border-red-500' : 'border-gray-200'}`}
                                         />
                                         {errors.localPhone && <p className="text-red-500 text-xs mt-1">{errors.localPhone}</p>}
                                     </fieldset>
@@ -878,14 +880,14 @@ export default function Checkout() {
 
                                     {/* My Connection to Judaism Section - Multiselect Dropdown */}
                                     <fieldset ref={judaismDropdownRef} className="relative">
-                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">My Connection to Judaism *</legend>
-                                        <p className="text-gray-500 text-xs xs:text-sm mb-2">Select all that apply</p>
+                                        <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">My Connection to Judaism *</legend>
+                                        <p className="text-gray-500 text-xs mb-2">Select all that apply</p>
 
                                         {/* Trigger button */}
                                         <button
                                             type="button"
                                             onClick={() => setJudaismDropdownOpen(!judaismDropdownOpen)}
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 min-h-[2.5rem] xs:min-h-[3rem] sm:min-h-[3.5rem] text-left flex items-center justify-between transition-colors cursor-pointer ${errors.judaismConnection ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent`}
+                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 min-h-[2.25rem] xs:min-h-[2.5rem] sm:min-h-[2.75rem] text-left flex items-center justify-between transition-colors cursor-pointer ${errors.judaismConnection ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent`}
                                         >
                                             <div className="flex flex-wrap gap-1.5 flex-1">
                                                 {formData.judaismConnection.length === 0 ? (
@@ -924,7 +926,7 @@ export default function Checkout() {
                                                                 </svg>
                                                             )}
                                                         </div>
-                                                        <span className="text-sm xs:text-base text-gray-text">{option.label}</span>
+                                                        <span className="text-xs xs:text-sm text-gray-text">{option.label}</span>
                                                     </label>
                                                 ))}
                                             </div>
@@ -934,14 +936,14 @@ export default function Checkout() {
 
                                     {/* Sponsorship Options Section */}
                                     <fieldset>
-                                        <legend className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Sponsorship Options</legend>
-                                        <p className="text-gray-500 text-xs xs:text-sm mb-4">Support our community by sponsoring a meal or event (optional)</p>
+                                        <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Sponsorship Options</legend>
+                                        <p className="text-gray-500 text-xs mb-4">Support our community by sponsoring a meal or event (optional)</p>
                                         <div className="space-y-3">
                                             <select
                                                 name="sponsorship"
                                                 value={formData.sponsorship}
                                                 onChange={handleInputChange}
-                                                className="w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent border-gray-200"
+                                                className="w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent border-gray-200"
                                             >
                                                 <option value="">No sponsorship (optional)</option>
                                                 <option value="26">$26 - Sponsor My Meal for a Student/Backpacker</option>
@@ -967,9 +969,9 @@ export default function Checkout() {
                                                             placeholder="Enter amount"
                                                             min="1"
                                                             className="w-full bg-white border border-gray-200 
-                                                            rounded-lg p-2.5 xs:p-3 sm:p-4  h-10 xs:h-12 sm:h-14 
+                                                            rounded-lg px-2.5 xs:px-3 sm:px-4  h-10 xs:h-12 sm:h-14
                                                             text-gray-text font-medium text-sm xs:text-base !pl-8
-                                                            focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                                                         />
                                                     </div>
                                                 </div>
@@ -981,19 +983,19 @@ export default function Checkout() {
 
                             {/* Contact Information Section */}
                             <fieldset>
-                                <legend className="text-base xs:text-lg sm:text-xl font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Contact Information</legend>
+                                <legend className="text-sm xs:text-base sm:text-lg font-bold text-darkBlue mb-3 xs:mb-4 sm:mb-6">Contact Information</legend>
 
                                 <div className="space-y-3 xs:space-y-4 sm:space-y-6">
                                     {/* Email Address */}
                                     <div>
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Email Address *</label>
+                                        <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Email Address *</label>
                                         <input
                                             type="email"
                                             name="email"
                                             value={formData.email}
                                             onChange={handleInputChange}
                                             placeholder="example@email.com"
-                                            className={`w-full bg-white border rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
+                                            className={`w-full bg-white border rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
                                         />
                                         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                     </div>
@@ -1002,15 +1004,13 @@ export default function Checkout() {
                                     <div className="pt-3 xs:pt-4 sm:pt-6 border-t border-gray-200">
                                         <div className="mb-3 xs:mb-4">
                                             <p className="text-xs leading-relaxed text-gray-500">
-                                                Please be advised that Chabad of Panama is not funded by Chabad
-                                                headquarters in New York. We are responsible for all funds. We are
-                                                supported exclusively by the generous contributions of individuals
+                                                We are responsible for all funds. We are supported exclusively by the generous contributions of individuals
                                                 and foundations that care about our action. All funds go directly
                                                 into programs and services for the center and visitors.
                                             </p>
                                         </div>
 
-                                        <label className="block text-xs xs:text-sm font-bold text-darkBlue mb-1.5 xs:mb-2">Your Donation (Optional)</label>
+                                        <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Your Donation (Optional)</label>
                                         <input
                                             type="number"
                                             name="donation"
@@ -1019,7 +1019,7 @@ export default function Checkout() {
                                             placeholder="0.00"
                                             min="0"
                                             step="0.01"
-                                            className="w-full bg-white border border-gray-200 rounded-lg p-2.5 xs:p-3 sm:p-4 h-10 xs:h-12 sm:h-14 text-gray-text font-medium text-sm xs:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                                         />
 
                                         {/* Transaction Fee Checkbox */}
@@ -1030,10 +1030,10 @@ export default function Checkout() {
                                                     name="coverFees"
                                                     checked={formData.coverFees}
                                                     onChange={handleInputChange}
-                                                    className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                                    className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 text-primary border-gray-300 rounded focus:ring-gray-400 cursor-pointer flex-shrink-0"
                                                 />
                                                 <div className="flex-1">
-                                                    <p className="text-gray-text text-xs xs:text-sm font-medium">
+                                                    <p className="text-gray-text text-xs font-medium">
                                                         Help us avoid credit card fees?
                                                         {(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()) > 0 && (
                                                             <span className="text-primary font-semibold">
@@ -1051,7 +1051,8 @@ export default function Checkout() {
                                 </div>
                             </fieldset>
 
-                            {/* Terms and Conditions */}
+                            {/* Terms and Conditions - hidden when korea_inputs is enabled */}
+                            {!koreaInputsEnabled && (
                             <fieldset>
                                 <legend className="sr-only">Terms and Conditions</legend>
                                 <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
@@ -1062,7 +1063,7 @@ export default function Checkout() {
                                             name="agreeTerms"
                                             checked={formData.agreeTerms}
                                             onChange={handleInputChange}
-                                            className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 xs:mt-1 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                            className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 xs:mt-1 text-primary border-gray-300 rounded focus:ring-gray-400 cursor-pointer flex-shrink-0"
                                         />
                                         <div className="flex-1">
                                             <p className="text-gray-text text-xs leading-relaxed">
@@ -1081,7 +1082,7 @@ export default function Checkout() {
                                             name="agreeUpdates"
                                             checked={formData.agreeUpdates}
                                             onChange={handleInputChange}
-                                            className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 xs:mt-1 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer flex-shrink-0"
+                                            className="w-4 xs:w-5 h-4 xs:h-5 mt-0.5 xs:mt-1 text-primary border-gray-300 rounded focus:ring-gray-400 cursor-pointer flex-shrink-0"
                                         />
                                         <div className="flex-1">
                                             <p className="text-gray-text text-xs leading-relaxed">
@@ -1092,13 +1093,14 @@ export default function Checkout() {
                                     </div>
                                 </div>
                             </fieldset>
+                            )}
 
                             {/* Payment Button */}
                             <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className={`w-full font-bold py-3 xs:py-3.5 sm:py-4 rounded-lg transition touch-manipulation text-sm xs:text-base ${isSubmitting
+                                    className={`w-full font-bold py-2.5 xs:py-3 sm:py-3.5 rounded-lg transition touch-manipulation text-xs xs:text-sm ${isSubmitting
                                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         : 'bg-primary text-white hover:bg-opacity-90 cursor-pointer active:bg-opacity-80'
                                         }`}
@@ -1106,18 +1108,20 @@ export default function Checkout() {
                                     {isSubmitting ? (
                                         <div className="flex items-center justify-center">
                                             <div className="animate-spin rounded-full h-4 xs:h-5 w-4 xs:w-5 border-2 xs:border-4 border-gray-300 border-t-current mr-2"></div>
-                                            <span className="text-sm xs:text-base">Processing...</span>
+                                            <span className="text-xs xs:text-sm">Processing...</span>
                                         </div>
                                     ) : (
                                         isFreeRegistration ? 'Register now' : 'Pay now'
                                     )}
                                 </button>
+                                {!koreaInputsEnabled && (
                                 <p className="text-gray-text text-xs text-center leading-relaxed px-2">
                                     {isFreeRegistration
                                         ? '*Please complete the form to confirm your registration'
                                         : '*The registration will not be completed without completing the payment'
                                     }
                                 </p>
+                                )}
                             </div>
                         </form>
                     </div>

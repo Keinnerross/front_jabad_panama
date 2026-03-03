@@ -26,7 +26,10 @@
       "WebFetch(domain:github.com)",
       "Bash(source /home/chabbat/demo/front_chabad/.env 2>/dev/null; BASE=\"https://testapi.payarc.net\"; echo \"=== Trying to test webhook delivery ===\"; curl -s \"$BASE/v1/webhooks/KkjnlRAkA4RgN43v/test\" -X POST -H \"Authorization: Bearer $PAYARC_API_KEY\" -H \"Accept: application/json\" 2>&1; echo \"\"; echo \"=== Trying webhook ping ===\"; curl -s \"$BASE/v1/webhooks/KkjnlRAkA4RgN43v/ping\" -X POST -H \"Authorization: Bearer $PAYARC_API_KEY\" -H \"Accept: application/json\" 2>&1; echo \"\")",
       "WebFetch(domain:support.payarc.com)",
-      "Bash(wc -l /home/chabbat/demo/front_chabad/src/app/\\\\\\(pages\\\\\\)/\\\\\\(app\\\\\\)/checkout/page.js)"
+      "Bash(wc -l /home/chabbat/demo/front_chabad/src/app/\\\\\\(pages\\\\\\)/\\\\\\(app\\\\\\)/checkout/page.js)",
+      "Bash(head -100 /home/chabbat/demo/front_chabad/src/app/\\\\\\(pages\\\\\\)/\\\\\\(app\\\\\\)/checkout/page.js | tail -50)",
+      "WebFetch(domain:www.designsystems.com)",
+      "WebFetch(domain:www.apple.com)"
     ],
     "deny": []
   }

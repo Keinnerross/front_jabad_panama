@@ -14,7 +14,7 @@ export const Announces = ({ announcesData = [] }) => {
         <div className="w-full bg-blueBackground">
 
 
-            <div className="max-w-7xl mx-auto space-y-12 px-4 sm:px-6 lg:px-4 py-14">
+            <div className="max-w-7xl mx-auto space-y-12 px-4 sm:px-6 lg:px-4 py-8 md:py-10 lg:py-12">
                 {announcesData.map((event, index) => {
                     const announce = event.announce;
 

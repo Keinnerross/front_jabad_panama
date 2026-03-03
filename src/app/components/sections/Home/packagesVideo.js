@@ -93,7 +93,7 @@ export const PackagesVideo = ({ title = "Everything about our packages", buttonT
 
 
   return (
-    <section className="bg-white pt-14 md:pt-20 lg:pt-24 pb-14 md:pb-20 lg:pb-24 flex justify-center items-center">
+    <section className="bg-white py-8 md:py-10 lg:py-12 flex justify-center items-center">
       <div className="w-full max-w-7xl px-6 md:px-0">
         {/* Header Video Section */}
         <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">

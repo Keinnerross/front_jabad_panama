@@ -141,11 +141,11 @@ export const FoodHomeSlider = ({ restaurantsData, siteConfig }) => {
     );
 
     return (
-        <div className={`bg-background pt-16 md:pt-24 lg:pt-28 pb-14 md:pb-20 lg:pb-24 flex justify-center items-center w-full flex-col px-6`}>
+        <div className={`bg-background py-8 md:py-10 lg:py-12 flex justify-center items-center w-full flex-col px-6`}>
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full flex flex-col md:flex-row justify-between md:items-center mb-8">
-                    <p className="mb-8 md:mb-0 text-3xl md:text-3xl font-bold">
+                    <p className="mb-8 md:mb-0 text-3xl md:text-4xl font-bold">
                         Kosher Food in {siteConfig?.city || "City Name"}
                     </p>
 

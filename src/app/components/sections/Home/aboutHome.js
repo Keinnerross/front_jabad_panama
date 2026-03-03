@@ -53,14 +53,14 @@ export const AboutHome = ({ aboutData }) => {
 
 
   return (
-    <div id="aboutHero" className="w-full bg-blueBackground pt-14 md:pt-20 lg:pt-24 pb-16 md:pb-24 lg:pb-28">
+    <div id="aboutHero" className="w-full bg-blueBackground py-8 md:py-10 lg:py-12">
       <div className={`max-w-7xl mx-auto px-4`}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="order-1 lg:order-none">
             <div className="text-primary font-bold text-lg md:text-xl tracking-wider mb-2">
               {pageData.primaryDescription}
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-myBlack mb-6 leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-myBlack mb-6 leading-tight">
               {pageData.title}
             </h1>
             <p className="text-gray-text text-base mb-8 leading-relaxed">

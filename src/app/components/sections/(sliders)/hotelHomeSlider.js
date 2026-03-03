@@ -65,11 +65,11 @@ export const HotelHomeSlider = ({ hotelsData, singleHotelsActive = true }) => {
 
 
     return (
-        <div className="bg-background py-14 md:py-20 lg:py-24 flex justify-center items-center w-full flex-col">
+        <div className="bg-background py-8 md:py-10 lg:py-12 flex justify-center items-center w-full flex-col">
             <div className="w-full max-w-7xl">
                 {/* Header */}
                 <div className="w-full md:flex justify-between items-center mb-10 px-4 md:px-0 space-y-4 md:space-y-0">
-                    <p className="text-4xl font-bold">Recommended Hotels</p>
+                    <p className="text-3xl md:text-4xl font-bold">Recommended Hotels</p>
                     <ButtonTheme title="Browse all hotels" href="/accommodations" />
                 </div>
             </div>

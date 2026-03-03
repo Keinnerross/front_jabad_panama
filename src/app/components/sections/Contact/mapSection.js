@@ -125,7 +125,7 @@ export const MapSection = ({ siteConfig }) => {
     setIsDragging(false);
   };
   return (
-    <section className="w-full flex justify-center items-center pt-16 md:pt-24 lg:pt-28 pb-14 md:pb-20 lg:pb-24 px-6 md:px-0">
+    <section className="w-full flex justify-center items-center py-8 md:py-10 lg:py-12 px-6 md:px-0">
       <div className="max-w-7xl w-7xl mx-auto flex flex-col justify-center items-center gap-10 ">
         <h2 className="text-center text-myBlack font-bold text-3xl md:text-4xl">
           You will find us here

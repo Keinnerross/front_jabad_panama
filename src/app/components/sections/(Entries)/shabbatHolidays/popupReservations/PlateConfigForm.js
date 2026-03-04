@@ -46,8 +46,8 @@ export const PlateConfigForm = ({
                 </div>
             )}
 
-            {/* Price Options */}
-            {!isPWYWActive && (
+            {/* Price Options - only show on step 1 (or when not in wizard mode) */}
+            {!isPWYWActive && (visibleStepIndex === null || visibleStepIndex === 0) && (
                 guidedMenu?.plates_prices?.length > 0 ? (
                     <div className="border border-gray-200 rounded-lg p-2 md:p-2 lg:p-3">
                         <h3 className="text-sm md:text-sm lg:text-sm font-semibold text-darkBlue mb-2">

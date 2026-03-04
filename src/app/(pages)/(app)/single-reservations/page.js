@@ -27,14 +27,16 @@ export default async function SingleReservations() {
         shabbatsRegisterPricesData,
         pwywSiteConfigData,
         pageData,
-        upcomingShabbatEvents
+        upcomingShabbatEvents,
+        platformSettings
     ] = await Promise.all([
         api.shabbatsAndHolidays(),
         api.restaurants(),
         api.shabbatsRegisterPrices(),
         api.pwywSiteConfig(),
         api.shabbatRegisterSingleReservation(),
-        getUpcomingShabbatEvents()
+        getUpcomingShabbatEvents(),
+        api.platformSettings()
     ]);
 
 
@@ -52,6 +54,7 @@ export default async function SingleReservations() {
                     upcomingShabbatEvents={upcomingShabbatEvents?.events || []}
                     pwywSiteConfigData={pwywSiteConfigData}
                     pageData={pageData}
+                    countryName={platformSettings?.pais}
                     />
             </Suspense>
         </Fragment>

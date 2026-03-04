@@ -15,8 +15,8 @@ export default function Checkout() {
     const [checkoutSettings, setCheckoutSettings] = useState(null);
     const [platformSettings, setPlatformSettings] = useState(null);
 
-    // Detect if all cart items are free (PWYW with $0)
-    const isFreeRegistration = mounted && total === 0 && cartItems?.length > 0 && cartItems.some(item => item.isPWYW);
+    // Detect if all cart items are free (PWYW with $0, or mealReservation with $0 price)
+    const isFreeRegistration = mounted && total === 0 && cartItems?.length > 0 && cartItems.some(item => item.isPWYW || item.productType === 'mealReservation');
 
     // Fetch checkout and platform settings
     useEffect(() => {
@@ -351,7 +351,7 @@ export default function Checkout() {
                         alert(`Error: Invalid price or quantity for ${item.meal}`);
                         throw new Error(`Invalid values for ${item.meal}`);
                     }
-                    if (unitAmount === 0 && !item.isPWYW) {
+                    if (unitAmount === 0 && !item.isPWYW && item.productType !== 'mealReservation') {
                         console.error('Zero amount for non-PWYW item:', item);
                         alert(`Error: Invalid price for ${item.meal}`);
                         throw new Error(`Invalid values for ${item.meal}`);

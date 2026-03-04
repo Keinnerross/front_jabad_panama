@@ -2,6 +2,7 @@
 import { FaHome, FaSuitcase } from "react-icons/fa";
 
 export const PricingSelector = ({
+    countryName = 'the country',
     loadingCategory,
     onSelectLocal,
     onSelectTourist
@@ -32,7 +33,7 @@ export const PricingSelector = ({
                         )}
                         <h3 className="text-lg font-semibold text-darkBlue">Local</h3>
                         <p className="text-sm text-gray-500 mt-1">
-                            {loadingCategory === 'local' ? 'Loading...' : 'I live in Panama'}
+                            {loadingCategory === 'local' ? 'Loading...' : `I live in ${countryName}`}
                         </p>
                     </div>
                 </button>
@@ -57,7 +58,7 @@ export const PricingSelector = ({
                         )}
                         <h3 className="text-lg font-semibold text-darkBlue">Tourist</h3>
                         <p className="text-sm text-gray-500 mt-1">
-                            {loadingCategory === 'tourist' ? 'Loading...' : "I'm visiting Panama"}
+                            {loadingCategory === 'tourist' ? 'Loading...' : `I'm visiting ${countryName}`}
                         </p>
                     </div>
                 </button>

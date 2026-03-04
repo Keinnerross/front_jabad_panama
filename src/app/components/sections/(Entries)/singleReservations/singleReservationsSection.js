@@ -56,7 +56,7 @@ const SingleReservationsSkeleton = () => (
     </div>
 );
 
-export default function SingleReservationsSection({ shabbatsAndHolidaysData, restaurantsData, shabbatsRegisterPricesData, upcomingShabbatEvents, pageData, pwywSiteConfigData }) {
+export default function SingleReservationsSection({ shabbatsAndHolidaysData, restaurantsData, shabbatsRegisterPricesData, upcomingShabbatEvents, pageData, pwywSiteConfigData, countryName }) {
 
     // Use API data instead of static data
     const pricesRegistrationShabbat = shabbatsRegisterPricesData || [];
@@ -445,6 +445,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                             ? (selectedShabbatData?.pay_wy_want_custom_event === true)
                             : (pwywSiteConfigData?.pay_wy_want_reservations === true)
                     }
+                    countryName={countryName}
                 />
             </Suspense>
         </Fragment>

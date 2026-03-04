@@ -20,7 +20,7 @@ import { PricingSelector } from './popupReservations/PricingSelector';
 import { MultiPlateGuidedMenu } from './popupReservations/MultiPlateGuidedMenu';
 import { CartConflictModal } from '@/app/components/ui/cart/CartConflictModal';
 
-export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false, globalDeliveryZones = null, customDeliveryZones = [], customDeliveryIsActive = false, pickupAddress = "Sinagoga Address", deliveryOptions = null }) => {
+export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, shabbatData, allMeals = [], isCustomEvent = false, eventType = null, enableLocalPricing = false, pwywSiteConfigData = false, globalDeliveryZones = null, customDeliveryZones = [], customDeliveryIsActive = false, pickupAddress = "Sinagoga Address", deliveryOptions = null, countryName }) => {
     const router = useRouter();
     const [quantities, setQuantities] = useState({});
     const [total, setTotal] = useState(0);
@@ -911,6 +911,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                         {/* Local/Tourist Selector for Traditional Shabbat */}
                         {!isCustomEvent && showPricingSelector && (
                             <PricingSelector
+                                countryName={countryName}
                                 loadingCategory={loadingCategory}
                                 onSelectLocal={() => {
                                     setLoadingCategory('local');
@@ -1182,8 +1183,8 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                 {/* Add to Cart Button */}
                                 <button
                                     onClick={addToCart}
-                                    disabled={total === 0 || isLoading}
-                                    className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center cursor-pointer touch-manipulation text-xs sm:text-sm md:text-base ${total > 0 && !isLoading
+                                    disabled={!hasItems || isLoading}
+                                    className={`w-full font-bold py-2 sm:py-3 rounded-lg transition flex justify-between px-3 sm:px-4 items-center cursor-pointer touch-manipulation text-xs sm:text-sm md:text-base ${hasItems && !isLoading
                                         ? 'bg-primary text-white hover:bg-opacity-90'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         }`}

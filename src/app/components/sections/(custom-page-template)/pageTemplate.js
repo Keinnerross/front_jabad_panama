@@ -52,7 +52,7 @@ export const PageTemplate = ({ singleData }) => {
                 <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-12">
                     {/* Sidebar */}
                     <div className="lg:w-[30%]">
-                        <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-8">
+                        <div className="bg-white rounded-xl border border-solid border-gray-200 p-6 sticky top-[88px]">
                             <h2 className="font-semibold text-2xl mb-4">{singleData?.sidebar_title || "Sidebar Title"}</h2>
 
 

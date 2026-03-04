@@ -11,7 +11,7 @@ export const InfoBanner = ({
 }) => {
     return (
       
-        <div className="flex w-full items-start gap-4 p-4 min-h-[63px] relative bg-[#06aed5] rounded-[0px_20px_0px_20px] overflow-hidden border border-solid border-white">
+        <div className="flex w-full items-start gap-4 p-4 min-h-[63px] relative bg-primary rounded-[0px_20px_0px_20px] overflow-hidden border border-solid border-white">
             
             <div className="flex-shrink-0 w-7 h-7 text-white">
                 <FiAlertCircle className="w-full h-full" />

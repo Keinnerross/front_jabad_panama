@@ -8,8 +8,7 @@ import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
 import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
 import { getAssetPath } from "@/app/utils/assetPath";
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownContent } from '@/app/components/ui/common/markdownContent';
 // import { pricesRegistrationShabbat } from "@/app/data/shabbatData";
 
 // Lazy load the popup component for better performance
@@ -177,33 +176,7 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                                                             <h3 className="font-semibold text-myBlack text-base mb-2">
                                                                 About this Shabbat
                                                             </h3>
-                                                            <div className="text-gray-600">
-                                                                <ReactMarkdown
-                                                                    remarkPlugins={[remarkGfm]}
-                                                                    components={{
-                                                                        h1: ({ children }) => <h1 className="text-2xl font-bold text-darkBlue mb-4">{children}</h1>,
-                                                                        h2: ({ children }) => <h2 className="text-xl font-bold text-darkBlue mb-3">{children}</h2>,
-                                                                        h3: ({ children }) => <h3 className="text-lg font-bold text-darkBlue mb-2">{children}</h3>,
-                                                                        h4: ({ children }) => <h4 className="text-base font-bold text-darkBlue mb-2">{children}</h4>,
-                                                                        p: ({ children }) => <p className="mb-3 text-gray-600">{children}</p>,
-                                                                        strong: ({ children }) => <strong className="font-semibold text-myBlack">{children}</strong>,
-                                                                        ul: ({ children }) => <ul className="list-disc ml-4 space-y-1">{children}</ul>,
-                                                                        ol: ({ children }) => <ol className="list-decimal ml-4 space-y-1">{children}</ol>,
-                                                                        li: ({ children }) => <li className="mb-1 text-gray-600">{children}</li>,
-                                                                        a: ({ href, children }) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                                                        br: () => <br className="mb-2" />,
-                                                                        hr: () => <hr className="my-4 border-0 h-px bg-gray-300" />,
-                                                                        table: ({ children }) => <div className="overflow-x-auto mb-4 border border-gray-300 rounded-lg"><table className="min-w-full border-separate border-spacing-0 bg-white rounded-lg shadow-sm overflow-hidden">{children}</table></div>,
-                                                                        thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
-                                                                        tbody: ({ children }) => <tbody className="bg-white">{children}</tbody>,
-                                                                        tr: ({ children }) => <tr>{children}</tr>,
-                                                                        th: ({ children }) => <th className="px-4 py-3 text-left text-sm font-semibold text-darkBlue border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</th>,
-                                                                        td: ({ children }) => <td className="px-4 py-3 text-sm text-gray-700 border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</td>
-                                                                    }}
-                                                                >
-                                                                    {selectedEventData.event_description}
-                                                                </ReactMarkdown>
-                                                            </div>
+                                                            <MarkdownContent className="text-gray-600">{selectedEventData.event_description}</MarkdownContent>
                                                         </div>
                                                     )}
 
@@ -242,34 +215,8 @@ export default function CustomEventSection({ customEventsData, restaurantsData, 
                                             Event Details:
                                         </h2>
                                         <div className="text-gray-text text-sm leading-relaxed space-y-4">
-                                            <div className="border border-gray-200 p-4 rounded-2xl p-6">
-                                                <div className="text-gray-600">
-                                                    <ReactMarkdown
-                                                        remarkPlugins={[remarkGfm]}
-                                                        components={{
-                                                            h1: ({ children }) => <h1 className="text-2xl font-bold text-darkBlue mb-4">{children}</h1>,
-                                                            h2: ({ children }) => <h2 className="text-xl font-bold text-darkBlue mb-3">{children}</h2>,
-                                                            h3: ({ children }) => <h3 className="text-lg font-bold text-darkBlue mb-2">{children}</h3>,
-                                                            h4: ({ children }) => <h4 className="text-base font-bold text-darkBlue mb-2">{children}</h4>,
-                                                            p: ({ children }) => <p className="mb-3 text-gray-600">{children}</p>,
-                                                            strong: ({ children }) => <strong className="font-semibold text-myBlack">{children}</strong>,
-                                                            ul: ({ children }) => <ul className="list-disc ml-4 space-y-1">{children}</ul>,
-                                                            ol: ({ children }) => <ol className="list-decimal ml-4 space-y-1">{children}</ol>,
-                                                            li: ({ children }) => <li className="mb-1 text-gray-600">{children}</li>,
-                                                            a: ({ href, children }) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                                            br: () => <br className="mb-2" />,
-                                                            hr: () => <hr className="my-4 border-0 h-px bg-gray-300" />,
-                                                            table: ({ children }) => <div className="overflow-x-auto mb-4 border border-gray-300 rounded-lg"><table className="min-w-full border-separate border-spacing-0 bg-white rounded-lg shadow-sm overflow-hidden">{children}</table></div>,
-                                                            thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
-                                                            tbody: ({ children }) => <tbody className="bg-white">{children}</tbody>,
-                                                            tr: ({ children }) => <tr>{children}</tr>,
-                                                            th: ({ children }) => <th className="px-4 py-3 text-left text-sm font-semibold text-darkBlue border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</th>,
-                                                            td: ({ children }) => <td className="px-4 py-3 text-sm text-gray-700 border-r border-gray-300 last:border-r-0 [tr:not(:last-child)_&]:border-b">{children}</td>
-                                                        }}
-                                                    >
-                                                        {selectedEventData?.event_description || "This is a custom event with various options available. Use the registration button to see all available options and select your preferences."}
-                                                    </ReactMarkdown>
-                                                </div>
+                                            <div className="border border-gray-200 p-4 rounded-2xl">
+                                                <MarkdownContent className="text-gray-600">{selectedEventData?.event_description || "This is a custom event with various options available. Use the registration button to see all available options and select your preferences."}</MarkdownContent>
                                             </div>
                                         </div>
                                     </>

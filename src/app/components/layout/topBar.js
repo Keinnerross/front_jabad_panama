@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 export const TopBar = ({ platformSettings }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -19,7 +21,8 @@ export const TopBar = ({ platformSettings }) => {
       <div className="max-w-7xl mx-auto px-4 py-2 sm:py-2.5">
         <div className="flex items-center justify-center relative">
           <div className="text-white text-sm sm:text-base text-center font-medium">
-            <ReactMarkdown 
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkBreaks]}
               components={{
                 // Inline elements only for topbar
                 p: ({children}) => <span>{children}</span>,

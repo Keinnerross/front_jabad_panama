@@ -4,7 +4,7 @@ import Image from "next/image";
 import React, { Fragment, useState } from "react";
 import { getAssetPath } from "@/app/utils/assetPath";
 import { getApiUrl } from "@/app/utils/urlHelper";
-import ReactMarkdown from 'react-markdown';
+import { MarkdownContent } from '@/app/components/ui/common/markdownContent';
 
 export default function DonationForm({ copiesData }) {
     const [currentStep, setCurrentStep] = useState(1);
@@ -254,21 +254,7 @@ export default function DonationForm({ copiesData }) {
                             </h1>
 
                             <div className="text-gray-text text-base mb-8">
-                                <ReactMarkdown
-                                    components={{
-                                        p: ({children}) => <p className="mb-4">{children}</p>,
-                                        strong: ({children}) => <strong className="font-semibold text-darkBlue">{children}</strong>,
-                                        ul: ({children}) => <ul className="list-disc ml-6 space-y-2">{children}</ul>,
-                                        ol: ({children}) => <ol className="list-decimal ml-6 space-y-2">{children}</ol>,
-                                        li: ({children}) => <li className="mb-1">{children}</li>,
-                                        a: ({href, children}) => <a href={href} className="text-primary underline hover:text-primary/80 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                        h4: ({children}) => <h4 className="text-lg font-bold text-darkBlue mt-4 mb-2">{children}</h4>,
-                                        h3: ({children}) => <h3 className="text-xl font-bold text-darkBlue mt-6 mb-3">{children}</h3>,
-                                        br: () => <br className="mb-2" />
-                                    }}
-                                >
-                                    {copiesData?.donations?.description || "Your gift keeps Chabad House Panama City's doors open to everyone—whether they're here for a Shabbat meal, a Torah class, or simply a friendly face. With your support we can:"}
-                                </ReactMarkdown>
+                                <MarkdownContent>{copiesData?.donations?.description || "Your gift keeps Chabad House Panama City's doors open to everyone—whether they're here for a Shabbat meal, a Torah class, or simply a friendly face. With your support we can:"}</MarkdownContent>
                             </div>
 
 

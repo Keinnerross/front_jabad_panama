@@ -5,7 +5,7 @@ import { FaUser } from "react-icons/fa";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { CategoryTag } from "@/app/components/ui/common/categoryTag";
 import { RestaurantsSection } from "@/app/components/sections/(Entries)/(restaurants)/restaurantsSection";
-import ReactMarkdown from 'react-markdown';
+import { MarkdownContent } from '@/app/components/ui/common/markdownContent';
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
 import { getAssetPath } from "@/app/utils/assetPath";
@@ -78,15 +78,7 @@ export default function SingleShabbatBoxSection({ shabbatBoxOptionsData, upcomin
                                     {pageData?.title || "SHABBOS MEALS TAKE OUT OPTION"}
                                 </h2>
                                 <div className="text-gray-text text-sm leading-relaxed space-y-4">
-                                    <ReactMarkdown 
-                                        components={{
-                                            p: ({children}) => <p className="mb-4">{children}</p>,
-                                            strong: ({children}) => <strong className="text-primary font-bold">{children}</strong>,
-                                            em: ({children}) => <em className="italic">{children}</em>
-                                        }}
-                                    >
-                                        {pageData?.description || fallbackData.description}
-                                    </ReactMarkdown>
+                                    <MarkdownContent>{pageData?.description || fallbackData.description}</MarkdownContent>
                                 </div>
                             </section>
                         </div>

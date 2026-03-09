@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
-import ReactMarkdown from 'react-markdown';
+import { MarkdownContent } from '@/app/components/ui/common/markdownContent';
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { getAssetPath } from "@/app/utils/assetPath";
 import { getOptimizedImageUrl } from "@/app/utils/imagesArrayValidation";
@@ -972,16 +972,7 @@ export const PopupReservations = ({ isOpen = false, handleModal, selectedMeal, s
                                         {meal.includes && (
                                             <div className="text-[10px] md:text-[10px] lg:text-xs text-gray-600 mb-2 md:mb-1.5 lg:mb-2">
                                                 <span className="font-medium">Includes: </span>
-                                                <ReactMarkdown
-                                                    components={{
-                                                        p: ({ children }) => <span className="inline">{children}</span>,
-                                                        ul: ({ children }) => <ul className="list-disc ml-4 mt-1 space-y-0.5">{children}</ul>,
-                                                        li: ({ children }) => <li className="text-xs text-gray-600">{children}</li>,
-                                                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>
-                                                    }}
-                                                >
-                                                    {meal.includes}
-                                                </ReactMarkdown>
+                                                <MarkdownContent inline>{meal.includes}</MarkdownContent>
                                             </div>
                                         )}
                                         

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 import { useCart } from "@/app/context/CartContext";
-import ReactMarkdown from 'react-markdown';
+import { MarkdownContent } from '@/app/components/ui/common/markdownContent';
 import { formatShabbatDate } from "@/app/utils/formatShabbatDate";
 import { getAssetPath } from "@/app/utils/assetPath";
 import { CartConflictModal } from '@/app/components/ui/cart/CartConflictModal';
@@ -546,19 +546,7 @@ export const PopupShabbatBox = ({ isOpen = false, handleModal, shabbatBoxOptions
                                     {option.includes && (
                                         <div className="mb-4">
                                             <p className="font-medium text-gray-700 mb-2">Includes:</p>
-                                            <div className="text-sm text-gray-600">
-                                                <ReactMarkdown 
-                                                    components={{
-                                                        p: ({children}) => <p className="mb-2">{children}</p>,
-                                                        ul: ({children}) => <ul className="list-disc ml-4 space-y-1">{children}</ul>,
-                                                        ol: ({children}) => <ol className="list-decimal ml-4 space-y-1">{children}</ol>,
-                                                        li: ({children}) => <li className="mb-1">{children}</li>,
-                                                        strong: ({children}) => <strong className="font-semibold text-gray-700">{children}</strong>
-                                                    }}
-                                                >
-                                                    {option.includes}
-                                                </ReactMarkdown>
-                                            </div>
+                                            <MarkdownContent className="text-sm text-gray-600">{option.includes}</MarkdownContent>
                                         </div>
                                     )}
 

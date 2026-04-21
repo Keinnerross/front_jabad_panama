@@ -29,7 +29,9 @@
       "Bash(wc -l /home/chabbat/demo/front_chabad/src/app/\\\\\\(pages\\\\\\)/\\\\\\(app\\\\\\)/checkout/page.js)",
       "Bash(head -100 /home/chabbat/demo/front_chabad/src/app/\\\\\\(pages\\\\\\)/\\\\\\(app\\\\\\)/checkout/page.js | tail -50)",
       "WebFetch(domain:www.designsystems.com)",
-      "WebFetch(domain:www.apple.com)"
+      "WebFetch(domain:www.apple.com)",
+      "Bash(host chabadofpanama.com 2>/dev/null || nslookup chabadofpanama.com 2>/dev/null)",
+      "Bash(ip addr show)"
     ],
     "deny": []
   }

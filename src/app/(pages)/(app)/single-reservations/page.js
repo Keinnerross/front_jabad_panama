@@ -1,6 +1,7 @@
 import SingleReservationsSection from "@/app/components/sections/(Entries)/singleReservations/singleReservationsSection";
 import { api } from "@/app/services/strapiApiFetch";
 import { getUpcomingShabbatEvents } from "@/app/services/shabbatTimesApi";
+import { getLocationByCity } from "@/app/services/geoLocationService";
 import { Fragment, Suspense } from "react";
 
 // Loading skeleton component for better UX
@@ -20,6 +21,14 @@ const PageSkeleton = () => (
 );
 
 export default async function SingleReservations() {
+    // First fetch platformSettings to get location configuration
+    const platformSettings = await api.platformSettings();
+
+    const locationConfig = getLocationByCity(
+        platformSettings?.ciudad,
+        platformSettings?.pais
+    );
+
     // Llamadas a la API en paralelo para mejor performance
     const [
         shabbatsAndHolidaysData,
@@ -27,16 +36,14 @@ export default async function SingleReservations() {
         shabbatsRegisterPricesData,
         pwywSiteConfigData,
         pageData,
-        upcomingShabbatEvents,
-        platformSettings
+        upcomingShabbatEvents
     ] = await Promise.all([
         api.shabbatsAndHolidays(),
         api.restaurants(),
         api.shabbatsRegisterPrices(),
         api.pwywSiteConfig(),
         api.shabbatRegisterSingleReservation(),
-        getUpcomingShabbatEvents(),
-        api.platformSettings()
+        getUpcomingShabbatEvents(locationConfig)
     ]);
 
 

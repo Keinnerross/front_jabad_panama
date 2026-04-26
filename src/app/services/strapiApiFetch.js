@@ -136,7 +136,7 @@ export const api = {
     hotels: () => strapiFetch("/hotels?populate=*"),
     singleHotel: (id, populate) => strapiFetchById("/hotels", id, populate),
 
-    activities: () => strapiFetch("/activities?populate=*"),
+    activities: () => strapiFetch("/activities?populate=*&pagination[pageSize]=100&sort=order:asc"),
     singleActivity: (id, populate) => strapiFetchById("/activities", id, populate),
 
     infoTourist: () => strapiFetch("/visitor-infos?populate=*"),

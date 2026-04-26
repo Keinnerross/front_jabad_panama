@@ -226,7 +226,7 @@ export const Footer = ({ platformSettings }) => {
             className="text-gray-600 hover:text-primary transition-colors underline"
           >
             Kosher Without Borders
-          </a> - v1.1.5
+          </a> - v1.1.6
         </p>
       </div>
     </footer>

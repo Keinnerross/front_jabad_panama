@@ -120,10 +120,16 @@ export default function Checkout() {
         return subtotal * 0.05;
     };
 
+    // Delivery fee is stored per-item but applies to the order as a whole — take from the first item that has one
+    const getDeliveryFee = () => {
+        const item = cartItems?.find(i => i.deliveryFee > 0);
+        return item ? parseFloat(item.deliveryFee) : 0;
+    };
+
     // Calculate total with fees, donations and sponsorship
     const calculateGrandTotal = () => {
         const sponsorshipAmount = getSponsorshipAmount();
-        const subtotal = total + parseFloat(formData.donation || 0) + sponsorshipAmount;
+        const subtotal = total + parseFloat(formData.donation || 0) + sponsorshipAmount + getDeliveryFee();
         const transactionFee = formData.coverFees ? calculateTransactionFee(subtotal) : 0;
         return subtotal + transactionFee;
     };
@@ -477,9 +483,27 @@ export default function Checkout() {
                 });
             }
 
+            // 3.6. Si hay delivery fee, agregarlo como ítem adicional para que el cliente lo pague
+            const deliveryFeeAmount = getDeliveryFee();
+            if (deliveryFeeAmount > 0) {
+                const deliveryItem = cartItems.find(i => i.deliveryFee > 0);
+                const zoneName = deliveryItem?.deliveryZone?.zone_name;
+                paymentData.line_items.push({
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: 'Delivery',
+                            description: zoneName ? `Delivery zone: ${zoneName}` : 'Delivery fee'
+                        },
+                        unit_amount: Math.round(deliveryFeeAmount * 100),
+                    },
+                    quantity: 1,
+                });
+            }
+
             // 4. Si el usuario eligió cubrir los fees, agregarlos como ítem adicional
             if (formData.coverFees) {
-                const subtotal = total + parseFloat(formData.donation || 0) + sponsorshipAmount;
+                const subtotal = total + parseFloat(formData.donation || 0) + sponsorshipAmount + deliveryFeeAmount;
                 const transactionFee = calculateTransactionFee(subtotal);
                 paymentData.line_items.push({
                     price_data: {
@@ -716,6 +740,14 @@ export default function Checkout() {
                                             <span className="text-gray-600 text-xs xs:text-sm">${mounted ? total.toFixed(2) : '0.00'}</span>
                                         </div>
 
+                                        {/* Delivery if present */}
+                                        {mounted && getDeliveryFee() > 0 && (
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600 text-xs xs:text-sm">Delivery:</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">${getDeliveryFee().toFixed(2)}</span>
+                                            </div>
+                                        )}
+
                                         {/* Donation if present */}
                                         {parseFloat(formData.donation || 0) > 0 && (
                                             <div className="flex justify-between items-center mb-2">
@@ -736,7 +768,7 @@ export default function Checkout() {
                                         {formData.coverFees && (
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-gray-600 text-xs xs:text-sm">Transaction Fee (5%):</span>
-                                                <span className="text-gray-600 text-xs xs:text-sm">${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()).toFixed(2)}</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount() + getDeliveryFee()).toFixed(2)}</span>
                                             </div>
                                         )}
 
@@ -1035,9 +1067,9 @@ export default function Checkout() {
                                                 <div className="flex-1">
                                                     <p className="text-gray-text text-xs font-medium">
                                                         Help us avoid credit card fees?
-                                                        {(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()) > 0 && (
+                                                        {(total + parseFloat(formData.donation || 0) + getSponsorshipAmount() + getDeliveryFee()) > 0 && (
                                                             <span className="text-primary font-semibold">
-                                                                {" "}(+${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount()).toFixed(2)})
+                                                                {" "}(+${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount() + getDeliveryFee()).toFixed(2)})
                                                             </span>
                                                         )}
                                                     </p>

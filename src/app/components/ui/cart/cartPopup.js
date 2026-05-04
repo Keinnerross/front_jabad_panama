@@ -17,6 +17,12 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
     const [removingItemIndex, setRemovingItemIndex] = React.useState(null);
     const [isClearingCart, setIsClearingCart] = React.useState(false);
 
+    const deliveryFee = (() => {
+        const item = cartItems?.find(i => i.deliveryFee > 0);
+        return item ? parseFloat(item.deliveryFee) : 0;
+    })();
+    const cartTotal = total + deliveryFee;
+
     React.useEffect(() => {
         setIsClient(true);
     }, []);
@@ -170,10 +176,24 @@ export const CartPopup = ({ isOpen = false, handleModal }) => {
                 {/* Footer */}
                 {isClient && cartItems.length > 0 && (
                     <div className="p-4 sm:p-6 border-t border-gray-100 bg-white flex-shrink-0">
+                        {/* Subtotal */}
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm sm:text-base font-medium text-gray-600">Subtotal</span>
+                            <span className="text-sm sm:text-base font-medium text-gray-700">${total.toFixed(2)} USD</span>
+                        </div>
+
+                        {/* Delivery if present */}
+                        {deliveryFee > 0 && (
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm sm:text-base font-medium text-gray-600">Delivery</span>
+                                <span className="text-sm sm:text-base font-medium text-gray-700">${deliveryFee.toFixed(2)} USD</span>
+                            </div>
+                        )}
+
                         {/* Total */}
-                        <div className="flex justify-between items-center mb-4 sm:mb-6">
-                            <span className="text-base sm:text-lg font-medium text-gray-600">Subtotal</span>
-                            <span className="text-lg sm:text-xl font-bold text-gray-800">${total.toFixed(2)} USD</span>
+                        <div className="flex justify-between items-center mb-4 sm:mb-6 pt-2 border-t border-gray-100">
+                            <span className="text-base sm:text-lg font-bold text-gray-800">Total</span>
+                            <span className="text-lg sm:text-xl font-bold text-gray-800">${cartTotal.toFixed(2)} USD</span>
                         </div>
 
                         {/* Confirmation Dialog */}

@@ -19,6 +19,10 @@ import { CartButton } from "./CartButton";
 import { DonateButton } from "./DonateButton";
 import { MobileMenuButton } from "./MobileMenuButton";
 
+// Capa de overrides por instancia
+import { useOverrides } from "@/app/overrides/OverridesProvider";
+import { applyLinkOverrides } from "@/app/overrides/applyOverrides";
+
 export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsData, platformSettings }) => {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,6 +32,9 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
     const [isScrolled, setIsScrolled] = useState(false);
     const [headerBottom, setHeaderBottom] = useState(79);
     const headerRef = useRef(null);
+
+    // Overrides por instancia (para cambiar links del nav, ocultar items, etc.)
+    const { config: overridesConfig } = useOverrides();
 
     // Detectar scroll y calcular posición del header
     useEffect(() => {
@@ -79,6 +86,7 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
 
         customPagesData.forEach(page => {
             const customPage = {
+                id: `nav-page-${page.documentId}`,
                 name: page.title,
                 path: page.is_direct_link ? page.direct_link : `/single-page/${page.documentId}`,
                 icon: FaStarOfDavid,
@@ -115,28 +123,33 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
     const visibleMainNavPages = showDirectly ? mainNavPages : [];
     const morePages = showDirectly ? [] : mainNavPages;
 
-    // Crear elementos del menú en el orden correcto
+    // Crear elementos del menú en el orden correcto.
+    // Cada item/sub-item lleva un `id` estable: es el ANCLA para los overrides por
+    // instancia (cambiar link vía overrides.json, u ocultar vía data-cust). Ver
+    // src/app/overrides/README.md.
     const menuItems = [
         // 1. Chabad House
         {
+            id: "nav-chabad-house",
             name: "Chabad House",
             hasDropdown: true,
             subItems: [
-                { name: "About us", hasDropdown: false, path: "/about", icon: FaUsers },
-                { name: "Visitor Information", path: "/visitor-information", icon: FaHome },
+                { id: "nav-about", name: "About us", hasDropdown: false, path: "/about", icon: FaUsers },
+                { id: "nav-visitor-info", name: "Visitor Information", path: "/visitor-information", icon: FaHome },
                 ...customPages.chabadHouse
             ],
             path: "/about"
         },
         // 2. Visiting [Pais]
         {
+            id: "nav-visiting",
             name: `Visiting ${platformSettings?.pais || 'Chabad'}`,
             hasDropdown: true,
             subItems: [
-                { name: "Activities", path: "/activities", icon: FaMapMarkedAlt },
-                { name: "Accommodations", path: "/accommodations", icon: FaBed },
+                { id: "nav-activities", name: "Activities", path: "/activities", icon: FaMapMarkedAlt },
+                { id: "nav-accommodations", name: "Accommodations", path: "/accommodations", icon: FaBed },
                 ...(platformSettings?.habilitar_packages ? [
-                    { name: "Packages", path: "/packages", icon: FaGift }
+                    { id: "nav-packages", name: "Packages", path: "/packages", icon: FaGift }
                 ] : []),
                 ...customPages.visitingPanama
             ]
@@ -144,15 +157,17 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
 
         // 3. Kosher Food dropdown (siempre visible)
         {
+            id: "nav-kosher-food",
             name: "Kosher Food",
             hasDropdown: true,
             subItems: [
-                { name: "Shabbat Meals", path: "/shabbat-holidays", icon: FaStarOfDavid },
-                { name: "Restaurants", path: "/restaurants", icon: FaUtensils },
+                { id: "nav-shabbat-meals", name: "Shabbat Meals", path: "/shabbat-holidays", icon: FaStarOfDavid },
+                { id: "nav-restaurants", name: "Restaurants", path: "/restaurants", icon: FaUtensils },
 
                 // Los eventos custom (si existen)
                 ...(customEventsData && customEventsData.length > 0
                     ? customEventsData.map(event => ({
+                        id: `nav-event-${event.documentId || event.id}`,
                         name: event.name,
                         path: `/custom-event?event=${event.documentId || event.id}`,
                         icon: getEventIcon(event.icon) // Usa el icono dinámico basado en la propiedad 'icon' del evento
@@ -166,18 +181,24 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
         ...visibleMainNavPages,
         // 5. Dropdown "More" (si hay 2+ páginas)
         ...(morePages.length > 0 ? [{
+            id: "nav-more",
             name: "More",
             hasDropdown: true,
             subItems: morePages.map(page => ({
+                id: page.id,
                 name: page.name,
                 path: page.path,
                 icon: page.icon
             }))
         }] : []),
         // 6. About us y Contact al final
-        { name: "Contact", hasDropdown: false, path: "/contact", icon: MdContactMail },
+        { id: "nav-contact", name: "Contact", hasDropdown: false, path: "/contact", icon: MdContactMail },
 
     ];
+
+    // Aplica los overrides de links de la instancia (remapea `path` por `id`,
+    // también en sub-items). Si no hay overrides, devuelve la lista intacta.
+    const finalMenuItems = applyLinkOverrides(menuItems, overridesConfig?.links);
 
 
 
@@ -218,7 +239,7 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
                     <div className="flex justify-end gap-8">
                         {/* Desktop Navigation */}
                         <DesktopNavigation
-                            menuItems={menuItems}
+                            menuItems={finalMenuItems}
                             hoveredDropdown={hoveredDropdown}
                             setHoveredDropdown={setHoveredDropdown}
                             colorTheme={colorTheme}
@@ -244,7 +265,7 @@ export const HeaderClient = ({ data, colorTheme, customPagesData, customEventsDa
                 {/* Mobile Menu */}
                 <MobileNavigation
                     isMenuOpen={isMenuOpen}
-                    menuItems={menuItems}
+                    menuItems={finalMenuItems}
                     activeDropdown={activeDropdown}
                     toggleMobileDropdown={toggleMobileDropdown}
                     closeMobileMenu={closeMobileMenu}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { FaCheck } from 'react-icons/fa';
 import { useCart } from '../../../context/CartContext';
 import { getAssetPath } from '@/app/utils/assetPath';
-import { getInternalUrl, getApiUrl, getFullUrl } from '@/app/utils/urlHelper';
+import { getInternalUrl, getApiUrl } from '@/app/utils/urlHelper';
 
 function SuccessContent() {
     const router = useRouter();
@@ -75,8 +75,9 @@ function SuccessContent() {
             setCountdown((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    // Use window.location with full URL for redirect
-                    window.location.href = getFullUrl('/');
+                    // Same-origin redirect (relative) so it stays on the current
+                    // host (dev IP:port, prod domain, …), not a hardcoded base URL.
+                    window.location.href = getInternalUrl('/');
                     return 0;
                 }
                 return prev - 1;

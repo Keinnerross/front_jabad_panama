@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { getSiteConfig } from '../utils/siteConfigHelper.js';
+import { DEFAULT_TIMEZONE } from '../utils/instanceTime.js';
 
 // Crear transportador de email
 function createTransporter() {
@@ -409,6 +410,7 @@ function renderCustomerExtraHtml(customerExtra) {
 // Template para notificaciones de pedidos
 export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
   const { customer, items, total, orderId, metadata, structuredItems } = orderData;
+  const tz = orderData?.metadata?.timezone || DEFAULT_TIMEZONE;
 
   // Obtener información del evento de los items o metadata (prioridad a structuredItems > metadata)
   const eventInfo = {
@@ -444,7 +446,7 @@ export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
       </div>
       <div class="info-row">
         <span class="info-label">Date:</span>
-        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: tz })}</span>
       </div>
     </div>
 
@@ -516,6 +518,7 @@ export const orderNotificationTemplate = (orderData, siteConfig = {}) => {
 // Template para notificaciones de donaciones
 export const donationNotificationTemplate = (donationData, siteConfig = {}) => {
   const { customer, amount, frequency, donationType, metadata } = donationData;
+  const tz = donationData?.metadata?.timezone || DEFAULT_TIMEZONE;
   const siteTitle = siteConfig.site_title || 'Website';
   
   const content = `
@@ -536,7 +539,7 @@ export const donationNotificationTemplate = (donationData, siteConfig = {}) => {
       </div>` : ''}
       <div class="info-row">
         <span class="info-label">Date:</span>
-        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: tz })}</span>
       </div>
     </div>
 
@@ -559,6 +562,8 @@ export const donationNotificationTemplate = (donationData, siteConfig = {}) => {
 // Template para notificaciones de newsletter
 export const newsletterNotificationTemplate = (subscriberData, siteConfig = {}) => {
   const { email, timestamp } = subscriberData;
+  // No hay metadata de orden en este flujo; usar la TZ por defecto de la instancia.
+  const tz = subscriberData?.timezone || DEFAULT_TIMEZONE;
   
   const content = `
     <div class="info-section">
@@ -569,11 +574,11 @@ export const newsletterNotificationTemplate = (subscriberData, siteConfig = {}) 
       </div>
       <div class="info-row">
         <span class="info-label">Date:</span>
-        <span class="info-value">${new Date(timestamp).toLocaleDateString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date(timestamp).toLocaleDateString('en-US', { timeZone: tz })}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Time:</span>
-        <span class="info-value">${new Date(timestamp).toLocaleTimeString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date(timestamp).toLocaleTimeString('en-US', { timeZone: tz })}</span>
       </div>
     </div>
 
@@ -588,6 +593,8 @@ export const newsletterNotificationTemplate = (subscriberData, siteConfig = {}) 
 // Template para notificaciones de contacto
 export const contactNotificationTemplate = (contactData, siteConfig = {}) => {
   const { name, email, phone, city, message, timestamp } = contactData;
+  // No hay metadata de orden en este flujo; usar la TZ por defecto de la instancia.
+  const tz = contactData?.timezone || DEFAULT_TIMEZONE;
   
   const content = `
     <div class="info-section">
@@ -612,7 +619,7 @@ export const contactNotificationTemplate = (contactData, siteConfig = {}) => {
       </div>` : ''}
       <div class="info-row">
         <span class="info-label">Date:</span>
-        <span class="info-value">${new Date(timestamp).toLocaleDateString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date(timestamp).toLocaleDateString('en-US', { timeZone: tz })}</span>
       </div>
     </div>
 
@@ -941,6 +948,7 @@ const userConfirmationTemplate = (content, title, siteConfig = {}) => {
 // Template para confirmación de compra del usuario
 export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
   const { customer, items, total, orderId, metadata, structuredItems } = orderData;
+  const tz = orderData?.metadata?.timezone || DEFAULT_TIMEZONE;
   const siteTitle = siteConfig.site_title || 'Website';
 
   // Obtener información del evento (prioridad a structuredItems > metadata)
@@ -985,7 +993,7 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
       </div>
       <div class="info-row">
         <span class="info-label">Order Date:</span>
-        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: tz })}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Status:</span>
@@ -1047,6 +1055,7 @@ export const userOrderConfirmationTemplate = (orderData, siteConfig = {}) => {
 // Template para confirmación de donación del usuario
 export const userDonationConfirmationTemplate = (donationData, siteConfig = {}) => {
   const { amount, frequency, donationType, metadata } = donationData;
+  const tz = donationData?.metadata?.timezone || DEFAULT_TIMEZONE;
   const siteTitle = siteConfig.site_title || 'Chabad Panama City';
   
   // Obtener colores dinámicos basados en el tema
@@ -1075,7 +1084,7 @@ export const userDonationConfirmationTemplate = (donationData, siteConfig = {}) 
       </div>` : ''}
       <div class="info-row">
         <span class="info-label">Date:</span>
-        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: 'America/Panama' })}</span>
+        <span class="info-value">${new Date().toLocaleDateString('en-US', { timeZone: tz })}</span>
       </div>
     </div>
 

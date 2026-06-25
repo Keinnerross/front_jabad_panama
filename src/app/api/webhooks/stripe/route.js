@@ -91,7 +91,16 @@ async function handleCheckoutSessionCompleted(session) {
     
     // Usar fullSession en lugar de session para tener toda la información
     session = fullSession;
-    
+
+    // Filtro de origen (Hallazgo #5): la cuenta de Stripe es compartida (Payment Links
+    // ajenos, otras instancias). Solo procesamos eventos que traigan NUESTRA key de origen.
+    // Si no coincide → cortar en seco (responder 200 igual, para que Stripe no reintente).
+    const expectedOriginKey = process.env.SITE_ORIGIN_KEY || 'KWBsites';
+    if (session.metadata?.origin_key !== expectedOriginKey) {
+      console.warn(`⏭️ Ignorando checkout.session ${session.id}: origin_key "${session.metadata?.origin_key ?? '(ninguno)'}" ≠ "${expectedOriginKey}". No proviene de este sitio (Payment Link u otra instancia).`);
+      return;
+    }
+
     // Obtener email de notificación
     const notificationEmail = await getNotificationEmail();
     

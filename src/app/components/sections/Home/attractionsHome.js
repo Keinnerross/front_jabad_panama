@@ -63,7 +63,7 @@ export const AttractionsHome = ({ activitiesData, siteConfig, singleActivitiesAc
 
 
     return (
-        <section className="max-w-[1304px] mx-auto px-4 py-8 md:py-10 lg:py-12">
+        <section data-cust="home-attractions" className="max-w-[1304px] mx-auto px-4 py-8 md:py-10 lg:py-12">
             {/* Title */}
             <h2 className="text-center text-myBlack font-bold text-3xl md:text-4xl mb-12">
                 Activities in {siteConfig?.city || "City Name"}

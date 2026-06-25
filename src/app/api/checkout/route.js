@@ -1,6 +1,6 @@
 import { getPaymentProvider, getProviderName } from '../../services/payment/index.js';
 import { generateOrderId } from '../../utils/siteConfigHelper.js';
-import { getFullUrl } from '../../utils/urlHelper.js';
+import { getFullUrl, getFullUrlFromRequest } from '../../utils/urlHelper.js';
 import { storeSession } from '../../services/payment/session-store.js';
 
 // Test method para diagnosticar
@@ -52,8 +52,9 @@ export async function POST(request) {
     }
 
     if (!process.env.NEXT_PUBLIC_BASE_URL) {
-      console.error('NEXT_PUBLIC_BASE_URL is not configured');
-      return Response.json({ error: 'Base URL not configured' }, { status: 500 });
+      // No longer fatal: success/cancel URLs are derived from the request host
+      // (getFullUrlFromRequest). This env is only a last-resort fallback now.
+      console.warn('NEXT_PUBLIC_BASE_URL not configured — deriving redirect URLs from the request host.');
     }
 
     // Debug: Verificar variables de entorno
@@ -76,12 +77,17 @@ export async function POST(request) {
       customer_phone: customer.phone || '',
       orderId: orderId,
       items_count: line_items.length.toString(),
-      items_total: line_items.reduce((sum, item) => sum + (item.quantity || 0), 0).toString()
+      items_total: line_items.reduce((sum, item) => sum + (item.quantity || 0), 0).toString(),
+      // Marca de origen: la cuenta de Stripe es compartida; el webhook solo procesa
+      // eventos que traigan ESTA key (Hallazgo #5). Default 'KWBsites', override por
+      // .env SITE_ORIGIN_KEY (p. ej. una key única por sitio si comparten cuenta).
+      origin_key: process.env.SITE_ORIGIN_KEY || 'KWBsites'
     };
 
-    // Build success/cancel URLs
-    const successUrlBase = getFullUrl('/success');
-    const cancelUrl = getFullUrl('/');
+    // Build success/cancel URLs from the REAL request host (dev IP:port, prod
+    // domain, or proxy) so we don't depend on a static NEXT_PUBLIC_BASE_URL.
+    const successUrlBase = getFullUrlFromRequest(request, '/success');
+    const cancelUrl = getFullUrlFromRequest(request, '/');
 
     // For Stripe, use the {CHECKOUT_SESSION_ID} template; for PayArc, append order_id later
     const successUrl = providerName === 'stripe'

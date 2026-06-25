@@ -9,9 +9,14 @@ import { api } from "@/app/services/strapiApiFetch";
 import { imagesArrayValidation } from "@/app/utils/imagesArrayValidation";
 import { NewsletterForm } from "../ui/newsletter/NewsletterForm";
 import { getAssetPath } from "@/app/utils/assetPath";
+import { useOverrides } from "@/app/overrides/OverridesProvider";
+import { applyLinkOverrides } from "@/app/overrides/applyOverrides";
 
 
 export const Footer = ({ platformSettings }) => {
+  // Overrides por instancia (texto/links/ocultar)
+  const { getText, getLink, config: overridesConfig } = useOverrides();
+
   const [siteConfig, setSiteConfig] = useState(null);
   const [activitiesData, setActivitiesData] = useState([]);
 
@@ -83,39 +88,45 @@ export const Footer = ({ platformSettings }) => {
 
 
   // Datos de navegación que podrían venir de Strapi
+  // Cada columna y link lleva un `id` estable = ancla para overrides por instancia
+  // (cambiar texto/link u ocultar). Ver src/app/overrides/README.md.
   const menuSections = [
     {
+      id: "footer-col-main",
       title: "Main Pages",
       links: [
-        { name: "Home", path: "/" },
-        { name: "About us", path: "/about" },
-        { name: "Contact", path: "/contact" },
-        { name: "Donations", path: "/donation" }
+        { id: "footer-link-home", name: "Home", path: "/" },
+        { id: "footer-link-about", name: "About us", path: "/about" },
+        { id: "footer-link-contact", name: "Contact", path: "/contact" },
+        { id: "footer-link-donations", name: "Donations", path: "/donation" }
       ]
     },
     {
+      id: "footer-col-activities",
       title: "Activities",
       links: [
-        { name: "Restaurants", path: "/restaurants" },
-        { name: "Activities", path: "/activities" },
+        { id: "footer-link-restaurants", name: "Restaurants", path: "/restaurants" },
+        { id: "footer-link-activities", name: "Activities", path: "/activities" },
         ...(platformSettings?.habilitar_packages ? [
-          { name: "Packages", path: "/packages" }
+          { id: "footer-link-packages", name: "Packages", path: "/packages" }
         ] : []),
-        { name: "Accommodations", path: "/accommodations" }
+        { id: "footer-link-accommodations", name: "Accommodations", path: "/accommodations" }
       ]
     },
     {
+      id: "footer-col-kosher",
       title: "Kosher Food",
       links: [
         // Shabbat Box solo se muestra si isActiveShabbatBox es true
         ...(platformSettings?.isActiveShabbatBox ? [
-          { name: "Shabbat Box", path: "/single-shabbatbox" }
+          { id: "footer-link-shabbatbox", name: "Shabbat Box", path: "/single-shabbatbox" }
         ] : []),
-        { name: "Shabbat Meals", path: "/shabbat-holidays" }
+        { id: "footer-link-shabbat-meals", name: "Shabbat Meals", path: "/shabbat-holidays" }
         // Renderizar aquí los events
       ]
     },
     {
+      id: "footer-col-attractions",
       title: "Attractions",
       links: (displayedActivities || []).map((activity) => ({
         name: activity.title,
@@ -124,20 +135,28 @@ export const Footer = ({ platformSettings }) => {
       }))
     },
     {
+      id: "footer-col-help",
       title: "Help",
       links: [
-        { name: "Tourist Info", path: "/visitor-information" },
-        { name: "Whatsapp Group", path: siteConfig?.whatsapp_groups_url_footer || "/visitor-information" }
+        { id: "footer-link-tourist-info", name: "Tourist Info", path: "/visitor-information" },
+        { id: "footer-link-whatsapp-group", name: "Whatsapp Group", path: siteConfig?.whatsapp_groups_url_footer || "/visitor-information" }
       ]
     },
     {
+      id: "footer-col-legal",
       title: "Legal",
       links: [
-        { name: "Terms & Conditions", path: "/terms-conditions" },
-        { name: "Privacy Policy", path: "/privacy-policy" }
+        { id: "footer-link-terms", name: "Terms & Conditions", path: "/terms-conditions" },
+        { id: "footer-link-privacy", name: "Privacy Policy", path: "/privacy-policy" }
       ]
     }
   ];
+
+  // Aplica overrides de links por instancia (remapea `path` por `id`) en cada columna.
+  const finalSections = menuSections.map((section) => ({
+    ...section,
+    links: applyLinkOverrides(section.links, overridesConfig?.links),
+  }));
 
   return (
     <footer className="w-full bg-blueBackground pt-12 pb-6">
@@ -145,14 +164,14 @@ export const Footer = ({ platformSettings }) => {
         {/* Grid principal */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8 mb-12">
           {/* Columnas de menú */}
-          {(menuSections || []).map((section, index) => (
-            <div key={index} className="mb-6">
+          {(finalSections || []).map((section, index) => (
+            <div key={index} data-cust={section.id} className="mb-6">
               <h3 className="text-darkBlue font-bold text-lg mb-4">
-                {section.title}
+                {getText(section.id, section.title)}
               </h3>
               <ul className="space-y-3">
                 {(section.links || []).map((link, linkIndex) => (
-                  <li key={linkIndex}>
+                  <li key={linkIndex} data-cust={link.id}>
                     {section.title === "Attractions" ? (
                       <Link href={link.path} className="flex items-center gap-3 group">
                         <div className="w-10 h-10 relative rounded-md overflow-hidden flex-shrink-0">
@@ -161,9 +180,9 @@ export const Footer = ({ platformSettings }) => {
                         <span className="text-gray-text group-hover:text-primary transition-colors text-base">{link.name}</span>
                       </Link>
                     ) : link.name === "Whatsapp Group" ? (
-                      <Link href={link.path} target="_blank" rel="noopener noreferrer" className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</Link>
+                      <Link href={link.path} target="_blank" rel="noopener noreferrer" className="text-gray-text hover:text-primary transition-colors text-base">{getText(link.id, link.name)}</Link>
                     ) : (
-                      <Link href={link.path} className="text-gray-text hover:text-primary transition-colors text-base">{link.name}</Link>
+                      <Link href={link.path} className="text-gray-text hover:text-primary transition-colors text-base">{getText(link.id, link.name)}</Link>
                     )}
                   </li>
                 ))}
@@ -177,6 +196,7 @@ export const Footer = ({ platformSettings }) => {
           <div className="flex justify-center items-center gap-4 mt-8 mb-12">
             {siteConfig.social_media.link_facebook && (
               <a
+                data-cust="footer-social-facebook"
                 href={siteConfig.social_media.link_facebook}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -188,6 +208,7 @@ export const Footer = ({ platformSettings }) => {
             )}
             {siteConfig.social_media.link_instagram && (
               <a
+                data-cust="footer-social-instagram"
                 href={siteConfig.social_media.link_instagram}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -199,6 +220,7 @@ export const Footer = ({ platformSettings }) => {
             )}
             {siteConfig.social_media.link_whatsapp && (
               <a
+                data-cust="footer-social-whatsapp"
                 href={siteConfig.social_media.link_whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -217,15 +239,16 @@ export const Footer = ({ platformSettings }) => {
 
 
         {/* Derechos de autor */}
-        <p className="mt-4 text-center text-gray-500">
+        <p data-cust="footer-credit" className="mt-4 text-center text-gray-500">
           © {new Date().getFullYear()} | Powered by{" "}
-          <a 
-            href="https://kosherwithoutborders.com" 
-            target="_blank" 
+          <a
+            data-cust="footer-kwb"
+            href={getLink("footer-kwb", "https://kosherwithoutborders.com")}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-gray-600 hover:text-primary transition-colors underline"
           >
-            Kosher Without Borders
+            {getText("footer-kwb", "Kosher Without Borders")}
           </a> - v1.1.6
         </p>
       </div>

@@ -10,6 +10,8 @@ import { ForkIcon } from "@/app/components/ui/icons/forkIcon";
 import { getAssetPath } from "@/app/utils/assetPath";
 import { MarkdownContent } from '@/app/components/ui/common/markdownContent';
 import { getShabbatTimesForDate } from "@/app/services/shabbatTimesApi";
+import { getShabbatWindow } from "@/app/utils/shabbatWindow";
+import { formatISODateDMY } from "@/app/utils/instanceTime";
 // import { pricesRegistrationShabbat } from "@/app/data/shabbatData";
 
 // Lazy load the popup component for better performance
@@ -89,18 +91,32 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
         if (upcomingShabbatEvents && upcomingShabbatEvents.length > 0) {
             const hebcalEvent = upcomingShabbatEvents.find(event => event.id === eventId);
             if (hebcalEvent) {
-                // Calculate correct end date (Shabbat ends on Saturday)
-                const startDate = new Date(hebcalEvent.date);
-                const endDate = new Date(startDate);
-                endDate.setDate(endDate.getDate() + 1); // Add one day for Shabbat end
-                
+                // Derive the reservation window from the Hebcal date.
+                // Parashat: Hebcal's `date` is the SATURDAY, so the window is
+                // [Friday, Saturday] (Friday = Saturday - 1). Use the shared
+                // helper (timezone-independent) instead of the previous buggy
+                // logic that used the Saturday as the start and Saturday+1 as the
+                // end, shifting every order one day forward.
+                // Holidays keep their own boundaries (their `date` is the first
+                // day, they can be multi-day) — do NOT derive Friday/Saturday.
+                let startDate;
+                let endDate;
+                if (hebcalEvent.category === 'parashat') {
+                    const window = getShabbatWindow(hebcalEvent.date);
+                    startDate = window ? window.friday : hebcalEvent.date;
+                    endDate = window ? window.saturday : hebcalEvent.date;
+                } else {
+                    startDate = hebcalEvent.date;
+                    endDate = hebcalEvent.date;
+                }
+
                 // Convert Hebcal event to expected format
                 setSelectedShabbatData({
                     id: hebcalEvent.id,
                     name: hebcalEvent.title,
                     hebrew_name: hebcalEvent.hebrew,
-                    startDate: hebcalEvent.date,
-                    endDate: endDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+                    startDate: startDate,
+                    endDate: endDate, // YYYY-MM-DD
                     formattedDate: hebcalEvent.formattedDate,
                     displayDate: hebcalEvent.formattedDate, // Keep the original formatted date
                     type_of_event: 'shabbat or holiday',
@@ -243,7 +259,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                               (selectedShabbatData.fridayNight && selectedShabbatData.fridayNight.length > 0)) && (
                                                                 <div className="border border-gray-200 p-4 rounded-2xl">
                                                                     <h3 className="font-semibold text-myBlack text-base mb-2">
-                                                                        Friday night – Friday {new Date(selectedShabbatData.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                        Friday night – Friday {formatISODateDMY(selectedShabbatData.startDate)}
                                                                     </h3>
                                                                     <ul className="space-y-2">
                                                                         {shabbatTimes?.candleLighting && (
@@ -284,7 +300,7 @@ export default function SingleReservationsSection({ shabbatsAndHolidaysData, res
                                                               (selectedShabbatData.shabbatDay && selectedShabbatData.shabbatDay.length > 0)) && (
                                                                 <div className="border border-gray-200 p-4 rounded-2xl">
                                                                     <h3 className="font-semibold text-myBlack text-base mb-2">
-                                                                        Shabbat day – Saturday {new Date(selectedShabbatData.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                        Shabbat day – Saturday {formatISODateDMY(selectedShabbatData.endDate)}
                                                                     </h3>
                                                                     <ul className="space-y-2">
                                                                         {shabbatTimes?.haftarah && (

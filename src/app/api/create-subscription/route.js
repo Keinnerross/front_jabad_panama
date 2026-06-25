@@ -79,6 +79,8 @@ export async function POST(request) {
       customMonths: customMonths || '',
       subscriptionType: subscriptionConfig.type,
       originalAmount: amount.toString(),
+      // Marca de origen (Hallazgo #5): el webhook solo procesa eventos con esta key.
+      origin_key: process.env.SITE_ORIGIN_KEY || 'KWBsites',
     };
 
     // Debug: Ver las URLs que se van a enviar a Stripe

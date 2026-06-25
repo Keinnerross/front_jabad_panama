@@ -4,6 +4,7 @@
  */
 
 import { getDefaultLocation } from './geoLocationService';
+import { DEFAULT_TIMEZONE } from '../utils/instanceTime';
 
 const HEBCAL_BASE_URL = 'https://www.hebcal.com/shabbat';
 const DEFAULT_CANDLE_LIGHTING_OFFSET = 18; // minutes before sunset
@@ -71,7 +72,7 @@ export async function getShabbatTimes(locationConfig = null) {
  * @param {string} timezone - Timezone string for formatting times
  * @returns {Object} Object with candleLighting and havdalah times
  */
-function extractShabbatTimes(items, timezone = 'America/Panama') {
+function extractShabbatTimes(items, timezone = DEFAULT_TIMEZONE) {
     const currentDate = new Date();
     const nextFriday = getNextFriday(currentDate);
     const nextSaturday = getNextSaturday(currentDate);
@@ -163,7 +164,7 @@ function isSameDay(date1, date2) {
  * @param {string} timezone - Timezone string (e.g., 'America/Panama')
  * @returns {string} Formatted time string
  */
-function formatTime(dateString, timezone = 'America/Panama') {
+function formatTime(dateString, timezone = DEFAULT_TIMEZONE) {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
         hour: '2-digit',

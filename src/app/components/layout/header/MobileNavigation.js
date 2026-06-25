@@ -22,7 +22,7 @@ export const MobileNavigation = ({
             }`}>
             <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
                 {menuItems.map((item, index) => (
-                    <div key={index} className="border-b border-gray-100 pb-2 last:border-b-0">
+                    <div key={index} data-cust={item.id} className="border-b border-gray-100 pb-2 last:border-b-0">
                         {!item.hasDropdown ? (
                             item.isExternalLink ? (
                                 <a
@@ -74,6 +74,7 @@ export const MobileNavigation = ({
                                         return sub.isExternalLink ? (
                                             <a
                                                 key={i}
+                                                data-cust={sub.id}
                                                 href={sub.path}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
@@ -86,6 +87,7 @@ export const MobileNavigation = ({
                                         ) : (
                                             <Link
                                                 key={i}
+                                                data-cust={sub.id}
                                                 href={sub.path}
                                                 className="flex items-center py-2 text-sm text-gray-700 hover:text-primary font-medium rounded-md hover:bg-gray-50 px-2 transition-all duration-200 transform hover:translate-x-1"
                                                 onClick={closeMobileMenu} // Cerrar menú al hacer clic en sub-item

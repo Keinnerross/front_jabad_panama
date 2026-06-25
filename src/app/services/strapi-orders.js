@@ -5,6 +5,7 @@
  */
 
 import { handleNotificationError } from '../utils/siteConfigHelper.js';
+import { addDaysISO, getTodayISO, getNextFridayISO, DEFAULT_TIMEZONE } from '../utils/instanceTime.js';
 
 // Fix para certificados self-signed en desarrollo
 if (process.env.NODE_ENV === 'development') {
@@ -85,8 +86,12 @@ export async function saveDonationToStrapi(session, metadata, donationType) {
     });
     console.log('Metadata:', metadata);
     
-    // Generar ID único para la donación
-    const donationId = `DON-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // ID único y ESTABLE por pago: derivado del id de la sesión (cs_... en Stripe,
+    // orderId en PayArc), que es el mismo ante reintentos del webhook. Junto con
+    // `unique: true` en el schema, esto evita donaciones duplicadas si Stripe reenvía
+    // el mismo evento (idempotencia). Antes era `DON-${Date.now()}-${random}` → cambiaba
+    // en cada reintento y duplicaba.
+    const donationId = `DON-${session.id}`;
     
     // Determinar el tipo de donación y meses personalizados
     let finalDonationType = metadata.frequency || donationType || 'one-time';
@@ -259,21 +264,18 @@ export async function saveShabbatOrder(session, metadata, parsedItems) {
         startDateISO = start;
         endDateISO = end;
       } else if (start) {
-        // Si solo hay fecha de inicio (fecha simple), agregar un día para el fin
+        // Si solo hay fecha de inicio (fecha simple), agregar un día para el fin.
+        // Calendario puro, TZ-independiente (no usar new Date()+getDate).
         startDateISO = start;
-        const endDate = new Date(start);
-        endDate.setDate(endDate.getDate() + 1);
-        endDateISO = endDate.toISOString().split('T')[0];
+        endDateISO = addDaysISO(start, 1);
       }
     }
     
-    // Fallback a fecha actual si no hay fecha válida
+    // Fallback a "hoy" en la TZ de la instancia (no la del servidor). Punto 2.
     if (!startDateISO) {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      startDateISO = today.toISOString().split('T')[0];
-      endDateISO = tomorrow.toISOString().split('T')[0];
+      const tz = metadata.timezone || DEFAULT_TIMEZONE;
+      startDateISO = getTodayISO(tz);
+      endDateISO = addDaysISO(startDateISO, 1);
     }
     
     // Construir notas con info de Korea
@@ -397,21 +399,18 @@ export async function saveShabbatBoxOrder(session, metadata, parsedItems) {
           shabbatStart = start;
           shabbatEnd = end;
         } else if (start) {
-          // Si solo hay fecha de inicio (fecha simple), agregar un día para el fin
+          // Si solo hay fecha de inicio (fecha simple), agregar un día para el fin.
+          // Calendario puro, TZ-independiente.
           shabbatStart = start;
-          const endDate = new Date(start);
-          endDate.setDate(endDate.getDate() + 1);
-          shabbatEnd = endDate.toISOString().split('T')[0];
+          shabbatEnd = addDaysISO(start, 1);
         }
       }
       
-      // Fallback a fecha actual si no hay fecha válida
+      // Fallback a "hoy" en la TZ de la instancia (no la del servidor). Punto 2.
       if (!shabbatStart) {
-        const startDate = new Date();
-        const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 1);
-        shabbatStart = startDate.toISOString().split('T')[0];
-        shabbatEnd = endDate.toISOString().split('T')[0];
+        const tz = metadata.timezone || DEFAULT_TIMEZONE;
+        shabbatStart = getTodayISO(tz);
+        shabbatEnd = addDaysISO(shabbatStart, 1);
       }
     }
     
@@ -616,18 +615,15 @@ export async function saveOrderWithStructuredItems(session, metadata, structured
           startDateISO = start;
           endDateISO = end;
         } else if (start) {
+          // Calendario puro, TZ-independiente.
           startDateISO = start;
-          const endDate = new Date(start);
-          endDate.setDate(endDate.getDate() + 1);
-          endDateISO = endDate.toISOString().split('T')[0];
+          endDateISO = addDaysISO(start, 1);
         }
       }
       if (!startDateISO) {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        startDateISO = today.toISOString().split('T')[0];
-        endDateISO = tomorrow.toISOString().split('T')[0];
+        const tz = metadata.timezone || DEFAULT_TIMEZONE;
+        startDateISO = getTodayISO(tz);
+        endDateISO = addDaysISO(startDateISO, 1);
       }
 
       // Build notes from customer info
@@ -724,11 +720,9 @@ export async function saveOrderWithStructuredItems(session, metadata, structured
           shabbatEnd = structuredItems.event.shabbatHolidayEnd;
         }
         if (!shabbatStart) {
-          const today = new Date();
-          const tomorrow = new Date(today);
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          shabbatStart = today.toISOString().split('T')[0];
-          shabbatEnd = tomorrow.toISOString().split('T')[0];
+          const tz = metadata.timezone || DEFAULT_TIMEZONE;
+          shabbatStart = getTodayISO(tz);
+          shabbatEnd = addDaysISO(shabbatStart, 1);
         }
       }
 
@@ -1124,12 +1118,10 @@ export function extractDateRange(dateString) {
   if (simpleMatch) {
     const [_, dayStr, monthStr, yearStr] = simpleMatch;
     const startDate = `${yearStr}-${monthStr.padStart(2, '0')}-${dayStr.padStart(2, '0')}`;
-    
-    // Para fecha simple, end es el día siguiente
-    const date = new Date(parseInt(yearStr), parseInt(monthStr) - 1, parseInt(dayStr));
-    date.setDate(date.getDate() + 1);
-    const endDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    
+
+    // Para fecha simple, end es el día siguiente. Calendario puro, TZ-independiente.
+    const endDate = addDaysISO(startDate, 1);
+
     console.log('📅 Single date converted to range:', { start: startDate, end: endDate });
     return { start: startDate, end: endDate };
   }
@@ -1159,12 +1151,9 @@ export function extractServiceDate(metadata, parsedItems) {
     return itemWithDate.shabbatDate; // Mantener formato original del texto
   }
 
-  // Default a próximo viernes en formato DD/MM/YYYY
-  const nextFriday = new Date();
-  nextFriday.setDate(nextFriday.getDate() + (5 - nextFriday.getDay()));
-  const day = nextFriday.getDate().toString().padStart(2, '0');
-  const month = (nextFriday.getMonth() + 1).toString().padStart(2, '0');
-  const year = nextFriday.getFullYear();
+  // Default a próximo viernes (en la TZ de la instancia) en formato DD/MM/YYYY. Punto 2.
+  const tz = metadata.timezone || DEFAULT_TIMEZONE;
+  const [year, month, day] = getNextFridayISO(tz).split('-');
   return `${day}/${month}/${year}`;
 }
 

@@ -7,6 +7,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { getAssetPath } from "@/app/utils/assetPath";
 import { getFullUrl } from "@/app/utils/urlHelper";
 import { api } from "@/app/services/strapiApiFetch";
+import { getInstanceTimezone } from "@/app/utils/instanceTime";
+import { useOverrides } from "@/app/overrides/OverridesProvider";
 
 export default function Checkout() {
     const { cartItems, total } = useCart();
@@ -56,6 +58,12 @@ export default function Checkout() {
 
     // Get country name from platform settings for dynamic labels
     const countryName = platformSettings?.pais || 'the country';
+
+    // Overrides por instancia: campos del checkout a ocultar. Un campo oculto NO se
+    // renderiza ni se valida (se manda vacío, da igual). formId = "checkout".
+    const { getHiddenFields } = useOverrides();
+    const hiddenCheckoutFields = getHiddenFields('checkout');
+    const isFieldHidden = (name) => hiddenCheckoutFields.includes(name);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -178,34 +186,38 @@ export default function Checkout() {
         const newErrors = {};
 
         // Campos requeridos para notificaciones completas
-        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (nationalityEnabled && !koreaInputsEnabled && !formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
-        if (!koreaInputsEnabled && !formData.phone.trim()) newErrors.phone = 'Phone number is required';
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Email is invalid';
+        if (!isFieldHidden('firstName') && !formData.firstName.trim()) newErrors.firstName = 'First name is required';
+        if (!isFieldHidden('lastName') && !formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+        if (nationalityEnabled && !koreaInputsEnabled && !isFieldHidden('nationality') && !formData.nationality.trim()) newErrors.nationality = 'Nationality is required';
+        if (!koreaInputsEnabled && !isFieldHidden('phone') && !formData.phone.trim()) newErrors.phone = 'Phone number is required';
+        if (!isFieldHidden('email')) {
+            if (!formData.email.trim()) {
+                newErrors.email = 'Email is required';
+            } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+                newErrors.email = 'Email is invalid';
+            }
         }
         if (!koreaInputsEnabled) {
-            if (!formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
-            if (!formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
+            if (!isFieldHidden('agreeTerms') && !formData.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
+            if (!isFieldHidden('agreeUpdates') && !formData.agreeUpdates) newErrors.agreeUpdates = 'You must agree to receive updates';
         }
 
         // Korea fields validation (only when korea_inputs is enabled)
         if (koreaInputsEnabled) {
-            if (!formData.koreaConnection) {
-                newErrors.koreaConnection = 'Please select your connection to Korea';
-            } else if (formData.koreaConnection === 'other' && !formData.koreaConnectionOther.trim()) {
-                newErrors.koreaConnectionOther = 'Please specify your connection to Korea';
+            if (!isFieldHidden('koreaConnection')) {
+                if (!formData.koreaConnection) {
+                    newErrors.koreaConnection = 'Please select your connection to Korea';
+                } else if (formData.koreaConnection === 'other' && !formData.koreaConnectionOther.trim()) {
+                    newErrors.koreaConnectionOther = 'Please specify your connection to Korea';
+                }
             }
-            if (!formData.judaismConnection || formData.judaismConnection.length === 0) {
+            if (!isFieldHidden('judaismConnection') && (!formData.judaismConnection || formData.judaismConnection.length === 0)) {
                 newErrors.judaismConnection = 'Please select your connection to Judaism';
             }
-            if (hasDeliveryItem && !formData.localPhone.trim()) {
+            if (hasDeliveryItem && !isFieldHidden('localPhone') && !formData.localPhone.trim()) {
                 newErrors.localPhone = `Local phone number in ${countryName} is required`;
             }
-            if (formData.sponsorship === 'other' && (!formData.sponsorshipOther || parseFloat(formData.sponsorshipOther) <= 0)) {
+            if (!isFieldHidden('sponsorship') && formData.sponsorship === 'other' && (!formData.sponsorshipOther || parseFloat(formData.sponsorshipOther) <= 0)) {
                 newErrors.sponsorshipOther = 'Please enter a valid sponsorship amount';
             }
         }
@@ -380,6 +392,10 @@ export default function Checkout() {
                 metadata: {
                     orderType: isCustomEvent ? 'customEvent' : orderType,  // Asegurar que sea 'customEvent' si es un custom event
                     isCustomEvent: isCustomEvent,  // Siempre incluir el flag explícitamente
+                    // TZ de la instancia (derivada de ciudad/país). Viaja con la orden a Stripe
+                    // y PayArc para que el server (now-fallbacks + stamps de email) no dependa
+                    // de la hora del servidor. (Punto 2)
+                    timezone: getInstanceTimezone(platformSettings),
                     agreeTerms: formData.agreeTerms,
                     agreeUpdates: formData.agreeUpdates,
                     // Si es Shabbat/Holiday tradicional, preparar datos resumidos
@@ -799,6 +815,7 @@ export default function Checkout() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4 md:gap-6">
                                     {/* First Name */}
+                                    {!isFieldHidden('firstName') && (
                                     <div>
                                         <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">First Name *</label>
                                         <input
@@ -811,8 +828,10 @@ export default function Checkout() {
                                         />
                                         {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
                                     </div>
+                                    )}
 
                                     {/* Last Name */}
+                                    {!isFieldHidden('lastName') && (
                                     <div>
                                         <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Last Name *</label>
                                         <input
@@ -825,9 +844,10 @@ export default function Checkout() {
                                         />
                                         {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
                                     </div>
+                                    )}
 
                                     {/* Nationality */}
-                                    {nationalityEnabled && (
+                                    {nationalityEnabled && !isFieldHidden('nationality') && (
                                     <div>
                                         <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Nationality{!koreaInputsEnabled && ' *'}</label>
                                         <input
@@ -843,6 +863,7 @@ export default function Checkout() {
                                     )}
 
                                     {/* Phone Number */}
+                                    {!isFieldHidden('phone') && (
                                     <div className={!nationalityEnabled ? 'sm:col-span-2' : ''}>
                                         <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Phone Number{!koreaInputsEnabled && ' *'}</label>
                                         <input
@@ -855,6 +876,7 @@ export default function Checkout() {
                                         />
                                         {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                                     </div>
+                                    )}
                                 </div>
                             </fieldset>
 
@@ -862,6 +884,7 @@ export default function Checkout() {
                             {koreaInputsEnabled && (
                                 <>
                                     {/* My Connection to Country Section */}
+                                    {!isFieldHidden('koreaConnection') && (
                                     <fieldset>
                                         <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">{`My Connection to ${countryName} *`}</legend>
                                         <div className="space-y-3">
@@ -892,9 +915,10 @@ export default function Checkout() {
                                         </div>
                                         {errors.koreaConnection && <p className="text-red-500 text-xs mt-2">{errors.koreaConnection}</p>}
                                     </fieldset>
+                                    )}
 
                                     {/* Local Phone Number in Country - only shown for delivery items */}
-                                    {hasDeliveryItem && (
+                                    {hasDeliveryItem && !isFieldHidden('localPhone') && (
                                     <fieldset>
                                         <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">{`Local Phone Number in ${countryName} *`}</legend>
                                         <p className="text-gray-500 text-xs mb-2">{`For deliveries, we must have a local phone number in ${countryName}. You may use your hotel's number.`}</p>
@@ -911,6 +935,7 @@ export default function Checkout() {
                                     )}
 
                                     {/* My Connection to Judaism Section - Multiselect Dropdown */}
+                                    {!isFieldHidden('judaismConnection') && (
                                     <fieldset ref={judaismDropdownRef} className="relative">
                                         <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">My Connection to Judaism *</legend>
                                         <p className="text-gray-500 text-xs mb-2">Select all that apply</p>
@@ -965,8 +990,10 @@ export default function Checkout() {
                                         )}
                                         {errors.judaismConnection && <p className="text-red-500 text-xs mt-2">{errors.judaismConnection}</p>}
                                     </fieldset>
+                                    )}
 
                                     {/* Sponsorship Options Section */}
+                                    {!isFieldHidden('sponsorship') && (
                                     <fieldset>
                                         <legend className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Sponsorship Options</legend>
                                         <p className="text-gray-500 text-xs mb-4">Support our community by sponsoring a meal or event (optional)</p>
@@ -1010,6 +1037,7 @@ export default function Checkout() {
                                             )}
                                         </div>
                                     </fieldset>
+                                    )}
                                 </>
                             )}
 
@@ -1019,6 +1047,7 @@ export default function Checkout() {
 
                                 <div className="space-y-3 xs:space-y-4 sm:space-y-6">
                                     {/* Email Address */}
+                                    {!isFieldHidden('email') && (
                                     <div>
                                         <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Email Address *</label>
                                         <input
@@ -1031,6 +1060,7 @@ export default function Checkout() {
                                         />
                                         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                     </div>
+                                    )}
 
                                     {/* Donation Information */}
                                     <div className="pt-3 xs:pt-4 sm:pt-6 border-t border-gray-200">
@@ -1042,6 +1072,7 @@ export default function Checkout() {
                                             </p>
                                         </div>
 
+                                        {!isFieldHidden('donation') && (<>
                                         <label className="block text-xs font-semibold text-darkBlue mb-1.5 xs:mb-2">Your Donation (Optional)</label>
                                         <input
                                             type="number"
@@ -1053,8 +1084,10 @@ export default function Checkout() {
                                             step="0.01"
                                             className="w-full bg-white border border-gray-200 rounded-lg px-2.5 xs:px-3 sm:px-4 h-9 xs:h-10 sm:h-11 text-gray-text font-medium text-xs xs:text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                                         />
+                                        </>)}
 
                                         {/* Transaction Fee Checkbox */}
+                                        {!isFieldHidden('coverFees') && (
                                         <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                             <div className="flex items-start gap-3">
                                                 <input
@@ -1079,6 +1112,7 @@ export default function Checkout() {
                                                 </div>
                                             </div>
                                         </div>
+                                        )}
                                     </div>
                                 </div>
                             </fieldset>
@@ -1089,6 +1123,7 @@ export default function Checkout() {
                                 <legend className="sr-only">Terms and Conditions</legend>
                                 <div className="space-y-2.5 xs:space-y-3 sm:space-y-4">
                                     {/* Terms Checkbox */}
+                                    {!isFieldHidden('agreeTerms') && (
                                     <div className="flex items-start gap-2.5 xs:gap-3">
                                         <input
                                             type="checkbox"
@@ -1106,8 +1141,10 @@ export default function Checkout() {
                                             {errors.agreeTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeTerms}</p>}
                                         </div>
                                     </div>
+                                    )}
 
                                     {/* Newsletter Checkbox */}
+                                    {!isFieldHidden('agreeUpdates') && (
                                     <div className="flex items-start gap-2.5 xs:gap-3">
                                         <input
                                             type="checkbox"
@@ -1123,6 +1160,7 @@ export default function Checkout() {
                                             {errors.agreeUpdates && <p className="text-red-500 text-xs mt-1">{errors.agreeUpdates}</p>}
                                         </div>
                                     </div>
+                                    )}
                                 </div>
                             </fieldset>
                             )}

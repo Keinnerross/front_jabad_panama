@@ -83,7 +83,7 @@ export const PackagesHome = ({ href, packagesData }) => {
 
 
   return (
-    <div className="w-full bg-blueBackground">
+    <div data-cust="home-packages" className="w-full bg-blueBackground">
       {/* Hero Section */}
       <section className={`max-w-7xl mx-auto px-6 md:px-0 py-8 md:py-10 lg:py-12`}>
         <div className="flex flex-col lg:flex-row gap-12 ">

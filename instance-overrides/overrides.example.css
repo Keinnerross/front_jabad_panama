@@ -1,0 +1,28 @@
+/* =========================================================================
+   PLANTILLA DE EJEMPLO — overrides.css por instancia
+   =========================================================================
+   Copiá este archivo como 'overrides.css' (gitignoreado) y editá libre.
+   Se inyecta en TODAS las páginas, al final, así que pisa los estilos del core.
+
+   ¿Cuándo usar el CSS y cuándo el JSON (overrides.json)?
+   - CSS  -> ajustes VISUALES: ocultar, colores, tamaños, espaciados, bordes.
+   - JSON -> CONTENIDO/lógica: cambiar texto, cambiar links, quitar campos de form.
+
+   Anclá por el atributo estable data-cust="<id>" (no por clases de Tailwind,
+   que cambian en cada build). Para ocultar también podés usar el array "hide"
+   del overrides.json, que hace lo mismo de forma declarativa.
+   ========================================================================= */
+
+/* --- Ejemplo 1: ocultar un elemento anclado ---
+[data-cust="hero-cta"] { display: none !important; }
+*/
+
+/* --- Ejemplo 2: ocultar una sección por una etiqueta real ---
+footer { display: none !important; }
+*/
+
+/* --- Ejemplo 3: reestilar (cambiar un color de acento) ---
+[data-cust="hero-cta"] { background-color: #059669 !important; }
+*/
+
+/* Escribí tus reglas debajo: */

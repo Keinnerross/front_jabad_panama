@@ -1,0 +1,22 @@
+{
+  "_README": "PLANTILLA DE EJEMPLO. Copiá este archivo como 'overrides.json' (que está gitignoreado) y dejá SOLO lo que esta instancia necesite. Las claves que empiezan con '_' son comentarios y el sistema las IGNORA. OJO: los ids de ejemplo (hero-cta, footer-kwb, nav-contact, checkout...) solo funcionan si ese elemento ya fue ANCLADO en el código. Catálogo de ids anclados: ../src/app/overrides/README.md",
+
+  "_1_hide": "OCULTAR elementos. Lista de ids de ancla (data-cust). Se ocultan vía CSS antes de pintar (sin parpadeo). Ej: sacar el botón del hero de la home.",
+  "hide": ["hero-cta"],
+
+  "_2_text": "CAMBIAR TEXTO. Objeto { id: 'texto nuevo' }. Reemplaza el texto por defecto del elemento anclado. Ej: cambiar el 'Kosher Without Borders' del footer.",
+  "text": {
+    "footer-kwb": "Hecho por la comunidad"
+  },
+
+  "_3_links": "CAMBIAR LINK/URL. Objeto { id: 'url nueva' }. Reemplaza el destino (href) del link anclado. Ej: el link 'Contact' del nav apunta a un WhatsApp; o un link externo tipo Playa Venao.",
+  "links": {
+    "nav-contact": "https://wa.me/5070000000",
+    "footer-kwb": "https://mi-sitio.com"
+  },
+
+  "_4_hiddenFields": "QUITAR CAMPOS DE UN FORM. Objeto { idDelForm: ['campo', ...] }. El campo NO se muestra, NO valida y NO se envía (no basta con ocultarlo por CSS). Ej: sacar el campo teléfono del checkout.",
+  "hiddenFields": {
+    "checkout": ["phone"]
+  }
+}

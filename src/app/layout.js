@@ -7,6 +7,8 @@ import { NotificationContainer } from "./components/ui/notifications/Notificatio
 import { ClientProvidersWrapper } from "./components/providers/NotificationWrapper";
 import { api } from "./services/strapiApiFetch";
 import { getAvailableEvents } from "./utils/eventAvailability";
+import { loadOverrides } from "./overrides/loadOverrides";
+import { OverridesProvider } from "./overrides/OverridesProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -74,9 +76,17 @@ export default async function RootLayout({ children }) {
     platformSettings = { habilitar_packages: true }; // Default to true if error
   }
 
+  // Capa de overrides por instancia (carpeta montada vía OVERRIDES_PATH).
+  // Si no está montada, devuelve vacío y la web usa sus defaults.
+  const { config: overridesConfig, css: overridesCss } = await loadOverrides();
+
   return (
     <html lang="en" data-theme={siteConfig?.color_theme || 'blue'}>
       <body className={`${inter.variable} font-sans antialiased`}>
+        {overridesCss ? (
+          <style id="kwb-overrides" dangerouslySetInnerHTML={{ __html: overridesCss }} />
+        ) : null}
+        <OverridesProvider config={overridesConfig}>
         <ClientProvidersWrapper>
           <TopBar 
             platformSettings={platformSettings}
@@ -91,6 +101,7 @@ export default async function RootLayout({ children }) {
           <Footer activitiesData={[]} platformSettings={platformSettings} />
           <NotificationContainer />
         </ClientProvidersWrapper>
+        </OverridesProvider>
       </body>
     </html>
   );

@@ -14,6 +14,7 @@ export const DesktopNavigation = ({
             {menuItems.map((item, index) => (
                 <div
                     key={index}
+                    data-cust={item.id}
                     className="relative group"
                     onMouseEnter={() => setHoveredDropdown(index)}
                     onMouseLeave={() => setHoveredDropdown(null)}
@@ -73,6 +74,7 @@ export const DesktopNavigation = ({
                                         return sub.isExternalLink ? (
                                             <a
                                                 key={i}
+                                                data-cust={sub.id}
                                                 href={sub.path}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
@@ -84,6 +86,7 @@ export const DesktopNavigation = ({
                                         ) : (
                                             <Link
                                                 key={i}
+                                                data-cust={sub.id}
                                                 href={sub.path}
                                                 className="flex items-center px-4 py-2 text-gray-600 hover:text-primary cursor-pointer font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:translate-x-1"
                                             >

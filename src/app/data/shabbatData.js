@@ -6,19 +6,6 @@ export const getSortedShabbats = () => {
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 };
 
-// Utility function to format display date
-export const formatShabbatDate = (shabbat) => {
-    const start = new Date(shabbat.startDate);
-    const end = new Date(shabbat.endDate);
-
-    const startDay = start.getDate().toString().padStart(2, '0');
-    const endDay = end.getDate().toString().padStart(2, '0');
-    const month = (start.getMonth() + 1).toString().padStart(2, '0');
-    const year = start.getFullYear();
-
-    return `${startDay}-${endDay}/${month}/${year}`;
-};
-
 export const shabbatAndHolidays = [
     {
         name: "Parashat Chukat",

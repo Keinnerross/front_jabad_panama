@@ -36,6 +36,8 @@ const KNOWN_CITIES = {
     'bogota,colombia': { geonameid: 3688689, timezone: 'America/Bogota' },
     'medellin,colombia': { geonameid: 3674962, timezone: 'America/Bogota' },
     'cali,colombia': { geonameid: 3687925, timezone: 'America/Bogota' },
+    'san andres,colombia': { geonameid: 3670218, timezone: 'America/Bogota' },
+    'san andrés,colombia': { geonameid: 3670218, timezone: 'America/Bogota' },
 
     // Chile
     'santiago,chile': { geonameid: 3871336, timezone: 'America/Santiago' },

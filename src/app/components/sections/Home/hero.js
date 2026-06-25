@@ -37,7 +37,7 @@ export const Hero = ({ siteConfig }) => {
 
 
     return (
-        <section className="relative h-[65vh] w-full overflow-hidden">
+        <section data-cust="home-hero" className="relative h-[65vh] w-full overflow-hidden">
             {/* Imagen de fondo con animación sutil */}
             <div className="w-full h-full absolute inset-0 bg-[url('#')] bg-cover bg-center">
 

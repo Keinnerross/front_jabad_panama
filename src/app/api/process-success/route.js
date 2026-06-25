@@ -8,6 +8,7 @@ import { getPaymentProvider } from '../../services/payment/index.js';
 import { getNotificationEmail, validateEmailConfig, logNotification, handleNotificationError } from '../../utils/siteConfigHelper.js';
 import { sendDonationNotification, sendOrderNotification, sendUserOrderConfirmation, sendUserDonationConfirmation } from '../../services/emailService.js';
 import { formatCustomerInfo, parseLineItems, calculateTotal } from '../../utils/siteConfigHelper.js';
+import { getNextFridayISO, DEFAULT_TIMEZONE } from '../../utils/instanceTime.js';
 import {
   saveDonationToStrapi,
   saveShabbatOrder,
@@ -387,12 +388,9 @@ function extractServiceDate(metadata, parsedItems) {
     return itemWithDate.shabbatDate; // Mantener formato original del texto
   }
 
-  // Default a próximo viernes en formato DD/MM/YYYY
-  const nextFriday = new Date();
-  nextFriday.setDate(nextFriday.getDate() + (5 - nextFriday.getDay()));
-  const day = nextFriday.getDate().toString().padStart(2, '0');
-  const month = (nextFriday.getMonth() + 1).toString().padStart(2, '0');
-  const year = nextFriday.getFullYear();
+  // Default a próximo viernes (en la TZ de la instancia) en formato DD/MM/YYYY. Punto 2.
+  const tz = metadata.timezone || DEFAULT_TIMEZONE;
+  const [year, month, day] = getNextFridayISO(tz).split('-');
   return `${day}/${month}/${year}`;
 }
 

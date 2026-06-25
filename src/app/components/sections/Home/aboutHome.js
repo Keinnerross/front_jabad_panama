@@ -53,7 +53,7 @@ export const AboutHome = ({ aboutData }) => {
 
 
   return (
-    <div id="aboutHero" className="w-full bg-blueBackground py-8 md:py-10 lg:py-12">
+    <div id="aboutHero" data-cust="home-about" className="w-full bg-blueBackground py-8 md:py-10 lg:py-12">
       <div className={`max-w-7xl mx-auto px-4`}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="order-1 lg:order-none">

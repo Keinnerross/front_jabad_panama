@@ -45,3 +45,8 @@ ecosystem.config.js
 
 # nginx config
 nginx-boquete-website.conf
+
+# instance-specific visual overrides (no se rastrean; sobreviven a git pull).
+# La plantilla overrides.example.json SÍ se versiona como referencia.
+/instance-overrides/overrides.json
+/instance-overrides/overrides.css

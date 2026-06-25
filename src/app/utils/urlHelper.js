@@ -74,6 +74,45 @@ export function getFullUrl(path) {
 }
 
 /**
+ * Build a full URL from the INCOMING REQUEST's real host, not a static env var.
+ *
+ * Used for payment redirect URLs (success/cancel) so they point back to wherever
+ * the user actually is: in dev that's the server IP:port (e.g.
+ * http://212.85.22.57:1376), in prod the public domain — no need to flip
+ * NEXT_PUBLIC_BASE_URL between environments.
+ *
+ * Source preference:
+ *   1. `Origin` header (the browser sends it on the checkout POST; most accurate).
+ *   2. `x-forwarded-host` / `host` + inferred protocol (proxy-aware).
+ *   3. Fallback to the static env-based getFullUrl() if no host is present.
+ *
+ * @param {Request} request - the route handler Request.
+ * @param {string} path - path to append (e.g. '/success').
+ * @returns {string} absolute URL with basePath.
+ */
+export function getFullUrlFromRequest(request, path) {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+  const origin = request?.headers?.get?.('origin');
+  if (origin) {
+    return `${origin}${basePath}${cleanPath}`;
+  }
+
+  const host = request?.headers?.get?.('x-forwarded-host') || request?.headers?.get?.('host');
+  if (host) {
+    // localhost / raw IPv4 default to http; real domains to https. A proxy's
+    // x-forwarded-proto wins when present.
+    const isLocalOrIp = /^(localhost|127\.|\d{1,3}(\.\d{1,3}){3})(:|$)/.test(host);
+    const proto = request.headers.get('x-forwarded-proto') || (isLocalOrIp ? 'http' : 'https');
+    return `${proto}://${host}${basePath}${cleanPath}`;
+  }
+
+  // No host info (e.g. non-browser call): fall back to the static env base.
+  return getFullUrl(cleanPath);
+}
+
+/**
  * Create internal app URL with basePath (for client-side routing)
  * @param {string} path - The internal path
  * @returns {string} Path with basePath prefix
@@ -81,17 +120,30 @@ export function getFullUrl(path) {
 export function getInternalUrl(path) {
   const basePath = getBasePath();
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  
+
   return `${basePath}${cleanPath}`;
 }
 
 /**
- * Get API endpoint URL with proper basePath
+ * Get API endpoint URL with proper basePath.
+ *
+ * In the BROWSER, API calls must be same-origin: return a root-relative path
+ * (`${basePath}${endpoint}`) so the fetch hits whatever host the user is on
+ * (dev IP:port, prod domain, …) instead of a hardcoded NEXT_PUBLIC_BASE_URL.
+ * On the SERVER, an absolute URL is required, so fall back to getFullUrl().
+ *
  * @param {string} endpoint - API endpoint path (e.g., '/api/checkout')
- * @returns {string} Full API URL
+ * @returns {string} Same-origin path (client) or full URL (server)
  */
 export function getApiUrl(endpoint) {
-  return getFullUrl(endpoint);
+  const cleanPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (typeof window !== 'undefined') {
+    const basePath = getBasePath();
+    return `${basePath}${cleanPath}`;
+  }
+
+  return getFullUrl(cleanPath);
 }
 
 // For debugging - can be removed in production

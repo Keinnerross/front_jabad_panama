@@ -11,7 +11,7 @@ export const Announces = ({ announcesData = [] }) => {
 
     return (
 
-        <div className="w-full bg-blueBackground">
+        <div data-cust="home-announces" className="w-full bg-blueBackground">
 
 
             <div className="max-w-7xl mx-auto space-y-12 px-4 sm:px-6 lg:px-4 py-8 md:py-10 lg:py-12">

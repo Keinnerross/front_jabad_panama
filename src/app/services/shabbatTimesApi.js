@@ -4,7 +4,8 @@
  */
 
 import { getDefaultLocation } from './geoLocationService';
-import { DEFAULT_TIMEZONE } from '../utils/instanceTime';
+import { DEFAULT_TIMEZONE, getTodayISO } from '../utils/instanceTime';
+import { getShabbatWindow } from '../utils/shabbatWindow';
 
 const HEBCAL_BASE_URL = 'https://www.hebcal.com/shabbat';
 const DEFAULT_CANDLE_LIGHTING_OFFSET = 18; // minutes before sunset
@@ -239,8 +240,21 @@ export async function getUpcomingShabbatEvents(locationConfig = null) {
         // Process and format events
         const events = processShabbatEvents(data.items);
 
+        // Requisito del rabino: una parashat no admite reservas el viernes ni el
+        // sábado (su propio fin de semana); el último día es el jueves. Por eso,
+        // al llegar el viernes la quitamos de la lista (del select) y deja de ser
+        // reservable. "Hoy" se calcula en la zona de la instancia (getTodayISO),
+        // nunca con el reloj del navegador ni del servidor. Solo afecta a parashot.
+        const tz = location.timezone || DEFAULT_TIMEZONE;
+        const todayISO = getTodayISO(tz);
+        const visibleEvents = events.filter((ev) => {
+            if (ev.category !== 'parashat') return true;
+            const window = getShabbatWindow(ev.date);
+            return !window || todayISO < window.friday; // oculta viernes y sábado
+        });
+
         return {
-            events,
+            events: visibleEvents,
             isReferential
         };
 

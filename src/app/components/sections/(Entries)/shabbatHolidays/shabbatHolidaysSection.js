@@ -1,5 +1,5 @@
 "use client"
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ButtonTheme } from "@/app/components/ui/common/buttonTheme";
 import { NotificationPopup } from "@/app/components/ui/common/notificationPopup";
@@ -19,6 +19,22 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, upcomingShab
     const [selectedEvent, setSelectedEvent] = useState('');
     const [showPopup, setShowPopup] = useState(false);
     const [isClient, setIsClient] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Cerrar el dropdown al hacer click fuera (no se cierra con scroll, a
+    // diferencia del <select> nativo).
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedEventLabel = upcomingShabbatEvents?.find((ev) => ev.id === selectedEvent)?.displayName;
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -259,23 +275,83 @@ export default function ShabbatHolidaysSection({ aboutPicturesData, upcomingShab
                             {/* Shabbat and Holiday Selector from Hebcal */}
                             {isClient && (
                                 <div className="mb-8">
-                                    <div className="relative cursor-pointer">
-                                        <select
-                                            className="w-full p-4 border border-gray-text rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer"
-                                            value={selectedEvent}
-                                            onChange={(e) => setSelectedEvent(e.target.value)}
+                                    <div className="relative" ref={dropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsDropdownOpen((open) => !open)}
+                                            className={`w-full flex items-center justify-between gap-2 p-4 border rounded-lg text-left transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDropdownOpen ? 'border-primary ring-2 ring-primary' : 'border-gray-text'}`}
                                         >
-                                            <option value="">Select a Shabbat or Holiday</option>
-                                            {upcomingShabbatEvents.map((event) => (
-                                                <option key={event.id} value={event.id}>
-                                                    {event.displayName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute top-1 inset-y-0 right-4 flex items-center pointer-events-none cursor-pointer bg-white h-[90%]">
-                                            <MdKeyboardArrowDown className="text-xl" />
-                                        </div>
+                                            <span className={selectedEventLabel ? 'text-myBlack' : 'text-gray-text'}>
+                                                {selectedEventLabel || 'Select a Shabbat or Holiday'}
+                                            </span>
+                                            <MdKeyboardArrowDown className={`text-xl shrink-0 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {/* Desktop (>= md): dropdown anclado */}
+                                        {isDropdownOpen && (
+                                            <ul className="hidden md:block absolute z-20 mt-2 w-full max-h-72 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+                                                {upcomingShabbatEvents.map((event) => {
+                                                    const isSelected = event.id === selectedEvent;
+                                                    return (
+                                                        <li key={event.id}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setSelectedEvent(event.id);
+                                                                    setIsDropdownOpen(false);
+                                                                }}
+                                                                className={`w-full text-left px-4 py-3 cursor-pointer transition-colors hover:bg-blueBackground ${isSelected ? 'bg-blueBackground text-primary font-medium' : 'text-myBlack'}`}
+                                                            >
+                                                                {event.displayName}
+                                                            </button>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        )}
                                     </div>
+
+                                    {/* Mobile (< md): bottom-sheet */}
+                                    {isDropdownOpen && (
+                                        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+                                            <div
+                                                className="absolute inset-0 bg-black/50"
+                                                onClick={() => setIsDropdownOpen(false)}
+                                            />
+                                            <div className="relative bg-white rounded-t-2xl max-h-[80vh] flex flex-col animate-[slideUpFade_0.25s_ease-out]">
+                                                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                                                    <span className="text-lg font-semibold text-darkBlue">Select a Shabbat or Holiday</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsDropdownOpen(false)}
+                                                        className="text-gray-text text-2xl leading-none cursor-pointer px-2"
+                                                        aria-label="Close"
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                </div>
+                                                <ul className="overflow-y-auto py-1">
+                                                    {upcomingShabbatEvents.map((event) => {
+                                                        const isSelected = event.id === selectedEvent;
+                                                        return (
+                                                            <li key={event.id}>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedEvent(event.id);
+                                                                        setIsDropdownOpen(false);
+                                                                    }}
+                                                                    className={`w-full text-left px-5 py-4 cursor-pointer transition-colors hover:bg-blueBackground ${isSelected ? 'bg-blueBackground text-primary font-medium' : 'text-myBlack'}`}
+                                                                >
+                                                                    {event.displayName}
+                                                                </button>
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

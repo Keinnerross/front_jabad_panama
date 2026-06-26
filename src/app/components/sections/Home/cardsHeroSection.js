@@ -1,6 +1,7 @@
 'use client'
 
 import { CardHero } from "../(cards)/cardHero"
+import { useOverrides } from "@/app/overrides/OverridesProvider"
 import { FoodIcon } from "@/app/components/ui/icons/FoodIcon"
 import { TouristInfoIcon } from "@/app/components/ui/icons/touristInfoIcon"
 import { ShabbatIcon } from "@/app/components/ui/icons/shabbatIcon"
@@ -9,6 +10,8 @@ import { AccommodationsIcon } from "@/app/components/ui/icons/AccommodationsIcon
 import { ActivitiesIcon } from "@/app/components/ui/icons/activitiesIcon"
 
 export const CardsHeroSection = ({ platformSettings }) => {
+    const { config: overridesConfig } = useOverrides();
+    const linkFor = (id, fallback) => overridesConfig?.links?.[id] ?? fallback;
     const baseCards = [
         {
             title: "Kosher Food",
@@ -82,7 +85,7 @@ export const CardsHeroSection = ({ platformSettings }) => {
                                 animation: `slideUpFadeCard 0.6s ease-out ${0.05 * i + 1}s forwards`
                             }}
                         >
-                            <CardHero data={dataCard} />
+                            <CardHero data={{ ...dataCard, href: linkFor(dataCard.cust, dataCard.href) }} />
                         </div>
                     );
                 })}

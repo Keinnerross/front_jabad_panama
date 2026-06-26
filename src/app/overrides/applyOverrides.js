@@ -33,7 +33,15 @@ export function getHiddenFields(config, formId) {
  */
 export function applyLinkOverrides(items, linksMap) {
   if (!Array.isArray(items) || !linksMap) return items;
-  return items.map((item) =>
-    item?.id && linksMap[item.id] ? { ...item, path: linksMap[item.id] } : item
-  );
+  return items.map((item) => {
+    let next = item;
+    // Remapea el link de este item por su `id`.
+    if (item?.id && linksMap[item.id]) next = { ...next, path: linksMap[item.id] };
+    // Recursa en sub-items (ej. links dentro de un dropdown del nav o secciones
+    // del footer). Sin esto, un id anidado como `nav-shabbat-meals` no se aplica.
+    if (Array.isArray(item?.subItems)) {
+      next = { ...next, subItems: applyLinkOverrides(item.subItems, linksMap) };
+    }
+    return next;
+  });
 }

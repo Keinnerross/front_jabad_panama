@@ -249,7 +249,7 @@ export const Footer = ({ platformSettings }) => {
             className="text-gray-600 hover:text-primary transition-colors underline"
           >
             {getText("footer-kwb", "Kosher Without Borders")}
-          </a> - v1.1.6
+          </a> - v1.2.1
         </p>
       </div>
     </footer>

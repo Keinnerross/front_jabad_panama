@@ -14,16 +14,19 @@ export const CardsHeroSection = ({ platformSettings }) => {
             title: "Kosher Food",
             icon: <FoodIcon size={40} />,
             href: "/restaurants",
+            cust: "home-card-food",
         },
         {
             title: "Tourist Info",
             icon: <TouristInfoIcon size={40} />,
             href: "/visitor-information",
+            cust: "home-card-tourist",
         },
         {
             title: "Shabbat/Holiday Meals",
             icon: <ShabbatIcon size={40} />,
             href: "/shabbat-holidays",
+            cust: "home-card-shabbat",
         },
     ];
 
@@ -33,6 +36,7 @@ export const CardsHeroSection = ({ platformSettings }) => {
             title: "All-Inclusive Packages",
             icon: <PackagesIcon size={40} />,
             href: "/packages",
+            cust: "home-card-packages",
         });
     }
 
@@ -42,11 +46,13 @@ export const CardsHeroSection = ({ platformSettings }) => {
             title: "Accommodations",
             icon: <AccommodationsIcon size={40} />,
             href: "/accommodations",
+            cust: "home-card-accommodations",
         },
         {
             title: "Activities",
             icon: <ActivitiesIcon size={40} />,
             href: "/activities",
+            cust: "home-card-activities",
         }
     );
 
@@ -70,6 +76,7 @@ export const CardsHeroSection = ({ platformSettings }) => {
                     return (
                         <div
                             key={i}
+                            data-cust={dataCard.cust}
                             className={cardClasses}
                             style={{
                                 animation: `slideUpFadeCard 0.6s ease-out ${0.05 * i + 1}s forwards`

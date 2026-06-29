@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useMemo } from 'react';
-import { getText, getLink, isHidden, getHiddenFields } from './applyOverrides';
+import { getText, getLink, isHidden, getHiddenFields, getCheckoutFeePercent } from './applyOverrides';
 
 /**
  * Provider de la capa de overrides. El `config` (overrides.json) se lee en el
@@ -18,6 +18,7 @@ const OverridesContext = createContext({
   getLink: (_id, fallback) => fallback,
   isHidden: () => false,
   getHiddenFields: () => [],
+  getCheckoutFeePercent: (defaultValue) => defaultValue ?? 5,
 });
 
 export function OverridesProvider({ config = {}, children }) {
@@ -28,6 +29,7 @@ export function OverridesProvider({ config = {}, children }) {
       getLink: (id, fallback) => getLink(config, id, fallback),
       isHidden: (id) => isHidden(config, id),
       getHiddenFields: (formId) => getHiddenFields(config, formId),
+      getCheckoutFeePercent: (defaultValue) => getCheckoutFeePercent(config, defaultValue),
     }),
     [config]
   );

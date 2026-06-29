@@ -18,5 +18,8 @@
   "_4_hiddenFields": "QUITAR CAMPOS DE UN FORM. Objeto { idDelForm: ['campo', ...] }. El campo NO se muestra, NO valida y NO se envía (no basta con ocultarlo por CSS). Ej: sacar el campo teléfono del checkout.",
   "hiddenFields": {
     "checkout": ["phone"]
-  }
+  },
+
+  "_5_checkoutFeePercent": "TARIFA DE PROCESAMIENTO del checkout. Número puro (sin %). Ej: 5 → 5%, 2 → 2%, 3.5 → 3.5%. Si no se define, el sistema usa 5% por defecto. Acepta punto o coma como decimal (3.5 y 3,5 son equivalentes).",
+  "checkoutFeePercent": 5
 }

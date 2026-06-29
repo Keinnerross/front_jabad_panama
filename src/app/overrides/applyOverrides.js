@@ -27,6 +27,19 @@ export function getHiddenFields(config, formId) {
 }
 
 /**
+ * Porcentaje de tarifa de procesamiento del checkout.
+ * Lee `checkoutFeePercent` de overrides.json (número, ej: 5 → 5%).
+ * Si no está definido cae al defaultValue (5).
+ */
+export function getCheckoutFeePercent(config, defaultValue = 5) {
+  const val = config?.checkoutFeePercent;
+  // Acepta tanto "3.5" como "3,5" como separador decimal
+  const normalized = typeof val === 'string' ? val.replace(',', '.') : val;
+  const parsed = parseFloat(normalized);
+  return !isNaN(parsed) && parsed >= 0 ? parsed : defaultValue;
+}
+
+/**
  * Para listas DATA-DRIVEN (ej. items del nav): remapea `path` por el `id`
  * estable del item. No muta el original. Items sin `id` o sin override pasan
  * intactos.

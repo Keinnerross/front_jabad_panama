@@ -61,7 +61,7 @@ export default function Checkout() {
 
     // Overrides por instancia: campos del checkout a ocultar. Un campo oculto NO se
     // renderiza ni se valida (se manda vacío, da igual). formId = "checkout".
-    const { getHiddenFields } = useOverrides();
+    const { getHiddenFields, getCheckoutFeePercent } = useOverrides();
     const hiddenCheckoutFields = getHiddenFields('checkout');
     const isFieldHidden = (name) => hiddenCheckoutFields.includes(name);
 
@@ -123,9 +123,10 @@ export default function Checkout() {
         return option ? option.amount : 0;
     };
 
-    // Calculate transaction fee (5%)
+    const feePercent = getCheckoutFeePercent(5);
+
     const calculateTransactionFee = (subtotal) => {
-        return subtotal * 0.05;
+        return subtotal * (feePercent / 100);
     };
 
     // Delivery fee is stored per-item but applies to the order as a whole — take from the first item that has one
@@ -526,7 +527,7 @@ export default function Checkout() {
                         currency: 'usd',
                         product_data: {
                             name: 'Transaction Fee',
-                            description: 'Processing fee to help cover payment costs (5%)'
+                            description: `Processing fee to help cover payment costs (${feePercent}%)`
                         },
                         unit_amount: Math.round(transactionFee * 100),
                     },
@@ -783,7 +784,7 @@ export default function Checkout() {
                                         {/* Transaction Fee if selected */}
                                         {formData.coverFees && (
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="text-gray-600 text-xs xs:text-sm">Transaction Fee (5%):</span>
+                                                <span className="text-gray-600 text-xs xs:text-sm">Transaction Fee ({feePercent}%):</span>
                                                 <span className="text-gray-600 text-xs xs:text-sm">${calculateTransactionFee(total + parseFloat(formData.donation || 0) + getSponsorshipAmount() + getDeliveryFee()).toFixed(2)}</span>
                                             </div>
                                         )}
@@ -1107,7 +1108,7 @@ export default function Checkout() {
                                                         )}
                                                     </p>
                                                     <p className="text-gray-500 text-xs mt-1">
-                                                        Add 5% to cover processing fees so 100% of your payment goes to Chabad
+                                                        Add {feePercent}% to cover processing fees so 100% of your payment goes to Chabad
                                                     </p>
                                                 </div>
                                             </div>
